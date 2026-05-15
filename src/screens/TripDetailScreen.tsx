@@ -9,7 +9,7 @@
  * Sections, top to bottom (per spec § Trip Detail):
  *   - In-screen header: back button + page chrome
  *   - Trip name (inline-editable) + packed progress
- *   - Duration stepper (prominent)
+ *   - Duration stepper
  *   - Trip-type chip grid (multi-select; recomposes items)
  *   - Packers row (horizontal scroll + add)
  *   - Items grouped by category
@@ -38,8 +38,14 @@ import {
   ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, Plus, ChevronLeft, ChevronDown } from 'lucide-react-native';
+import { Check, Plus, ChevronLeft, ChevronDown, GripVertical } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import {
+  NestedReorderableList,
+  ScrollViewContainer,
+  useReorderableDrag,
+  type ReorderableListReorderEvent,
+} from 'react-native-reorderable-list';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   TRIP_TYPES,
@@ -236,6 +242,26 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     );
   }, [updateTrip, tripId]);
 
+  const handleReorderInCategory = useCallback(
+    (category: Category, evt: ReorderableListReorderEvent) => {
+      const { from, to } = evt;
+      if (from === to) return;
+      updateTrip(tripId, (t) => {
+        const inCategory = t.items.filter((it) => it.category === category);
+        const others = t.items.filter((it) => it.category !== category);
+        const moved = [...inCategory];
+        const [picked] = moved.splice(from, 1);
+        if (picked) moved.splice(to, 0, picked);
+        // groupByCategory renders by CATEGORY_ORDER, so absolute position in
+        // items[] doesn't matter visually as long as same-category items keep
+        // their new relative order. Append moved-category items after others.
+        return { ...t, items: [...others, ...moved] };
+      });
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    },
+    [updateTrip, tripId]
+  );
+
   const handleAddPacker = useCallback(() => {
     if (Platform.OS === 'ios' && (Alert as { prompt?: typeof Alert.prompt }).prompt) {
       Alert.prompt(
@@ -407,7 +433,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           </Pressable>
         </View>
 
-        <ScrollView
+        <ScrollViewContainer
           style={s.scroll}
           contentContainerStyle={s.scrollContent}
           keyboardShouldPersistTaps="handled"
@@ -436,7 +462,6 @@ export default function TripDetailScreen({ route, navigation }: Props) {
                 onChange={handleDurationChange}
                 min={MIN_DURATION_DAYS}
                 max={MAX_DURATION_DAYS}
-                prominent
                 label="Trip duration in days"
               />
               <Text style={s.durationUnit}>{trip.duration === 1 ? 'day' : 'days'}</Text>
@@ -497,71 +522,30 @@ export default function TripDetailScreen({ route, navigation }: Props) {
               groupedItems.map(({ category, items }) => (
                 <View key={category} style={s.categoryBlock}>
                   <Text style={s.categoryHeading}>{category}</Text>
-                  {items.map((it) => (
-                    <View key={it.id} style={s.itemRow}>
-                      <Pressable
-                        onPress={() => handlePackedToggle(it.id)}
-                        hitSlop={8}
-                        style={({ pressed }) => [
-                          s.checkbox,
-                          it.packed && s.checkboxOn,
-                          pressed && s.checkboxPressed,
-                        ]}
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: it.packed }}
-                        accessibilityLabel={`${it.name} packed`}
-                      >
-                        {it.packed && <Check size={16} color={c.fgOnAccent} strokeWidth={2.25} />}
-                      </Pressable>
-
-                      <View style={s.itemNameWrap}>
-                        {editingItemId === it.id ? (
-                          <TextInput
-                            value={editingName}
-                            onChangeText={setEditingName}
-                            onBlur={handleFinishEditItem}
-                            onSubmitEditing={handleFinishEditItem}
-                            autoFocus
-                            selectTextOnFocus
-                            returnKeyType="done"
-                            style={s.itemNameEditing}
-                            accessibilityLabel="Rename item"
-                          />
-                        ) : (
-                          <Pressable
-                            onPress={() => handleStartEditItem(it)}
-                            accessibilityRole="button"
-                            accessibilityLabel={`${it.name}, tap to rename`}
-                          >
-                            <Text
-                              style={[s.itemName, it.packed && s.itemNamePacked]}
-                              numberOfLines={1}
-                            >
-                              {it.name}
-                            </Text>
-                          </Pressable>
-                        )}
-                      </View>
-
-                      <Stepper
-                        value={it.quantity}
-                        onChange={(n) => handleQuantityChange(it.id, n)}
-                        onRemove={() => handleItemRemove(it.id)}
-                        min={1}
-                        label={`Quantity of ${it.name}`}
+                  <NestedReorderableList
+                    data={items}
+                    keyExtractor={(it) => it.id}
+                    scrollable={false}
+                    onReorder={(evt) => handleReorderInCategory(category, evt)}
+                    renderItem={({ item: it }) => (
+                      <ItemRow
+                        item={it}
+                        isSoloPacker={isSoloPacker}
+                        isEditing={editingItemId === it.id}
+                        editingName={editingName}
+                        assigneeLabel={assigneeLabel(it.assigneeId)}
+                        onPackedToggle={() => handlePackedToggle(it.id)}
+                        onQuantityChange={(n) => handleQuantityChange(it.id, n)}
+                        onItemRemove={() => handleItemRemove(it.id)}
+                        onAssigneeCycle={() => handleAssigneeCycle(it.id)}
+                        onStartEdit={() => handleStartEditItem(it)}
+                        onChangeEditingName={setEditingName}
+                        onFinishEdit={handleFinishEditItem}
+                        c={c}
+                        s={s}
                       />
-
-                      {/* Assignee pill — hidden in solo-packer case (no UI noise) */}
-                      {!isSoloPacker && (
-                        <Pill
-                          label={assigneeLabel(it.assigneeId)}
-                          active={it.assigneeId !== SHARED_ASSIGNEE}
-                          onPress={() => handleAssigneeCycle(it.id)}
-                          accessibilityLabel={`Assigned to ${assigneeLabel(it.assigneeId)}, tap to change`}
-                        />
-                      )}
-                    </View>
-                  ))}
+                    )}
+                  />
                 </View>
               ))
             )}
@@ -571,7 +555,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
               + paddingTop + paddingBottom incl. safe-area inset). Generous to
               avoid the just-added item being hidden under the bar. */}
           <View style={{ height: target.min + space.s7 + insets.bottom }} />
-        </ScrollView>
+        </ScrollViewContainer>
 
         {/* ---------- Undo snackbar (above the sticky add-item bar) ---------- */}
         {recentlyRemoved && (
@@ -805,6 +789,13 @@ function makeStyles(c: Colors) {
       borderBottomWidth: 1,
       borderBottomColor: c.appAccent,
     },
+    dragHandle: {
+      width: 24,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: -space.s2,
+    },
 
     // ---------- Sticky add-item bar ----------
     addItemBar: {
@@ -902,4 +893,127 @@ function makeStyles(c: Colors) {
       textDecorationLine: 'underline',
     },
   });
+}
+
+// ============================================================================
+// ItemRow — extracted as a real component so we can use the
+// useReorderableDrag hook (must be inside a React component, not a render
+// function). Defined outside TripDetailScreen so React doesn't unmount/
+// remount on every parent render.
+// ============================================================================
+
+type ItemRowStyles = ReturnType<typeof makeStyles>;
+
+interface ItemRowProps {
+  item: TripItem;
+  isSoloPacker: boolean;
+  isEditing: boolean;
+  editingName: string;
+  assigneeLabel: string;
+  onPackedToggle: () => void;
+  onQuantityChange: (n: number) => void;
+  onItemRemove: () => void;
+  onAssigneeCycle: () => void;
+  onStartEdit: () => void;
+  onChangeEditingName: (text: string) => void;
+  onFinishEdit: () => void;
+  c: Colors;
+  s: ItemRowStyles;
+}
+
+function ItemRow({
+  item,
+  isSoloPacker,
+  isEditing,
+  editingName,
+  assigneeLabel,
+  onPackedToggle,
+  onQuantityChange,
+  onItemRemove,
+  onAssigneeCycle,
+  onStartEdit,
+  onChangeEditingName,
+  onFinishEdit,
+  c,
+  s,
+}: ItemRowProps) {
+  const drag = useReorderableDrag();
+
+  return (
+    <View style={s.itemRow}>
+      {/* Drag handle — long-press to start drag. Subtle styling so it doesn't
+          compete with the +/- and packed checkbox affordances. */}
+      <Pressable
+        onLongPress={drag}
+        delayLongPress={250}
+        style={s.dragHandle}
+        accessibilityLabel={`Reorder ${item.name}`}
+        hitSlop={6}
+      >
+        <GripVertical size={16} color={c.fgSubtle} strokeWidth={1.5} />
+      </Pressable>
+
+      <Pressable
+        onPress={onPackedToggle}
+        hitSlop={8}
+        style={({ pressed }) => [
+          s.checkbox,
+          item.packed && s.checkboxOn,
+          pressed && s.checkboxPressed,
+        ]}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: item.packed }}
+        accessibilityLabel={`${item.name} packed`}
+      >
+        {item.packed && <Check size={16} color={c.fgOnAccent} strokeWidth={2.25} />}
+      </Pressable>
+
+      <View style={s.itemNameWrap}>
+        {isEditing ? (
+          <TextInput
+            value={editingName}
+            onChangeText={onChangeEditingName}
+            onBlur={onFinishEdit}
+            onSubmitEditing={onFinishEdit}
+            autoFocus
+            selectTextOnFocus
+            returnKeyType="done"
+            style={s.itemNameEditing}
+            accessibilityLabel="Rename item"
+          />
+        ) : (
+          <Pressable
+            onPress={onStartEdit}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name}, tap to rename`}
+          >
+            <Text
+              style={[s.itemName, item.packed && s.itemNamePacked]}
+              numberOfLines={1}
+            >
+              {item.name}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+
+      <Stepper
+        value={item.quantity}
+        onChange={onQuantityChange}
+        onRemove={onItemRemove}
+        min={1}
+        label={`Quantity of ${item.name}`}
+      />
+
+      {/* Assignee pill — hidden in solo-packer case (no UI noise) */}
+      {!isSoloPacker && (
+        <Pill
+          label={assigneeLabel}
+          active={item.assigneeId !== SHARED_ASSIGNEE}
+          onPress={onAssigneeCycle}
+          accessibilityLabel={`Assigned to ${assigneeLabel}, tap to change`}
+        />
+      )}
+    </View>
+  );
 }

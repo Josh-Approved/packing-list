@@ -10,13 +10,21 @@
  * the store's hydrated flag (so we don't render an empty "no trips yet"
  * state for half a second when there are actually trips on disk).
  *
- * GestureHandlerRootView is intentionally omitted; native-stack runs without
- * it and we have no swipe gestures yet. Add when drag-reorder lands at spec
- * build step 6.
+ * GestureHandlerRootView wraps everything — required by react-native-
+ * reorderable-list (drag-reorder for items, spec build step 6) and any other
+ * gesture-based library we add later.
  */
 
 import React, { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, LogBox } from 'react-native';
+
+// Silence a benign dev warning: react-native-reorderable-list nests its own
+// VirtualizedList inside its ScrollViewContainer, which RN's blanket warning
+// flags even though the lib is designed for it. Production builds hide all
+// LogBox warnings; this just removes the noise during development.
+LogBox.ignoreLogs([
+  'VirtualizedLists should never be nested',
+]);
 import {
   NavigationContainer,
   DefaultTheme,
@@ -26,6 +34,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAppFonts, lightColors, darkColors, typography } from './src/theme';
 import { useTripsStore } from './src/store/trips';
 import TripsHomeScreen from './src/screens/TripsHomeScreen';
@@ -75,17 +84,19 @@ export default function App() {
   if (!fontsLoaded || !hydrated) return null;
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={buildNavTheme(isDark)}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
-        <Stack.Navigator
-          initialRouteName="TripsHome"
-          screenOptions={{ headerShown: false }}
-        >
-          <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
-          <Stack.Screen name="TripDetail" component={TripDetailScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <NavigationContainer theme={buildNavTheme(isDark)}>
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+          <Stack.Navigator
+            initialRouteName="TripsHome"
+            screenOptions={{ headerShown: false }}
+          >
+            <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
+            <Stack.Screen name="TripDetail" component={TripDetailScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

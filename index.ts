@@ -1,3 +1,8 @@
+// react-native-gesture-handler requires being imported at the very top of the
+// entry file, before anything else. Required by react-native-reorderable-list
+// (drag-reorder for items) and other gesture-based libs.
+import 'react-native-gesture-handler';
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';
