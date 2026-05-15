@@ -15,3 +15,7 @@ export {
 export type { Colors } from './colors';
 
 export { space, radius, target, motion } from './tokens';
+
+// Compatibility aliases for the synced canonical ReviewModal — see
+// ./reviewModalCompat.ts. Not for general use; prefer `typography` etc.
+export { fontFamily, type, hairline } from './reviewModalCompat';

@@ -63,6 +63,9 @@ import {
   type Packer,
 } from '../data/trip';
 import { useTripsStore } from '../store/trips';
+import { recordSuccessfulCompletion } from '../storage/reviewPrompt';
+import ReviewModal from '../components/ReviewModal';
+import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
 import { useTheme, typography, space, target, radius } from '../theme';
@@ -122,6 +125,32 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   useEffect(() => () => {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
   }, []);
+
+  // Review prompt. The genuine "satisfying success" for a packing app is
+  // finishing a trip's list — every item checked off. We fire only on the
+  // transition into fully-packed, never on first paint (opening an already-
+  // complete trip from the list isn't a fresh accomplishment) and never on
+  // an empty list. recordSuccessfulCompletion() owns the count/threshold/cap.
+  const [showReview, setShowReview] = useState(false);
+  const wasFullyPackedRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (!trip) return;
+    const total = trip.items.length;
+    const packed = trip.items.filter((i) => i.packed).length;
+    const fullyPacked = total > 0 && packed === total;
+    if (wasFullyPackedRef.current === null) {
+      wasFullyPackedRef.current = fullyPacked; // seed; don't fire on mount
+      return;
+    }
+    if (fullyPacked && !wasFullyPackedRef.current) {
+      wasFullyPackedRef.current = true;
+      recordSuccessfulCompletion().then((should) => {
+        if (should) setShowReview(true);
+      });
+    } else if (!fullyPacked) {
+      wasFullyPackedRef.current = false;
+    }
+  }, [trip]);
 
   // ---------- Handlers ----------
 
@@ -675,6 +704,14 @@ export default function TripDetailScreen({ route, navigation }: Props) {
       >
         <Check size={24} color={c.fgOnInk} strokeWidth={2} />
       </Pressable>
+
+      <ReviewModal
+        visible={showReview}
+        onDismiss={() => setShowReview(false)}
+        appName="Packing List"
+        iosAppStoreId={APP_STORE_ID}
+        androidPackageName={ANDROID_PACKAGE}
+      />
     </SafeAreaView>
   );
 }
