@@ -55,6 +55,12 @@ const light = {
   appAccent,
   appAccentBg,
 
+  // Ink primary-button pair. Consumed by the synced canonical ReviewModal
+  // (whose theme API predates this app's fg/fgOnInk split). Ink-on-paper:
+  // dark button, paper label.
+  inkButton: '#0E0E0F',
+  inkButtonText: '#FAFAF7',
+
   // Focus ring
   focusRing: '#1F8A4C',
 };
@@ -91,6 +97,11 @@ const dark = {
   // Per-app accent in dark — same hue, slightly tinted bg
   appAccent,
   appAccentBg: 'rgba(181, 141, 63, 0.15)',
+
+  // Ink primary-button pair in dark — inverts to a paper button with dark
+  // label so it stays high-contrast against the dark background.
+  inkButton: '#F5F5F2',
+  inkButtonText: '#0B0B0C',
 
   focusRing: '#2EA866',
 };

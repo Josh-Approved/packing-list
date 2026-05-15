@@ -20,6 +20,10 @@ export const PRIVACY_URL =
 // mirrors the eas.json ascAppId stub; fill both before the first TestFlight.
 export const APP_STORE_ID = 'REPLACE_BEFORE_TESTFLIGHT';
 
+// Android applicationId — matches app.json android.package. Used by the
+// canonical ReviewModal for the Play Store write-review deep link.
+export const ANDROID_PACKAGE = 'com.joshapproved.packinglist';
+
 const APP_NAME = 'Packing List';
 
 /** "1.0.0 (1)" — read from the running bundle, never hardcoded. */
