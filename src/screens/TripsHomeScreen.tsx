@@ -21,10 +21,14 @@ import {
   ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus } from 'lucide-react-native';
+import { Plus, MoreHorizontal } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
+import { File, Paths } from 'expo-file-system';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
+import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
@@ -41,6 +45,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const duplicateTrip = useTripsStore((st) => st.duplicateTrip);
   const updateTrip = useTripsStore((st) => st.updateTrip);
   const deleteTrip = useTripsStore((st) => st.deleteTrip);
+  const importTrips = useTripsStore((st) => st.importTrips);
 
   const handleNewTrip = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -118,6 +123,88 @@ export default function TripsHomeScreen({ navigation }: Props) {
     );
   }, [duplicateTrip, updateTrip, deleteTrip]);
 
+  const handleExport = useCallback(async () => {
+    if (trips.length === 0) return;
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      const json = serializeTrips(trips);
+      const stamp = new Date().toISOString().slice(0, 10);
+      const file = new File(Paths.cache, `packing-list-${stamp}.json`);
+      // Overwrite any export made earlier the same day — the cache file is
+      // a throwaway hand-off to the share sheet, not a stored artifact.
+      if (file.exists) file.delete();
+      file.create();
+      file.write(json);
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert('Export unavailable', 'Sharing is not available on this device.');
+        return;
+      }
+      await Sharing.shareAsync(file.uri, {
+        mimeType: 'application/json',
+        UTI: 'public.json',
+        dialogTitle: 'Export packing lists',
+      });
+    } catch {
+      Alert.alert("Couldn't export", 'Something went wrong creating the export file.');
+    }
+  }, [trips]);
+
+  const handleImport = useCallback(async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      if (!asset) return;
+      const text = await new File(asset.uri).text();
+      let imported;
+      try {
+        imported = parseTransfer(text);
+      } catch (e) {
+        const msg =
+          e instanceof TransferError
+            ? e.message
+            : "This file isn't a Packing List export.";
+        Alert.alert("Couldn't import", msg);
+        return;
+      }
+      const n = importTrips(imported);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Alert.alert('Import complete', `Added ${n} ${n === 1 ? 'trip' : 'trips'}.`);
+    } catch {
+      Alert.alert("Couldn't import", 'Something went wrong reading that file.');
+    }
+  }, [importTrips]);
+
+  const handleMenu = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    const hasTrips = trips.length > 0;
+    if (Platform.OS === 'ios') {
+      // Export is only offered when there's something to export; Import is
+      // always offered (recovery on a fresh install IS the empty state).
+      const options = hasTrips
+        ? ['Export all trips', 'Import trips…', 'Cancel']
+        : ['Import trips…', 'Cancel'];
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: options.length - 1 },
+        (idx) => {
+          if (hasTrips && idx === 0) handleExport();
+          else if (idx === (hasTrips ? 1 : 0)) handleImport();
+        }
+      );
+    } else {
+      // Android fallback (v1 is iOS-only; safety net).
+      const buttons: Parameters<typeof Alert.alert>[2] = [];
+      if (hasTrips) buttons!.push({ text: 'Export all trips', onPress: handleExport });
+      buttons!.push({ text: 'Import trips', onPress: handleImport });
+      buttons!.push({ text: 'Cancel', style: 'cancel' });
+      Alert.alert('Trips', undefined, buttons);
+    }
+  }, [trips.length, handleExport, handleImport]);
+
   const isEmpty = trips.length === 0;
 
   return (
@@ -126,6 +213,15 @@ export default function TripsHomeScreen({ navigation }: Props) {
         <Text style={s.title} accessibilityRole="header">
           Packing list
         </Text>
+        <Pressable
+          onPress={handleMenu}
+          hitSlop={12}
+          style={({ pressed }) => [s.menuBtn, pressed && s.menuBtnPressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Export or import trips"
+        >
+          <MoreHorizontal size={22} color={c.fg} strokeWidth={1.5} />
+        </Pressable>
       </View>
 
       {isEmpty ? (
@@ -253,6 +349,9 @@ function makeStyles(c: Colors) {
       paddingHorizontal: space.s5,
       paddingTop: space.s5,
       paddingBottom: space.s4,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     title: {
       fontFamily: typography.heading,
@@ -260,6 +359,16 @@ function makeStyles(c: Colors) {
       lineHeight: 36,
       color: c.fg,
     },
+    menuBtn: {
+      width: target.min,
+      height: target.min,
+      alignItems: 'center',
+      justifyContent: 'center',
+      // Pull toward the screen edge so the icon optically aligns with the
+      // s5 content gutter rather than sitting target.min/2 inside it.
+      marginRight: -space.s3,
+    },
+    menuBtnPressed: { opacity: 0.6 },
 
     // ---------- Empty state ----------
     emptyWrap: {

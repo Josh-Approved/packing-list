@@ -18,6 +18,7 @@ import {
   type TripTypeId,
 } from '../data/trip';
 import { makeId } from '../lib/id';
+import { mergeImported } from '../lib/transfer';
 import { loadAllTrips, saveTrip, deleteTripFromDb } from './db';
 
 /**
@@ -94,6 +95,10 @@ interface TripsState {
 
   /** Clone an existing trip with a new id; returns the new id. */
   duplicateTrip: (id: string) => string | null;
+
+  /** Trip-level-additive import (spec step 7). Never mutates existing trips;
+   *  collisions get a fresh id + " (imported)" name. Returns count added. */
+  importTrips: (imported: Trip[]) => number;
 
   deleteTrip: (id: string) => void;
 }
@@ -188,6 +193,17 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
       console.warn('packing-list: failed to save duplicated trip', err)
     );
     return newId;
+  },
+
+  importTrips: (imported) => {
+    const { trips, addedTrips } = mergeImported(get().trips, imported);
+    set({ trips });
+    for (const t of addedTrips) {
+      saveTrip(t).catch((err) =>
+        console.warn('packing-list: failed to save imported trip', err)
+      );
+    }
+    return addedTrips.length;
   },
 
   deleteTrip: (id) => {
