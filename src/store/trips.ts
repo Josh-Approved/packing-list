@@ -17,7 +17,61 @@ import {
   type Trip,
   type TripTypeId,
 } from '../data/trip';
+import { makeId } from '../lib/id';
 import { loadAllTrips, saveTrip, deleteTripFromDb } from './db';
+
+/**
+ * Heal duplicate ids in loaded data (legacy `${prefix}${Date.now()}` ids
+ * could collide). Reassigns colliding trip ids, and item/packer ids within
+ * each trip. Returns the cleaned list plus the trips that were mutated so
+ * the caller can persist just those.
+ */
+function repairIds(trips: Trip[]): { trips: Trip[]; changed: Trip[] } {
+  const seenTrip = new Set<string>();
+  const changed: Trip[] = [];
+
+  const out = trips.map((t) => {
+    let mutated = false;
+
+    let tripId = t.id;
+    if (seenTrip.has(tripId)) {
+      tripId = makeId('t');
+      mutated = true;
+    }
+    seenTrip.add(tripId);
+
+    const seenItem = new Set<string>();
+    const items = t.items.map((it) => {
+      let id = it.id;
+      if (seenItem.has(id)) {
+        id = makeId('c');
+        mutated = true;
+      }
+      seenItem.add(id);
+      return id === it.id ? it : { ...it, id };
+    });
+
+    const seenPacker = new Set<string>();
+    const packers = t.packers.map((p) => {
+      let id = p.id;
+      if (seenPacker.has(id)) {
+        id = makeId('p');
+        mutated = true;
+      }
+      seenPacker.add(id);
+      return id === p.id ? p : { ...p, id };
+    });
+
+    if (mutated) {
+      const repaired: Trip = { ...t, id: tripId, items, packers };
+      changed.push(repaired);
+      return repaired;
+    }
+    return t;
+  });
+
+  return { trips: out, changed };
+}
 
 interface TripsState {
   trips: Trip[];
@@ -59,8 +113,15 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
 
   hydrate: async () => {
     try {
-      const trips = await loadAllTrips();
+      const loaded = await loadAllTrips();
+      const { trips, changed } = repairIds(loaded);
       set({ trips, hydrated: true });
+      // Persist any trips whose colliding ids we just healed.
+      for (const t of changed) {
+        saveTrip(t).catch((err) =>
+          console.warn('packing-list: failed to persist id-repaired trip', err)
+        );
+      }
     } catch (err) {
       // Fail open: mark hydrated so UI unblocks; trips just stay empty.
       console.warn('packing-list: failed to load trips from disk', err);
@@ -69,7 +130,7 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
   },
 
   createTrip: (name) => {
-    const id = `t${Date.now()}`;
+    const id = makeId('t');
     const now = Date.now();
     const trip: Trip = {
       id,
@@ -111,7 +172,7 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
   duplicateTrip: (id) => {
     const original = get().trips.find((t) => t.id === id);
     if (!original) return null;
-    const newId = `t${Date.now()}`;
+    const newId = makeId('t');
     const now = Date.now();
     // Reset packed-state on the duplicate; same name + " (copy)".
     const dup: Trip = {
