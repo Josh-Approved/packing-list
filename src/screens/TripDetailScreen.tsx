@@ -64,6 +64,7 @@ import {
 } from '../data/trip';
 import { useTripsStore } from '../store/trips';
 import { inferCategory } from '../data/categoryInference';
+import { makeId } from '../lib/id';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { Stepper } from '../components/Stepper';
@@ -72,6 +73,25 @@ import { Pill } from '../components/Pill';
 import type { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TripDetail'>;
+
+// The items list is rendered as ONE reorderable list of interleaved rows:
+// a non-draggable category header followed by that category's item rows.
+// Dragging an item under a different header recategorizes it (see
+// handleReorder). Headers carry no drag handle so they can't be dragged.
+type FlatRow =
+  | { kind: 'header'; category: Category }
+  | { kind: 'item'; item: TripItem };
+
+function buildFlatRows(
+  grouped: Array<{ category: Category; items: TripItem[] }>
+): FlatRow[] {
+  const rows: FlatRow[] = [];
+  for (const g of grouped) {
+    rows.push({ kind: 'header', category: g.category });
+    for (const it of g.items) rows.push({ kind: 'item', item: it });
+  }
+  return rows;
+}
 
 export default function TripDetailScreen({ route, navigation }: Props) {
   const { c } = useTheme();
@@ -242,20 +262,43 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     );
   }, [updateTrip, tripId]);
 
-  const handleReorderInCategory = useCallback(
-    (category: Category, evt: ReorderableListReorderEvent) => {
+  const handleReorder = useCallback(
+    (evt: ReorderableListReorderEvent) => {
       const { from, to } = evt;
       if (from === to) return;
       updateTrip(tripId, (t) => {
-        const inCategory = t.items.filter((it) => it.category === category);
-        const others = t.items.filter((it) => it.category !== category);
-        const moved = [...inCategory];
+        // Rebuild the exact flat rows the list rendered, apply the move,
+        // then re-derive each item's category from the nearest preceding
+        // header. An item dropped under a different header is recategorized;
+        // one dropped above the first header keeps its original category
+        // (invalid drop = no-op for that item).
+        const flat = buildFlatRows(groupByCategory(t.items));
+        if (from < 0 || from >= flat.length || to < 0 || to >= flat.length) {
+          return t;
+        }
+        const moved = [...flat];
         const [picked] = moved.splice(from, 1);
-        if (picked) moved.splice(to, 0, picked);
-        // groupByCategory renders by CATEGORY_ORDER, so absolute position in
-        // items[] doesn't matter visually as long as same-category items keep
-        // their new relative order. Append moved-category items after others.
-        return { ...t, items: [...others, ...moved] };
+        if (!picked || picked.kind !== 'item') return t; // headers don't move
+        moved.splice(to, 0, picked);
+
+        let current: Category | null = null;
+        const next: TripItem[] = [];
+        for (const row of moved) {
+          if (row.kind === 'header') {
+            current = row.category;
+          } else {
+            const cat = current ?? row.item.category;
+            // Mark userModified on a category change so composeItems()
+            // (type-toggle / duration change) preserves the manual move
+            // instead of regenerating the item into its seed category.
+            next.push(
+              cat !== row.item.category
+                ? { ...row.item, category: cat, userModified: true }
+                : row.item
+            );
+          }
+        }
+        return { ...t, items: next };
       });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     },
@@ -269,7 +312,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
         'Name',
         (text) => {
           if (!text || !text.trim()) return;
-          const id = `p${Date.now()}`;
+          const id = makeId('p');
           updateTrip(tripId, (t) => ({
             ...t,
             packers: [...t.packers, { id, name: text.trim() }],
@@ -282,7 +325,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
         ...t,
         packers: [
           ...t.packers,
-          { id: `p${Date.now()}`, name: `Packer ${t.packers.length + 1}` },
+          { id: makeId('p'), name: `Packer ${t.packers.length + 1}` },
         ],
       }));
     }
@@ -366,7 +409,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
         };
       }
       const newItem: TripItem = {
-        id: `c${Date.now()}`,
+        id: makeId('c'),
         name,
         category: draftCategory,
         quantity: 1,
@@ -386,6 +429,8 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     () => (trip ? groupByCategory(trip.items) : []),
     [trip]
   );
+
+  const flatRows = useMemo(() => buildFlatRows(groupedItems), [groupedItems]);
 
   if (!trip) {
     // Trip vanished (unlikely in MVP — no delete from this screen yet).
@@ -514,40 +559,41 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           {/* Items */}
           <View style={s.section}>
             <Text style={s.sectionLabel}>{itemsHeading}</Text>
-            {groupedItems.length === 0 ? (
+            {flatRows.length === 0 ? (
               <Text style={s.empty}>
                 Add a trip type above, or type an item below to start your list.
               </Text>
             ) : (
-              groupedItems.map(({ category, items }) => (
-                <View key={category} style={s.categoryBlock}>
-                  <Text style={s.categoryHeading}>{category}</Text>
-                  <NestedReorderableList
-                    data={items}
-                    keyExtractor={(it) => it.id}
-                    scrollable={false}
-                    onReorder={(evt) => handleReorderInCategory(category, evt)}
-                    renderItem={({ item: it }) => (
-                      <ItemRow
-                        item={it}
-                        isSoloPacker={isSoloPacker}
-                        isEditing={editingItemId === it.id}
-                        editingName={editingName}
-                        assigneeLabel={assigneeLabel(it.assigneeId)}
-                        onPackedToggle={() => handlePackedToggle(it.id)}
-                        onQuantityChange={(n) => handleQuantityChange(it.id, n)}
-                        onItemRemove={() => handleItemRemove(it.id)}
-                        onAssigneeCycle={() => handleAssigneeCycle(it.id)}
-                        onStartEdit={() => handleStartEditItem(it)}
-                        onChangeEditingName={setEditingName}
-                        onFinishEdit={handleFinishEditItem}
-                        c={c}
-                        s={s}
-                      />
-                    )}
-                  />
-                </View>
-              ))
+              <NestedReorderableList
+                data={flatRows}
+                keyExtractor={(row) =>
+                  row.kind === 'header' ? `h-${row.category}` : row.item.id
+                }
+                scrollable={false}
+                onReorder={handleReorder}
+                renderItem={({ item: row }) =>
+                  row.kind === 'header' ? (
+                    <Text style={s.categoryHeading}>{row.category}</Text>
+                  ) : (
+                    <ItemRow
+                      item={row.item}
+                      isSoloPacker={isSoloPacker}
+                      isEditing={editingItemId === row.item.id}
+                      editingName={editingName}
+                      assigneeLabel={assigneeLabel(row.item.assigneeId)}
+                      onPackedToggle={() => handlePackedToggle(row.item.id)}
+                      onQuantityChange={(n) => handleQuantityChange(row.item.id, n)}
+                      onItemRemove={() => handleItemRemove(row.item.id)}
+                      onAssigneeCycle={() => handleAssigneeCycle(row.item.id)}
+                      onStartEdit={() => handleStartEditItem(row.item)}
+                      onChangeEditingName={setEditingName}
+                      onFinishEdit={handleFinishEditItem}
+                      c={c}
+                      s={s}
+                    />
+                  )
+                }
+              />
             )}
           </View>
 
@@ -743,7 +789,9 @@ function makeStyles(c: Colors) {
       fontSize: 16,
       lineHeight: 24,
       color: c.fg,
-      paddingTop: space.s2,
+      // Was wrapped in categoryBlock (paddingTop s3) before the single-list
+      // refactor; carry that separation here so categories still breathe.
+      paddingTop: space.s5,
       paddingBottom: space.s2,
     },
     itemRow: {
