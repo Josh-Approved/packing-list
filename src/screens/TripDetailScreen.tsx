@@ -656,6 +656,25 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Done FAB. The trip auto-saves continuously, so this is NOT a
+          save-or-lose gate — it's a reachable "done editing, take me back"
+          affordance (closure + one-handed exit; the top-left chevron does
+          the same thing but is a stretch on a big phone). Anchored to the
+          SafeAreaView (outside the keyboard-avoiding wrapper) so it stays
+          put and floats clear, above the sticky add-item bar. */}
+      <Pressable
+        onPress={handleBack}
+        style={({ pressed }) => [
+          s.doneFab,
+          { bottom: target.min + space.s6 + insets.bottom },
+          pressed && s.doneFabPressed,
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel="Done editing this trip"
+      >
+        <Check size={24} color={c.fgOnInk} strokeWidth={2} />
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -939,6 +958,29 @@ function makeStyles(c: Colors) {
       fontSize: 14,
       color: c.fgOnInk,
       textDecorationLine: 'underline',
+    },
+
+    // Done FAB. Ink circle + paper check, mirrors the "+" FAB on Trips Home
+    // for a consistent floating-action language. `bottom` is set inline
+    // (depends on safe-area insets) so it clears the sticky add-item bar.
+    doneFab: {
+      position: 'absolute',
+      right: space.s5,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: c.fg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      // Lone shadow exception per design system: floating overlay (FAB).
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 6,
+    },
+    doneFabPressed: {
+      opacity: 0.85,
     },
   });
 }

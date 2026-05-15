@@ -1,7 +1,9 @@
 /**
  * Trip data model + composition engine for packing-list.
  *
- * Pure functions only. UI-agnostic. Spec source:
+ * UI-agnostic. Mostly pure — composeItems() mints a fresh id (via makeId)
+ * when it reclassifies an edited seed item to custom, so it is not strictly
+ * deterministic on that path. Everything else is pure. Spec source:
  * `Packing List - Josh Approved — Build Spec` § Data model + § Composition rules.
  *
  * Composition rules (from the spec, restated):
@@ -22,6 +24,7 @@ import {
   Music, Car, Tent, Globe, Dumbbell, Sparkles, Baby,
   type LucideIcon,
 } from 'lucide-react-native';
+import { makeId } from '../lib/id';
 
 // ============================================================================
 // Types
@@ -55,6 +58,12 @@ export interface TripItem {
   /** True if user edited quantity/assignee after generation. Reclassifies to
    *  source='custom' on next composition (then this flag resets to false). */
   userModified?: boolean;
+  /** Lowercased rule name this item descends from (provenance). Stamped at
+   *  generation. Survives renames/reclassification so composeItems knows the
+   *  originating rule is already represented by a (possibly renamed) item and
+   *  must NOT regenerate a fresh duplicate. Undefined for items the user
+   *  typed in themselves (no originating rule). */
+  originName?: string;
 }
 
 export interface Trip {
@@ -312,7 +321,12 @@ export function computeQuantity(rule: ItemRule, duration: number): number {
  * - Generated items from selected types overlay onto existing ones (preserving
  *   id / packed / assignee).
  * - userModified items are kept and reclassified to source='custom'
- *   (their userModified flag resets afterwards).
+ *   (their userModified flag resets afterwards). If their id was still in the
+ *   `gen-` space it's reissued so a regenerated rule can't collide React keys.
+ * - A kept edited/custom item "claims" its origin rule (via originName, or
+ *   recovered from a legacy `gen-<rule>` id). The originating rule then does
+ *   NOT regenerate a fresh duplicate — e.g. renaming "Local currency" to
+ *   "Euros" won't respawn "Local currency" when another type is toggled on.
  * - Existing source='custom' items are always preserved.
  * - Generated items no longer produced by any selected type are dropped.
  */
@@ -346,6 +360,7 @@ export function composeItems(
           packed: false,
           source: 'generated',
           fromTypeIds: [typeId],
+          originName: key,
         });
       }
     }
@@ -357,17 +372,28 @@ export function composeItems(
   //       packed/assignee/id from existing for stable rendering.
   //    c) source='generated' AND no longer produced — drop.
   const result: TripItem[] = [];
-  const consumed = new Set<string>();
+  const consumed = new Set<string>(); // generated keys overlaid onto an existing item
+  const claimedOrigins = new Set<string>(); // rules already owned by a kept edited/custom item
 
   for (const item of existingItems) {
     const key = item.name.toLowerCase();
     if (item.userModified || item.source === 'custom') {
+      // Recover provenance for legacy items saved before originName existed:
+      // a `gen-<rule>` id encodes the rule it descended from.
+      const origin =
+        item.originName ??
+        (item.id.startsWith('gen-') ? item.id.slice(4) : undefined);
       result.push({
         ...item,
+        // Once a user edits a seed item it's truly theirs — divorce it from
+        // the gen- id space so a regenerated rule can never collide keys.
+        id: item.id.startsWith('gen-') ? makeId('c') : item.id,
         source: 'custom',
         userModified: false,
         fromTypeIds: undefined,
+        originName: origin,
       });
+      if (origin) claimedOrigins.add(origin);
       consumed.add(key);
     } else if (generated.has(key)) {
       const fresh = generated.get(key)!;
@@ -382,9 +408,11 @@ export function composeItems(
     // else: generated but no longer produced → drop.
   }
 
-  // 3. Add newly generated items not already consumed.
+  // 3. Add newly generated items not already represented. An item the user
+  //    renamed/edited "claims" its origin rule (claimedOrigins), so we don't
+  //    respawn a fresh duplicate of what they already customized.
   for (const [key, item] of generated) {
-    if (!consumed.has(key)) {
+    if (!consumed.has(key) && !claimedOrigins.has(key)) {
       result.push(item);
     }
   }
