@@ -29,6 +29,7 @@ import { File, Paths } from 'expo-file-system';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
 import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
+import { FundingFooter } from '../components/FundingFooter';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
@@ -181,29 +182,33 @@ export default function TripsHomeScreen({ navigation }: Props) {
 
   const handleMenu = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    const hasTrips = trips.length > 0;
+    // Build the action list dynamically so labels and handlers can't drift
+    // out of sync with their indices. Export is only offered when there's
+    // something to export; Import is always offered (recovery on a fresh
+    // install IS the empty state); Settings is always offered.
+    const actions: { label: string; run: () => void }[] = [];
+    if (trips.length > 0) {
+      actions.push({ label: 'Export all trips', run: handleExport });
+    }
+    actions.push({ label: 'Import trips…', run: handleImport });
+    actions.push({ label: 'Settings', run: () => navigation.navigate('Settings') });
+
     if (Platform.OS === 'ios') {
-      // Export is only offered when there's something to export; Import is
-      // always offered (recovery on a fresh install IS the empty state).
-      const options = hasTrips
-        ? ['Export all trips', 'Import trips…', 'Cancel']
-        : ['Import trips…', 'Cancel'];
+      const options = [...actions.map((a) => a.label), 'Cancel'];
       ActionSheetIOS.showActionSheetWithOptions(
         { options, cancelButtonIndex: options.length - 1 },
         (idx) => {
-          if (hasTrips && idx === 0) handleExport();
-          else if (idx === (hasTrips ? 1 : 0)) handleImport();
+          actions[idx]?.run();
         }
       );
     } else {
       // Android fallback (v1 is iOS-only; safety net).
-      const buttons: Parameters<typeof Alert.alert>[2] = [];
-      if (hasTrips) buttons!.push({ text: 'Export all trips', onPress: handleExport });
-      buttons!.push({ text: 'Import trips', onPress: handleImport });
-      buttons!.push({ text: 'Cancel', style: 'cancel' });
-      Alert.alert('Trips', undefined, buttons);
+      Alert.alert('Trips', undefined, [
+        ...actions.map((a) => ({ text: a.label, onPress: a.run })),
+        { text: 'Cancel', style: 'cancel' as const },
+      ]);
     }
-  }, [trips.length, handleExport, handleImport]);
+  }, [trips.length, handleExport, handleImport, navigation]);
 
   const isEmpty = trips.length === 0;
 
@@ -218,7 +223,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
           hitSlop={12}
           style={({ pressed }) => [s.menuBtn, pressed && s.menuBtnPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Export or import trips"
+          accessibilityLabel="More: export, import, settings"
         >
           <MoreHorizontal size={22} color={c.fg} strokeWidth={1.5} />
         </Pressable>
@@ -238,6 +243,10 @@ export default function TripsHomeScreen({ navigation }: Props) {
             <Text style={s.primaryBtnLabel}>New trip</Text>
           </Pressable>
         </View>
+      ) : null}
+
+      {isEmpty ? (
+        <FundingFooter />
       ) : (
         <ScrollView
           style={s.scroll}
@@ -252,7 +261,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
               c={c}
             />
           ))}
-          <View style={{ height: space.s9 }} />
+          <FundingFooter />
         </ScrollView>
       )}
 
@@ -415,7 +424,9 @@ function makeStyles(c: Colors) {
     scroll: { flex: 1 },
     scrollContent: {
       paddingHorizontal: space.s5,
-      paddingBottom: space.s7,
+      // Extra bottom room so the funding footer scrolls clear of the
+      // floating "+" FAB rather than tucking under it at the list end.
+      paddingBottom: space.s9,
       gap: space.s4,
     },
 
