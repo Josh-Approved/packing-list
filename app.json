@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Packing-list",
+    "name": "Packing List",
     "slug": "packing-list",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -28,6 +28,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "owner": "josh-approved"
+    "owner": "josh-approved",
+    "plugins": [
+      "expo-font",
+      "expo-sqlite"
+    ]
   }
 }
