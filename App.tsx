@@ -39,10 +39,12 @@ import { useAppFonts, lightColors, darkColors, typography } from './src/theme';
 import { useTripsStore } from './src/store/trips';
 import TripsHomeScreen from './src/screens/TripsHomeScreen';
 import TripDetailScreen from './src/screens/TripDetailScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 export type RootStackParamList = {
   TripsHome: undefined;
   TripDetail: { tripId: string };
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -94,6 +96,7 @@ export default function App() {
           >
             <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
             <Stack.Screen name="TripDetail" component={TripDetailScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
