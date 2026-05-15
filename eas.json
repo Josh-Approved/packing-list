@@ -25,6 +25,10 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "REPLACE_BEFORE_TESTFLIGHT"
+      }
+    }
   }
 }
