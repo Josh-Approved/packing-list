@@ -59,7 +59,7 @@ function makeStyles(c: Colors) {
     pressed: { opacity: 0.6 },
     label: {
       fontFamily: typography.body,
-      fontSize: 15,
+      fontSize: 14,
       lineHeight: 20,
       color: c.fgMuted,
     },

@@ -1,12 +1,9 @@
 /**
- * Color tokens for packing-list.
+ * Color tokens for packing-list (React Native).
  *
- * Mirror of josh-approved-design-system/colors_and_type.css for React Native.
- * Authored locally because `sync.mjs design-system-native` doesn't yet emit
- * colors.ts (open TODO in josh-approved-factory/CLAUDE.md). When that sync
- * extension lands, this file gets overwritten — keep the per-app accent
- * (`appAccent` / `appAccentBg`) declared in CLAUDE.md § Brand accent so the
- * sync can pick it up.
+ * Mirrors the studio design system. Authored locally for now; if this file is
+ * later replaced by the shared theme, the per-app accent (`appAccent` /
+ * `appAccentBg`) is the only value that needs to carry over.
  */
 
 import { useColorScheme } from 'react-native';
