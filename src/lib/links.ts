@@ -16,9 +16,9 @@ export const REPO_URL = 'https://github.com/josh-approved/packing-list';
 export const PRIVACY_URL =
   'https://github.com/josh-approved/packing-list/blob/master/PRIVACY.md';
 
-// Numeric App Store Connect app id. Placeholder until the app is registered —
-// mirrors the eas.json ascAppId stub; fill both before the first TestFlight.
-export const APP_STORE_ID = 'REPLACE_BEFORE_TESTFLIGHT';
+// Numeric App Store Connect app id — matches eas.json
+// submit.production.ios.ascAppId. Non-secret.
+export const APP_STORE_ID = '6770051644';
 
 // Android applicationId — matches app.json android.package. Used by the
 // canonical ReviewModal for the Play Store write-review deep link.

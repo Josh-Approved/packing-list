@@ -27,7 +27,7 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "REPLACE_BEFORE_TESTFLIGHT"
+        "ascAppId": "6770051644"
       }
     }
   }
