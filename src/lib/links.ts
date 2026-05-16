@@ -3,8 +3,7 @@
  *
  * Single source of truth for every studio URL the app surfaces, so the
  * Settings/About screen, the tertiary footer, and the review prompt can't
- * drift apart. URLs are fixed by josh-approved-factory/canonical-requirements.md
- * § Funding & feedback — do not localize or per-app them.
+ * drift apart. URLs are fixed studio-wide — do not localize or per-app them.
  */
 
 import { Linking } from 'react-native';
@@ -24,10 +23,10 @@ export const APP_STORE_ID = '6770051644';
 // canonical ReviewModal for the Play Store write-review deep link.
 export const ANDROID_PACKAGE = 'com.joshapproved.packinglist';
 
-const APP_NAME = 'Packing List';
+const APP_NAME = 'Packing List - Josh Approved';
 
 /** "1.0.0 (1)" — read from the running bundle, never hardcoded. */
-export function versionAndBuild(): string {
+function versionAndBuild(): string {
   const v = Application.nativeApplicationVersion ?? '1.0.0';
   const b = Application.nativeBuildVersion ?? '1';
   return `${v} (${b})`;
@@ -54,8 +53,9 @@ export function openFeedback(): void {
 }
 
 export function openReview(): void {
-  // iOS write-review deep link. Resolves once the app is live on the store.
-  open(`itms-apps://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`);
+  // iOS write-review deep link. Same URL form as the canonical ReviewModal
+  // so the Settings row and the prompt resolve identically. Live post-launch.
+  open(`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`);
 }
 
 export function openPrivacy(): void {

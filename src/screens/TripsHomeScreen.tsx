@@ -287,7 +287,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
       <ReviewModal
         visible={reviewVisible}
         onDismiss={hideReview}
-        appName="Packing List"
+        appName="Packing List - Josh Approved"
         iosAppStoreId={APP_STORE_ID}
         androidPackageName={ANDROID_PACKAGE}
       />
