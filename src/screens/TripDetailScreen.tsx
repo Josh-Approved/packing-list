@@ -682,19 +682,26 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           affordance (closure + one-handed exit; the top-left chevron does
           the same thing but is a stretch on a big phone). Anchored to the
           SafeAreaView (outside the keyboard-avoiding wrapper) so it stays
-          put and floats clear, above the sticky add-item bar. */}
-      <Pressable
-        onPress={handleBack}
-        style={({ pressed }) => [
-          s.doneFab,
-          { bottom: target.min + space.s6 + insets.bottom },
-          pressed && s.doneFabPressed,
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel="Done editing this trip"
-      >
-        <Check size={24} color={c.fgOnInk} strokeWidth={2} />
-      </Pressable>
+          put and floats clear, above the sticky add-item bar.
+
+          Hidden while the Undo snackbar is up: the FAB is anchored at the
+          same bottom-right corner as the snackbar's Undo button and would
+          cover it. The FAB is redundant (the back chevron does the same),
+          so a briefly-absent FAB beats an un-tappable Undo. */}
+      {!recentlyRemoved && (
+        <Pressable
+          onPress={handleBack}
+          style={({ pressed }) => [
+            s.doneFab,
+            { bottom: target.min + space.s6 + insets.bottom },
+            pressed && s.doneFabPressed,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Done editing this trip"
+        >
+          <Check size={24} color={c.fgOnInk} strokeWidth={2} />
+        </Pressable>
+      )}
     </SafeAreaView>
   );
 }
@@ -1049,6 +1056,19 @@ function ItemRow({
 }: ItemRowProps) {
   const drag = useReorderableDrag();
 
+  // Select-all when inline edit opens, so the user can type straight over
+  // the old name instead of backspacing it. `selectTextOnFocus` is
+  // unreliable alongside `autoFocus` on iOS, so we drive `selection` from
+  // state when edit opens and release control on the first user edit or
+  // cursor move (otherwise a re-render would re-assert the full selection).
+  const [selection, setSelection] = useState<{ start: number; end: number } | undefined>(undefined);
+  useEffect(() => {
+    setSelection(isEditing ? { start: 0, end: editingName.length } : undefined);
+    // Intentionally keyed only on isEditing: set the initial full selection
+    // once when edit opens, not on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing]);
+
   return (
     <View style={s.itemRow}>
       {/* Drag handle — long-press to start drag. Subtle styling so it doesn't
@@ -1082,11 +1102,17 @@ function ItemRow({
         {isEditing ? (
           <TextInput
             value={editingName}
-            onChangeText={onChangeEditingName}
+            onChangeText={(t) => {
+              if (selection) setSelection(undefined);
+              onChangeEditingName(t);
+            }}
+            onSelectionChange={() => {
+              if (selection) setSelection(undefined);
+            }}
             onBlur={onFinishEdit}
             onSubmitEditing={onFinishEdit}
             autoFocus
-            selectTextOnFocus
+            selection={selection}
             returnKeyType="done"
             style={s.itemNameEditing}
             accessibilityLabel="Rename item"
