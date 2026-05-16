@@ -1,18 +1,32 @@
 /**
- * Color tokens for packing-list (React Native).
+ * Josh Approved color tokens (React Native).
  *
- * Mirrors the studio design system. Authored locally for now; if this file is
- * later replaced by the shared theme, the per-app accent (`appAccent` /
- * `appAccentBg`) is the only value that needs to carry over.
+ * Canonical mirror of josh-approved-design-system/colors_and_type.css. Synced
+ * into each app at src/theme/colors.ts by `sync.mjs design-system-native`.
+ * Edit values HERE, not per app — drift shows up as a sync diff.
+ *
+ * The one per-app value, the brand accent, is NOT in this file: it lives in
+ * the app-owned ./appAccent.ts (which sync never overwrites). This file
+ * derives the light/dark accent washes from that single declared hex.
  */
 
 import { useColorScheme } from 'react-native';
+import { APP_ACCENT } from './appAccent';
 
-// ---------- Per-app accent ----------
-// Aged ochre. Warm, earthy, evokes leather luggage and worn maps.
-// In-app only — never a primary CTA, never replaces approval green.
-export const appAccent = '#B58D3F';
-export const appAccentBg = '#F1EDE0'; // ~12% mix over paper
+/** #RGB or #RRGGBB -> "rgba(r, g, b, a)". Falls back to the input on a
+ *  malformed hex so a bad per-app accent degrades visibly, not silently. */
+function hexToRgba(hex: string, alpha: number): string {
+  let h = hex.trim().replace(/^#/, '');
+  if (h.length === 3) h = h.split('').map((ch) => ch + ch).join('');
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return hex;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export const appAccent = APP_ACCENT;
+export const appAccentBg = hexToRgba(APP_ACCENT, 0.14); // light wash
 
 // ---------- Light palette (canonical) ----------
 const light = {
@@ -52,9 +66,9 @@ const light = {
   appAccent,
   appAccentBg,
 
-  // Ink primary-button pair. Consumed by the synced canonical ReviewModal
-  // (whose theme API predates this app's fg/fgOnInk split). Ink-on-paper:
-  // dark button, paper label.
+  // Ink primary-button pair — ink-on-paper. The canonical primary CTA color
+  // (used by ReviewModal and any ink button). Distinct from fg/fgOnInk so a
+  // button can't accidentally inherit body-text contrast rules.
   inkButton: '#0E0E0F',
   inkButtonText: '#FAFAF7',
 
@@ -63,7 +77,7 @@ const light = {
 };
 
 // ---------- Dark palette ----------
-const dark = {
+const dark: typeof light = {
   bg: '#0B0B0C',
   bgElevated: '#131315',
   bgSubtle: '#1A1A1C',
@@ -91,12 +105,11 @@ const dark = {
   info: '#475569',
   infoBg: 'rgba(71, 85, 105, 0.22)',
 
-  // Per-app accent in dark — same hue, slightly tinted bg
   appAccent,
-  appAccentBg: 'rgba(181, 141, 63, 0.15)',
+  appAccentBg: hexToRgba(APP_ACCENT, 0.15), // dark wash
 
-  // Ink primary-button pair in dark — inverts to a paper button with dark
-  // label so it stays high-contrast against the dark background.
+  // Ink button inverts in dark: a paper button with dark label so it stays
+  // the highest-contrast surface against the dark background.
   inkButton: '#F5F5F2',
   inkButtonText: '#0B0B0C',
 

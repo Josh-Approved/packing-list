@@ -1,8 +1,16 @@
-// Synced from josh-approved-factory/templates/design-system/ — re-export the
-// canonical typography + font loader, plus app-local color and token modules.
+// Canonical Josh Approved theme — native public surface.
+// Synced verbatim into each app at src/theme/index.ts by
+// `sync.mjs design-system-native`. Edit the canonical files here, not per app.
 
-export { typography, fontFamilies } from './typography';
-export type { TypographyRole, FontFamily } from './typography';
+export {
+  typography,
+  fontFamilies,
+  fontFamily,
+  type,
+  tracking,
+} from './typography';
+export type { TypographyRole, FontFamily, TypeStep, Tracking } from './typography';
+
 export { useAppFonts } from './useAppFonts';
 
 export {
@@ -14,8 +22,4 @@ export {
 } from './colors';
 export type { Colors } from './colors';
 
-export { space, radius, target, motion } from './tokens';
-
-// Compatibility aliases for the synced canonical ReviewModal — see
-// ./reviewModalCompat.ts. Not for general use; prefer `typography` etc.
-export { fontFamily, type, hairline } from './reviewModalCompat';
+export { space, radius, target, motion, hairline } from './tokens';
