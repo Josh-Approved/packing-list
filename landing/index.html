@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Packing List · Josh Approved</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  body { background: var(--paper); }
+  .container { max-width: 920px; margin: 0 auto; padding: 0 32px; }
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav a { font-size: 13px; color: var(--fg-muted); text-decoration: none; }
+  .wm { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: -0.03em; font-size: 15px; color: var(--fg); }
+  .wm .check { width: 18px; height: 18px; background: var(--accent); border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+  .nav .crumb { font-size: 13px; color: var(--fg-muted); }
+  .nav .crumb b { color: var(--fg); font-weight: 500; }
+
+  .hero {
+    padding: 48px 0 32px;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .hero .icon-frame {
+    width: 96px; height: 96px; border-radius: 22px; background: var(--paper);
+    border: 1px solid var(--hairline);
+    position: relative; display: inline-flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .hero .icon-frame .ig { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--fg); line-height: 1; text-align: center; }
+  .hero .icon-frame .ig em { font-style: normal; color: var(--fg-subtle); display: block; font-size: 16px; font-weight: 500; margin-top: 4px; }
+  .hero .icon-frame .corner { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; background: var(--accent); border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; }
+  .hero h1 { font-size: 36px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .hero p { font-size: 16px; color: var(--fg-muted); margin: 0; line-height: 1.5; }
+
+  .cta-row { display: flex; gap: 10px; padding: 8px 0 24px; flex-wrap: wrap; }
+  .btn { height: 44px; padding: 0 18px; border-radius: 10px; font-size: 15px; font-weight: 500; line-height: 1; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
+  .btn.primary { background: var(--ink-1000); color: var(--paper); border: 1px solid var(--ink-1000); }
+  .btn.secondary { background: #fff; color: var(--fg); border: 1px solid var(--hairline); }
+  .btn .small { font-size: 11px; opacity: 0.7; font-family: var(--font-mono); }
+
+  .specs { padding: 16px 0 32px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+  .spec { background: var(--paper); padding: 14px 18px; }
+  .spec .lab { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-muted); }
+  .spec .val { font-size: 15px; font-weight: 500; color: var(--fg); margin-top: 4px; }
+
+  .body { padding: 24px 0; }
+  .body p { font-size: 16px; line-height: 1.6; color: var(--fg); margin: 0 0 14px; max-width: 640px; }
+  .body p.dim { color: var(--fg-muted); }
+  .body h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin: 28px 0 10px; }
+
+  .privacy {
+    padding: 22px 24px; border: 1px solid var(--hairline); border-radius: 12px; background: #fff;
+    display: grid; grid-template-columns: 24px 1fr; gap: 14px;
+    margin: 16px 0 20px;
+  }
+  .privacy svg { color: var(--accent); margin-top: 2px; }
+  .privacy h3 { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--fg); }
+  .privacy p { font-size: 14px; color: var(--fg-muted); margin: 0; line-height: 1.55; }
+  .privacy ul { margin: 8px 0 0; padding-left: 18px; }
+  .privacy li { font-size: 14px; color: var(--fg-muted); line-height: 1.6; }
+
+  .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 8px 0 24px; }
+  .shot { aspect-ratio: 9/19.5; background: var(--ink-50); border: 1px solid var(--hairline); border-radius: 22px; padding: 22px 12px; display: flex; flex-direction: column; gap: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); }
+  .shot .top { font-size: 10px; text-align: center; color: var(--fg-subtle); }
+  .shot .title { font-family: var(--font-system); font-size: 18px; font-weight: 600; color: var(--fg); letter-spacing: -0.02em; padding: 0 6px; margin-top: 8px; }
+  .shot .stub { background: #fff; border: 1px solid var(--hairline); border-radius: 8px; padding: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); }
+  .shot .stub b { color: var(--fg); font-weight: 500; }
+
+  .changelog { padding: 16px 0; }
+  .change { padding: 12px 0; border-top: 1px solid var(--hairline); display: grid; grid-template-columns: 110px 60px 1fr; gap: 14px; align-items: baseline; }
+  .change .ver { font-family: var(--font-mono); font-size: 13px; color: var(--fg); font-weight: 500; }
+  .change .date { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); }
+  .change .body { font-size: 14px; color: var(--fg-muted); line-height: 1.5; padding: 0; }
+
+  footer { padding: 32px 0 48px; margin-top: 32px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--fg-muted); }
+</style>
+</head>
+<body>
+<div class="container">
+  <nav class="nav">
+    <span class="wm">
+      <span class="check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FAFAF7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      josh approved
+    </span>
+    <span class="crumb"><a href="https://github.com/josh-approved">apps</a> &nbsp;/&nbsp; <b>Packing List</b></span>
+  </nav>
+
+  <section class="hero">
+    <div class="icon-frame" style="background: var(--marketing-ochre); border-color: var(--marketing-ochre);">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="var(--paper)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    </div>
+    <div>
+      <h1>Packing List</h1>
+      <p>A packing list that builds itself from the trip you're taking, then gets out of your way. Runs entirely on your phone. Free.</p>
+    </div>
+  </section>
+
+  <div class="cta-row">
+    <a class="btn primary" href="https://apps.apple.com/app/id6770051644">Get on App Store <span class="small">iOS 16+</span></a>
+    <a class="btn secondary" href="https://github.com/josh-approved/packing-list">Source on GitHub</a>
+  </div>
+
+  <div class="specs">
+    <div class="spec"><div class="lab">Size</div><div class="val">~14 MB</div></div>
+    <div class="spec"><div class="lab">Permissions</div><div class="val">None</div></div>
+    <div class="spec"><div class="lab">Network</div><div class="val">Update check</div></div>
+    <div class="spec"><div class="lab">License</div><div class="val">MIT</div></div>
+  </div>
+
+  <section class="body">
+    <p>I always forget the same few things on a trip — and over-pack everything else. So I built the checklist I actually wanted: tell it the kind of trip and how many days, and it lays out a sensible starting list. Rename anything, drag items between sections, split a list across the people you're packing for, and tick things off as you go.</p>
+    <p class="dim">There's no account and no pro tier — nothing to sign up for, nothing to upgrade. Your trips live in a local database on your phone. You can export them to a file and import them back yourself; that's the backup story for now. The code is on GitHub if you want to read exactly what it does.</p>
+
+    <div class="privacy">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div>
+        <h3>What this app collects</h3>
+        <p>Nothing about you. There's no account, no analytics, and no server that holds your data.</p>
+        <ul>
+          <li>No analytics, no crash reporting, no install pings.</li>
+          <li>No accounts. Trips are stored locally and only leave the phone when you export them to a file yourself.</li>
+          <li>The one network call is an app-update check. No personal data is sent — verify it on the App Store privacy label or in the source.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Screenshots</h2>
+    <div class="shots">
+      <div class="shot">
+        <div class="top">9:41</div>
+        <div class="title">New trip</div>
+        <div class="stub" style="text-align:center; padding: 28px 12px;">pick trip types<br>set the days</div>
+      </div>
+      <div class="shot">
+        <div class="top">9:41</div>
+        <div class="title">Your list</div>
+        <div class="stub"><b>Sunscreen</b><br>Toiletries · ×1</div>
+        <div class="stub"><b>Charger</b><br>Electronics · ×1</div>
+        <div class="stub"><b>Passport</b><br>Documents · ×1</div>
+      </div>
+      <div class="shot">
+        <div class="top">9:41</div>
+        <div class="title">Packed</div>
+        <div class="stub" style="text-align:center; padding: 28px 12px;">12 of 14 packed</div>
+      </div>
+    </div>
+
+    <h2>Changelog</h2>
+    <div class="changelog">
+      <div class="change"><span class="ver">1.0.0</span><span class="date">—</span><span class="body">First release. Builds a starting list from your trip type and length; rename, reorder, recategorize, assign across packers, check off as you pack; export and import trips as a file.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Made independently. <a href="mailto:feedback@joshapproved.com?subject=Packing%20List%20%E2%80%94%20feedback" style="color: var(--fg);">Send feedback</a> · <a href="https://buymeacoffee.com/jtysonwilliams" style="color: var(--fg);">Donate</a></span>
+    <span style="font-family: var(--font-mono); font-size: 11px;">v1.0.0 · MIT</span>
+  </footer>
+</div>
+</body></html>
