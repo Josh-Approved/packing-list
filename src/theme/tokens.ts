@@ -1,10 +1,12 @@
 /**
- * Spacing, radius, target, and motion tokens.
+ * Spacing, radius, target, motion, and hairline tokens (React Native).
  *
- * Mirror of josh-approved-design-system/colors_and_type.css. All values 1:1
- * with the canonical CSS so an in-app surface and the marketing landing page
- * align pixel-for-pixel.
+ * Canonical mirror of josh-approved-design-system/colors_and_type.css. Synced
+ * into each app at src/theme/tokens.ts by `sync.mjs design-system-native`.
+ * Edit values HERE, not per app.
  */
+
+import { StyleSheet } from 'react-native';
 
 // ---------- Spacing (4pt grid) ----------
 export const space = {
@@ -46,3 +48,8 @@ export const motion = {
   durationSlow: 250,
   easingStandard: [0.2, 0, 0, 1] as readonly [number, number, number, number],
 } as const;
+
+// ---------- Hairline ----------
+// The 1px (sub-pixel on retina) border width the system uses instead of
+// shadows. A primitive, not a color — the hairline *color* is in colors.ts.
+export const hairline = StyleSheet.hairlineWidth;
