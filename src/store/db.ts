@@ -33,6 +33,14 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS tombstones (
+      id        TEXT PRIMARY KEY NOT NULL,
+      deletedAt INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sync_meta (
+      k TEXT PRIMARY KEY NOT NULL,
+      v TEXT NOT NULL
+    );
   `);
   return _db;
 }
@@ -91,4 +99,48 @@ export async function saveTrip(trip: Trip): Promise<void> {
 export async function deleteTripFromDb(id: string): Promise<void> {
   const db = await getDb();
   await db.runAsync('DELETE FROM trips WHERE id = ?', [id]);
+}
+
+// ---------- CloudKit sync support ----------
+// Tombstones let a local delete propagate to other devices: without a record
+// of "trip X was deleted at T" a pull would just re-adopt X from the cloud.
+
+interface TombstoneRow {
+  id: string;
+  deletedAt: number;
+}
+
+export async function loadTombstones(): Promise<TombstoneRow[]> {
+  const db = await getDb();
+  return db.getAllAsync<TombstoneRow>('SELECT id, deletedAt FROM tombstones');
+}
+
+export async function putTombstone(id: string, deletedAt: number): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO tombstones (id, deletedAt) VALUES (?, ?)',
+    [id, deletedAt]
+  );
+}
+
+export async function removeTombstone(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM tombstones WHERE id = ?', [id]);
+}
+
+export async function getSyncMeta(k: string): Promise<string | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ v: string }>(
+    'SELECT v FROM sync_meta WHERE k = ?',
+    [k]
+  );
+  return row?.v ?? null;
+}
+
+export async function setSyncMeta(k: string, v: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO sync_meta (k, v) VALUES (?, ?)',
+    [k, v]
+  );
 }

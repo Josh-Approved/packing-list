@@ -16,7 +16,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { useColorScheme, LogBox } from 'react-native';
+import { useColorScheme, LogBox, AppState } from 'react-native';
 
 // Silence a benign dev warning: react-native-reorderable-list nests its own
 // VirtualizedList inside its ScrollViewContainer, which RN's blanket warning
@@ -37,6 +37,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAppFonts, lightColors, darkColors, typography } from './src/theme';
 import { useTripsStore } from './src/store/trips';
+import { syncNow } from './src/sync/cloudSync';
 import TripsHomeScreen from './src/screens/TripsHomeScreen';
 import TripDetailScreen from './src/screens/TripDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -80,6 +81,18 @@ export default function App() {
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  // CloudKit sync: once after the local store is ready, then on every
+  // return to foreground. Fire-and-forget and self-guarded — no-ops with
+  // no native module or no iCloud account, never blocks the UI.
+  useEffect(() => {
+    if (!hydrated) return;
+    syncNow().catch(() => {});
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st === 'active') syncNow().catch(() => {});
+    });
+    return () => sub.remove();
+  }, [hydrated]);
 
   // SplashScreen stays visible until BOTH fonts and disk-loaded trips are
   // ready (no FOUT, no flash of "no trips yet" on a populated database).
