@@ -34,7 +34,8 @@
     "owner": "josh-approved",
     "plugins": [
       "expo-font",
-      "expo-sqlite"
+      "expo-sqlite",
+      "./plugins/withCloudKit"
     ],
     "extra": {
       "eas": {

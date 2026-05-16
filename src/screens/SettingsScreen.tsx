@@ -8,10 +8,10 @@
  * would sit above the About block when they exist.
  */
 
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Coffee, Mail, Star, Shield, Code } from 'lucide-react-native';
+import { ChevronLeft, Coffee, Mail, Star, Shield, Code, Cloud } from 'lucide-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme, typography, space, target } from '../theme';
 import type { Colors } from '../theme';
@@ -24,13 +24,70 @@ import {
   openSource,
   versionLabel,
 } from '../lib/links';
+import { isCloudSyncAvailable } from '../../modules/cloud-sync';
+import { syncNow, lastSyncAt } from '../sync/cloudSync';
 import type { RootStackParamList } from '../../App';
+
+function formatSince(ms: number): string {
+  const d = Math.max(0, Date.now() - ms);
+  const min = Math.round(d / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  return `${Math.round(hr / 24)} d ago`;
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export default function SettingsScreen({ navigation }: Props) {
   const { c } = useTheme();
   const s = makeStyles(c);
+
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isCloudSyncAvailable) return;
+    let alive = true;
+    lastSyncAt().then((t) => {
+      if (alive && t) setSyncMsg(`Last backed up ${formatSince(t)}`);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const handleSync = useCallback(async () => {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMsg('Backing up…');
+    const r = await syncNow();
+    switch (r.status) {
+      case 'ok':
+        setSyncMsg(
+          r.pulled + r.pushed === 0
+            ? 'Up to date'
+            : `Backed up • ${r.pulled} in, ${r.pushed} out`
+        );
+        break;
+      case 'noAccount':
+        setSyncMsg('Sign in to iCloud to back up your trips.');
+        break;
+      case 'unavailable':
+        setSyncMsg('iCloud backup needs the latest app version.');
+        break;
+      case 'restricted':
+      case 'temporarilyUnavailable':
+      case 'couldNotDetermine':
+        setSyncMsg('iCloud is unavailable right now.');
+        break;
+      case 'error':
+        setSyncMsg("Couldn't reach iCloud. It'll retry next time.");
+        break;
+    }
+    setSyncing(false);
+  }, [syncing]);
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -50,6 +107,19 @@ export default function SettingsScreen({ navigation }: Props) {
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+        {isCloudSyncAvailable && (
+          <View style={s.backupSection}>
+            <Text style={s.sectionLabel}>Backup</Text>
+            <View style={s.block}>
+              <AboutRow icon={Cloud} label="Back up to iCloud" onPress={handleSync} />
+            </View>
+            <Text style={s.syncCaption}>
+              {syncMsg ??
+                'Your trips stay on this phone. Tap to also keep a private copy in your iCloud.'}
+            </Text>
+          </View>
+        )}
+
         <Text style={s.sectionLabel}>About</Text>
         <View style={s.block}>
           <AboutRow icon={Coffee} label="Buy me a coffee?" onPress={openBmac} />
@@ -106,6 +176,17 @@ function makeStyles(c: Colors) {
     block: {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: c.hairline,
+    },
+    backupSection: {
+      paddingBottom: space.s6,
+    },
+    syncCaption: {
+      fontFamily: typography.body,
+      fontSize: 13,
+      lineHeight: 18,
+      color: c.fgMuted,
+      paddingHorizontal: space.s5,
+      paddingTop: space.s3,
     },
     version: {
       fontFamily: typography.body,
