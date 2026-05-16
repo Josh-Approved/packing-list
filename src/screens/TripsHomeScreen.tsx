@@ -30,6 +30,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
 import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
 import { FundingFooter } from '../components/FundingFooter';
+import ReviewModal from '../components/ReviewModal';
+import { useReviewModal } from '../store/reviewModal';
+import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
@@ -47,6 +50,11 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const updateTrip = useTripsStore((st) => st.updateTrip);
   const deleteTrip = useTripsStore((st) => st.deleteTrip);
   const importTrips = useTripsStore((st) => st.importTrips);
+
+  // Review modal lives here (not Trip Detail): the completion is detected as
+  // the user leaves Trip Detail, so the prompt surfaces once they're back.
+  const reviewVisible = useReviewModal((st) => st.visible);
+  const hideReview = useReviewModal((st) => st.hide);
 
   const handleNewTrip = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -275,6 +283,14 @@ export default function TripsHomeScreen({ navigation }: Props) {
           <Plus size={24} color={c.fgOnInk} strokeWidth={1.5} />
         </Pressable>
       )}
+
+      <ReviewModal
+        visible={reviewVisible}
+        onDismiss={hideReview}
+        appName="Packing List"
+        iosAppStoreId={APP_STORE_ID}
+        androidPackageName={ANDROID_PACKAGE}
+      />
     </SafeAreaView>
   );
 }
