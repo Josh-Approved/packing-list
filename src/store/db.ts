@@ -13,7 +13,15 @@
  */
 
 import * as SQLite from 'expo-sqlite';
-import type { Trip, TripItem, TripTypeId, Packer } from '../data/trip';
+import {
+  LAUNDRY_DEFAULT_INTERVAL,
+  THOROUGHNESS_DEFAULT,
+  type Trip,
+  type TripItem,
+  type TripTypeId,
+  type Packer,
+  type Thoroughness,
+} from '../data/trip';
 
 const DB_NAME = 'packing-list.db';
 
@@ -22,16 +30,24 @@ let _db: SQLite.SQLiteDatabase | null = null;
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (_db) return _db;
   _db = await SQLite.openDatabaseAsync(DB_NAME);
+  // Fresh installs get the full shape. The three trip-info columns carry
+  // legacy-safe DEFAULTs so the migration below can ADD them to an existing
+  // table without rewriting any row: an old trip reads back as
+  // canDoLaundry=0 / laundryIntervalDays=4 / thoroughness='normal', which is
+  // exactly the pre-laundry, normal-thoroughness behavior.
   await _db.execAsync(`
     CREATE TABLE IF NOT EXISTS trips (
-      id        TEXT PRIMARY KEY NOT NULL,
-      name      TEXT NOT NULL,
-      duration  INTEGER NOT NULL,
-      typeIds   TEXT NOT NULL,
-      packers   TEXT NOT NULL,
-      items     TEXT NOT NULL,
-      createdAt INTEGER NOT NULL,
-      updatedAt INTEGER NOT NULL
+      id                  TEXT PRIMARY KEY NOT NULL,
+      name                TEXT NOT NULL,
+      duration            INTEGER NOT NULL,
+      typeIds             TEXT NOT NULL,
+      packers             TEXT NOT NULL,
+      items               TEXT NOT NULL,
+      canDoLaundry        INTEGER NOT NULL DEFAULT 0,
+      laundryIntervalDays INTEGER NOT NULL DEFAULT 4,
+      thoroughness        TEXT NOT NULL DEFAULT 'normal',
+      createdAt           INTEGER NOT NULL,
+      updatedAt           INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS tombstones (
       id        TEXT PRIMARY KEY NOT NULL,
@@ -42,7 +58,38 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       v TEXT NOT NULL
     );
   `);
+  await migrateTripColumns(_db);
   return _db;
+}
+
+/**
+ * Idempotent additive migration for tables created before the trip-info
+ * columns existed. ALTER TABLE ADD COLUMN with a constant DEFAULT is O(1) in
+ * SQLite (no row rewrite) and safe to run on every open — we only ALTER the
+ * columns PRAGMA table_info reports as missing.
+ */
+async function migrateTripColumns(db: SQLite.SQLiteDatabase): Promise<void> {
+  const cols = await db.getAllAsync<{ name: string }>(
+    `PRAGMA table_info(trips)`
+  );
+  const have = new Set(cols.map((c) => c.name));
+  const adds: string[] = [];
+  if (!have.has('canDoLaundry')) {
+    adds.push(
+      `ALTER TABLE trips ADD COLUMN canDoLaundry INTEGER NOT NULL DEFAULT 0`
+    );
+  }
+  if (!have.has('laundryIntervalDays')) {
+    adds.push(
+      `ALTER TABLE trips ADD COLUMN laundryIntervalDays INTEGER NOT NULL DEFAULT 4`
+    );
+  }
+  if (!have.has('thoroughness')) {
+    adds.push(
+      `ALTER TABLE trips ADD COLUMN thoroughness TEXT NOT NULL DEFAULT 'normal'`
+    );
+  }
+  for (const sql of adds) await db.execAsync(sql);
 }
 
 interface TripRow {
@@ -52,6 +99,9 @@ interface TripRow {
   typeIds: string;
   packers: string;
   items: string;
+  canDoLaundry: number;
+  laundryIntervalDays: number;
+  thoroughness: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -64,6 +114,9 @@ function rowToTrip(row: TripRow): Trip {
     typeIds: JSON.parse(row.typeIds) as TripTypeId[],
     packers: JSON.parse(row.packers) as Packer[],
     items: JSON.parse(row.items) as TripItem[],
+    canDoLaundry: row.canDoLaundry === 1,
+    laundryIntervalDays: row.laundryIntervalDays || LAUNDRY_DEFAULT_INTERVAL,
+    thoroughness: (row.thoroughness as Thoroughness) || THOROUGHNESS_DEFAULT,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -81,8 +134,10 @@ export async function saveTrip(trip: Trip): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     `INSERT OR REPLACE INTO trips
-       (id, name, duration, typeIds, packers, items, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, name, duration, typeIds, packers, items,
+        canDoLaundry, laundryIntervalDays, thoroughness,
+        createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       trip.id,
       trip.name,
@@ -90,6 +145,9 @@ export async function saveTrip(trip: Trip): Promise<void> {
       JSON.stringify(trip.typeIds),
       JSON.stringify(trip.packers),
       JSON.stringify(trip.items),
+      trip.canDoLaundry ? 1 : 0,
+      trip.laundryIntervalDays ?? LAUNDRY_DEFAULT_INTERVAL,
+      trip.thoroughness ?? THOROUGHNESS_DEFAULT,
       trip.createdAt,
       trip.updatedAt,
     ]

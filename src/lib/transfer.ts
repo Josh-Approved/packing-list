@@ -21,7 +21,14 @@
  */
 
 import { makeId } from './id';
-import type { Trip, TripItem, Packer } from '../data/trip';
+import {
+  LAUNDRY_DEFAULT_INTERVAL,
+  THOROUGHNESS_DEFAULT,
+  type Trip,
+  type TripItem,
+  type Packer,
+  type Thoroughness,
+} from '../data/trip';
 
 /** Bump only on a breaking envelope-shape change. Unknown/newer → rejected. */
 export const TRANSFER_SCHEMA = 1;
@@ -100,6 +107,16 @@ function validateTrip(v: unknown): Trip {
     throw new TransferError(DAMAGED);
   }
   if (!v.typeIds.every(isStr)) throw new TransferError(DAMAGED);
+  // Trip-info fields are optional/lenient: exports made before they existed
+  // simply lack them, so a missing or malformed value defaults rather than
+  // failing the whole import (validation is strict about shape, forgiving
+  // about a newer optional field an older export couldn't have written).
+  const thoroughness: Thoroughness =
+    v.thoroughness === 'minimalist' ||
+    v.thoroughness === 'normal' ||
+    v.thoroughness === 'thorough'
+      ? v.thoroughness
+      : THOROUGHNESS_DEFAULT;
   return {
     id: v.id,
     name: v.name,
@@ -107,6 +124,11 @@ function validateTrip(v: unknown): Trip {
     typeIds: v.typeIds as Trip['typeIds'],
     packers: v.packers.map(validatePacker),
     items: v.items.map(validateItem),
+    canDoLaundry: isBool(v.canDoLaundry) ? v.canDoLaundry : false,
+    laundryIntervalDays: isNum(v.laundryIntervalDays)
+      ? v.laundryIntervalDays
+      : LAUNDRY_DEFAULT_INTERVAL,
+    thoroughness,
     createdAt: v.createdAt,
     updatedAt: v.updatedAt,
   };

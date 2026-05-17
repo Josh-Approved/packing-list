@@ -38,7 +38,7 @@ import {
   ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, Plus, ChevronLeft, ChevronDown, GripVertical } from 'lucide-react-native';
+import { Check, Plus, ChevronLeft, ChevronRight, ChevronDown, GripVertical } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import {
   NestedReorderableList,
@@ -50,15 +50,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   TRIP_TYPES,
   CATEGORY_ORDER,
-  MIN_DURATION_DAYS,
-  MAX_DURATION_DAYS,
   SHARED_ASSIGNEE,
-  applyTypeToggle,
-  applyDurationChange,
   groupByCategory,
-  getTripTypeIcon,
+  tripOpts,
   type Category,
-  type TripTypeId,
   type TripItem,
   type Packer,
 } from '../data/trip';
@@ -70,7 +65,6 @@ import { makeId } from '../lib/id';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { Stepper } from '../components/Stepper';
-import { Chip } from '../components/Chip';
 import { Pill } from '../components/Pill';
 import type { RootStackParamList } from '../../App';
 
@@ -147,23 +141,10 @@ export default function TripDetailScreen({ route, navigation }: Props) {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleNameChange = useCallback((next: string) => {
-    updateTrip(tripId, (t) => ({ ...t, name: next }));
-  }, [updateTrip, tripId]);
-
-  const handleDurationChange = useCallback((next: number) => {
-    updateTrip(tripId, (t) => {
-      const items = applyDurationChange(t, next);
-      return { ...t, duration: next, items };
-    });
-  }, [updateTrip, tripId]);
-
-  const handleTypeToggle = useCallback((typeId: TripTypeId) => {
-    updateTrip(tripId, (t) => {
-      const { typeIds, items } = applyTypeToggle(t, typeId);
-      return { ...t, typeIds, items };
-    });
-  }, [updateTrip, tripId]);
+  const handleOpenTripInfo = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+    navigation.navigate('TripInfo', { tripId });
+  }, [navigation, tripId]);
 
   const handleQuantityChange = useCallback((itemId: string, next: number) => {
     updateTrip(tripId, (t) => ({
@@ -473,6 +454,31 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   const totalCount = trip.items.length;
   const isSoloPacker = trip.packers.length === 1;
 
+  // One-line summary for the condensed header: duration · types · how
+  // thorough · laundry (only when on). Legacy trips read sensible defaults
+  // via tripOpts so the line is always complete.
+  const o = tripOpts(trip);
+  const typeNames = trip.typeIds
+    .map((id) => TRIP_TYPES.find((t) => t.id === id)?.name)
+    .filter((n): n is string => !!n);
+  const typeSummary =
+    typeNames.length === 0
+      ? 'No trip types'
+      : typeNames.length <= 2
+        ? typeNames.join(', ')
+        : `${typeNames.slice(0, 2).join(', ')} +${typeNames.length - 2}`;
+  const metaParts = [
+    `${trip.duration} ${trip.duration === 1 ? 'day' : 'days'}`,
+    typeSummary,
+    o.thoroughness.charAt(0).toUpperCase() + o.thoroughness.slice(1),
+  ];
+  if (o.canDoLaundry) {
+    metaParts.push(
+      `Laundry every ${o.laundryIntervalDays} ${o.laundryIntervalDays === 1 ? 'day' : 'days'}`
+    );
+  }
+  const tripMeta = metaParts.join('  ·  ');
+
   const assigneeLabel = (id: string): string => {
     if (id === SHARED_ASSIGNEE) return 'Shared';
     return trip.packers.find((p) => p.id === id)?.name ?? 'Shared';
@@ -503,51 +509,29 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           contentContainerStyle={s.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Trip name + progress */}
-          <View style={s.headerSection}>
-            <TextInput
-              value={trip.name}
-              onChangeText={handleNameChange}
-              placeholder="Untitled trip"
-              placeholderTextColor={c.fgSubtle}
-              style={s.title}
-              accessibilityLabel="Trip name"
-            />
-            <Text style={s.progress}>
-              {totalCount === 0 ? 'No items yet' : `${packedCount} of ${totalCount} packed`}
+          {/* Condensed trip info — stays out of the way; tap to reopen the
+              Trip Information step and edit name / duration / types /
+              thoroughness / laundry. */}
+          <Pressable
+            onPress={handleOpenTripInfo}
+            style={({ pressed }) => [s.tripInfoCard, pressed && s.tripInfoCardPressed]}
+            accessibilityRole="button"
+            accessibilityLabel={`${trip.name}. ${tripMeta}. Edit trip information.`}
+          >
+            <View style={s.tripInfoTop}>
+              <Text style={s.tripInfoName} numberOfLines={1}>
+                {trip.name}
+              </Text>
+              <ChevronRight size={20} color={c.fgMuted} strokeWidth={1.5} />
+            </View>
+            <Text style={s.tripInfoMeta} numberOfLines={2}>
+              {tripMeta}
             </Text>
-          </View>
+          </Pressable>
 
-          {/* Duration */}
-          <View style={s.section}>
-            <Text style={s.sectionLabel}>Duration</Text>
-            <View style={s.durationRow}>
-              <Stepper
-                value={trip.duration}
-                onChange={handleDurationChange}
-                min={MIN_DURATION_DAYS}
-                max={MAX_DURATION_DAYS}
-                label="Trip duration in days"
-              />
-              <Text style={s.durationUnit}>{trip.duration === 1 ? 'day' : 'days'}</Text>
-            </View>
-          </View>
-
-          {/* Trip types */}
-          <View style={s.section}>
-            <Text style={s.sectionLabel}>Trip types</Text>
-            <View style={s.chipGrid}>
-              {TRIP_TYPES.map((t) => (
-                <Chip
-                  key={t.id}
-                  icon={getTripTypeIcon(t.iconName)}
-                  label={t.name}
-                  selected={trip.typeIds.includes(t.id)}
-                  onPress={() => handleTypeToggle(t.id)}
-                />
-              ))}
-            </View>
-          </View>
+          <Text style={s.progressText}>
+            {totalCount === 0 ? 'No items yet' : `${packedCount} of ${totalCount} packed`}
+          </Text>
 
           {/* Packers */}
           <View style={s.section}>
@@ -745,26 +729,46 @@ function makeStyles(c: Colors) {
       color: c.fgMuted,
     },
 
-    // ---------- Trip name + progress ----------
-    headerSection: {
-      paddingTop: space.s3,
-      paddingBottom: space.s5,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: c.hairline,
+    // ---------- Condensed trip-info header ----------
+    tripInfoCard: {
+      marginTop: space.s3,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: c.hairline,
+      backgroundColor: c.bgElevated,
+      paddingHorizontal: space.s5,
+      paddingVertical: space.s4,
       gap: space.s2,
     },
-    title: {
-      fontFamily: typography.heading,
-      fontSize: 28,
-      lineHeight: 36,
-      color: c.fg,
-      paddingVertical: 0,
+    tripInfoCardPressed: {
+      backgroundColor: c.bgSubtle,
     },
-    progress: {
+    tripInfoTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: space.s3,
+    },
+    tripInfoName: {
+      flex: 1,
+      fontFamily: typography.heading,
+      fontSize: 20,
+      lineHeight: 26,
+      color: c.fg,
+    },
+    tripInfoMeta: {
+      fontFamily: typography.body,
+      fontSize: 13,
+      lineHeight: 19,
+      color: c.fgMuted,
+    },
+    progressText: {
       fontFamily: typography.body,
       fontSize: 14,
       lineHeight: 20,
       color: c.fgMuted,
+      paddingTop: space.s4,
+      paddingBottom: space.s1,
     },
 
     // ---------- Section frame ----------
@@ -779,25 +783,6 @@ function makeStyles(c: Colors) {
       letterSpacing: 0.5,
       textTransform: 'uppercase',
       color: c.fgMuted,
-    },
-
-    // ---------- Duration ----------
-    durationRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.s4,
-    },
-    durationUnit: {
-      fontFamily: typography.body,
-      fontSize: 16,
-      color: c.fg,
-    },
-
-    // ---------- Chip grid ----------
-    chipGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: space.s3,
     },
 
     // ---------- Packers ----------
