@@ -13,9 +13,9 @@
 
 import { create } from 'zustand';
 import {
-  composeItems,
+  applyTripInfo,
   type Trip,
-  type TripTypeId,
+  type TripInfo,
 } from '../data/trip';
 import { makeId } from '../lib/id';
 import { mergeImported } from '../lib/transfer';
@@ -88,10 +88,11 @@ interface TripsState {
   /** Load all trips from SQLite. Call once at app start. */
   hydrate: () => Promise<void>;
 
-  /** Create a new trip with smart defaults; returns the new id.
-   *  Caller MUST supply a name — the trips home flow prompts for it before
-   *  calling this, so we never end up with anonymous "New trip" entries. */
-  createTrip: (name: string) => string;
+  /** Create a new trip from a completed Trip Information step; returns the
+   *  new id. The wizard collects the full bundle (name, duration, types,
+   *  laundry, thoroughness) before this is called, so a trip only ever
+   *  exists once it's been deliberately configured — no orphan drafts. */
+  createTrip: (info: TripInfo) => string;
 
   /** Lookup by id. Returns undefined if not found. */
   getTrip: (id: string) => Trip | undefined;
@@ -115,14 +116,10 @@ interface TripsState {
   applySync: (changes: { upserts: Trip[]; deletes: string[] }) => void;
 }
 
-// ---------- Smart defaults for a new trip ----------
-// Per spec § "Empty / new trip flow": Essentials only, 3 days, packers ['Me'].
-
-const NEW_TRIP_DEFAULTS = {
-  duration: 3,
-  typeIds: ['essentials'] as TripTypeId[],
-  packers: [{ id: 'me', name: 'Me' }],
-};
+// The sole packer a freshly created trip starts with. Trip configuration
+// (duration, types, laundry, thoroughness) now comes from the Trip
+// Information step via TripInfo; packers are still managed on the list.
+const DEFAULT_PACKERS = [{ id: 'me', name: 'Me' }];
 
 export const useTripsStore = create<TripsState>()((set, get) => ({
   trips: [],
@@ -146,16 +143,13 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
     }
   },
 
-  createTrip: (name) => {
+  createTrip: (info) => {
     const id = makeId('t');
     const now = Date.now();
     const trip: Trip = {
       id,
-      name: name.trim() || 'Untitled trip',
-      duration: NEW_TRIP_DEFAULTS.duration,
-      typeIds: NEW_TRIP_DEFAULTS.typeIds,
-      packers: NEW_TRIP_DEFAULTS.packers,
-      items: composeItems(NEW_TRIP_DEFAULTS.typeIds, NEW_TRIP_DEFAULTS.duration, []),
+      ...applyTripInfo(info, []),
+      packers: DEFAULT_PACKERS,
       createdAt: now,
       updatedAt: now,
     };

@@ -39,11 +39,15 @@ import { useAppFonts, lightColors, darkColors, typography } from './src/theme';
 import { useTripsStore } from './src/store/trips';
 import { syncNow } from './src/sync/cloudSync';
 import TripsHomeScreen from './src/screens/TripsHomeScreen';
+import TripInfoScreen from './src/screens/TripInfoScreen';
 import TripDetailScreen from './src/screens/TripDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 
 export type RootStackParamList = {
   TripsHome: undefined;
+  /** Step 1 — Trip Information. No tripId = create flow (a trip is only
+   *  minted on Continue). With tripId = edit an existing trip's info. */
+  TripInfo: { tripId?: string } | undefined;
   TripDetail: { tripId: string };
   Settings: undefined;
 };
@@ -108,6 +112,7 @@ export default function App() {
             screenOptions={{ headerShown: false }}
           >
             <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
+            <Stack.Screen name="TripInfo" component={TripInfoScreen} />
             <Stack.Screen name="TripDetail" component={TripDetailScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
           </Stack.Navigator>

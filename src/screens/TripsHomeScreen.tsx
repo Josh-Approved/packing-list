@@ -45,7 +45,6 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const s = makeStyles(c);
 
   const trips = useTripsStore((st) => st.trips);
-  const createTrip = useTripsStore((st) => st.createTrip);
   const duplicateTrip = useTripsStore((st) => st.duplicateTrip);
   const updateTrip = useTripsStore((st) => st.updateTrip);
   const deleteTrip = useTripsStore((st) => st.deleteTrip);
@@ -58,32 +57,11 @@ export default function TripsHomeScreen({ navigation }: Props) {
 
   const handleNewTrip = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    // Naming up-front means trips are always recognizable in the list — no
-    // orphan "New trip" entries to rename later. Cancel = no trip created.
-    if (Platform.OS === 'ios') {
-      Alert.prompt(
-        "What's this trip?",
-        undefined,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Create',
-            onPress: (text?: string) => {
-              if (!text || !text.trim()) return;
-              const id = createTrip(text.trim());
-              navigation.navigate('TripDetail', { tripId: id });
-            },
-          },
-        ],
-        'plain-text',
-        ''
-      );
-    } else {
-      // Android fallback (v1 is iOS-only).
-      const id = createTrip('Untitled trip');
-      navigation.navigate('TripDetail', { tripId: id });
-    }
-  }, [createTrip, navigation]);
+    // Step 1 is the Trip Information screen. The trip itself is only minted
+    // when the user taps Continue there — backing out makes nothing, so
+    // there are never orphan drafts to clean up.
+    navigation.navigate('TripInfo');
+  }, [navigation]);
 
   const handleTripLongPress = useCallback((trip: Trip) => {
     if (Platform.OS !== 'ios') return; // iOS-only for v1
