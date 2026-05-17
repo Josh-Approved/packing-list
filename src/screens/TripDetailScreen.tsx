@@ -32,10 +32,8 @@ import {
   StyleSheet,
   Pressable,
   TextInput,
-  Alert,
   Platform,
   KeyboardAvoidingView,
-  ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, Plus, ChevronLeft, ChevronRight, ChevronDown, GripVertical } from 'lucide-react-native';
@@ -66,6 +64,7 @@ import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { Stepper } from '../components/Stepper';
 import { Pill } from '../components/Pill';
+import { useActionMenu, usePrompt } from '../components/Dialogs';
 import type { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TripDetail'>;
@@ -93,6 +92,9 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   const { c } = useTheme();
   const s = makeStyles(c);
   const insets = useSafeAreaInsets();
+
+  const menu = useActionMenu();
+  const prompt = usePrompt();
 
   const { tripId } = route.params;
   const trip = useTripsStore((st) => st.trips.find((t) => t.id === tripId));
@@ -218,50 +220,48 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   }, [updateTrip, tripId]);
 
   const handlePackerLongPress = useCallback((packer: Packer) => {
-    if (Platform.OS !== 'ios') return; // iOS-only for v1
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ['Rename', 'Remove', 'Cancel'],
-        cancelButtonIndex: 2,
-        destructiveButtonIndex: 1,
-        title: packer.name,
-      },
-      (idx) => {
-        if (idx === 0) {
-          // Rename
-          Alert.prompt(
-            'Rename packer',
-            undefined,
-            (text) => {
-              if (!text || !text.trim()) return;
-              updateTrip(tripId, (t) => ({
+    menu.open({
+      title: packer.name,
+      options: [
+        {
+          label: 'Rename',
+          onPress: () =>
+            prompt.open({
+              title: 'Rename packer',
+              initialValue: packer.name,
+              selectAll: true,
+              onSubmit: (name) =>
+                updateTrip(tripId, (t) => ({
+                  ...t,
+                  packers: t.packers.map((p) =>
+                    p.id === packer.id ? { ...p, name } : p
+                  ),
+                })),
+            }),
+        },
+        {
+          label: 'Remove',
+          destructive: true,
+          // Guard against removing the last packer; its items fall back to
+          // the shared assignee.
+          onPress: () =>
+            updateTrip(tripId, (t) => {
+              if (t.packers.length <= 1) return t;
+              return {
                 ...t,
-                packers: t.packers.map((p) =>
-                  p.id === packer.id ? { ...p, name: text.trim() } : p
+                packers: t.packers.filter((p) => p.id !== packer.id),
+                items: t.items.map((it) =>
+                  it.assigneeId === packer.id
+                    ? { ...it, assigneeId: SHARED_ASSIGNEE }
+                    : it
                 ),
-              }));
-            },
-            'plain-text',
-            packer.name
-          );
-        } else if (idx === 1) {
-          // Remove — guard against removing the last packer.
-          updateTrip(tripId, (t) => {
-            if (t.packers.length <= 1) return t;
-            return {
-              ...t,
-              packers: t.packers.filter((p) => p.id !== packer.id),
-              // Items assigned to the removed packer fall back to shared.
-              items: t.items.map((it) =>
-                it.assigneeId === packer.id ? { ...it, assigneeId: SHARED_ASSIGNEE } : it
-              ),
-            };
-          });
-        }
-      }
-    );
-  }, [updateTrip, tripId]);
+              };
+            }),
+        },
+      ],
+    });
+  }, [menu, prompt, updateTrip, tripId]);
 
   const handleReorder = useCallback(
     (evt: ReorderableListReorderEvent) => {
@@ -307,30 +307,19 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   );
 
   const handleAddPacker = useCallback(() => {
-    if (Platform.OS === 'ios' && (Alert as { prompt?: typeof Alert.prompt }).prompt) {
-      Alert.prompt(
-        'Add packer',
-        'Name',
-        (text) => {
-          if (!text || !text.trim()) return;
-          const id = makeId('p');
-          updateTrip(tripId, (t) => ({
-            ...t,
-            packers: [...t.packers, { id, name: text.trim() }],
-          }));
-        },
-        'plain-text'
-      );
-    } else {
-      updateTrip(tripId, (t) => ({
-        ...t,
-        packers: [
-          ...t.packers,
-          { id: makeId('p'), name: `Packer ${t.packers.length + 1}` },
-        ],
-      }));
-    }
-  }, [updateTrip, tripId]);
+    prompt.open({
+      title: 'Add packer',
+      placeholder: 'Name',
+      confirmLabel: 'Add',
+      onSubmit: (name) => {
+        const id = makeId('p');
+        updateTrip(tripId, (t) => ({
+          ...t,
+          packers: [...t.packers, { id, name }],
+        }));
+      },
+    });
+  }, [prompt, updateTrip, tripId]);
 
   const handleDraftNameChange = useCallback((text: string) => {
     setDraftName(text);
@@ -366,32 +355,17 @@ export default function TripDetailScreen({ route, navigation }: Props) {
 
   const handleCategoryPick = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
-    if (Platform.OS === 'ios') {
-      const options = [...CATEGORY_ORDER, 'Cancel'];
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          cancelButtonIndex: options.length - 1,
-          title: 'Category',
+    menu.open({
+      title: 'Category',
+      options: CATEGORY_ORDER.map((cat) => ({
+        label: cat,
+        onPress: () => {
+          setDraftCategory(cat);
+          setUserPickedCategory(true);
         },
-        (idx) => {
-          if (idx >= 0 && idx < CATEGORY_ORDER.length) {
-            const next = CATEGORY_ORDER[idx];
-            if (next) {
-              setDraftCategory(next);
-              setUserPickedCategory(true);
-            }
-          }
-        }
-      );
-    } else {
-      // Android fallback: cycle (v1 is iOS-only; this is a safety net).
-      setDraftCategory((cur) => {
-        const idx = CATEGORY_ORDER.indexOf(cur);
-        return CATEGORY_ORDER[(idx + 1) % CATEGORY_ORDER.length] ?? 'Misc';
-      });
-    }
-  }, []);
+      })),
+    });
+  }, [menu]);
 
   const handleAddItem = useCallback(() => {
     const name = draftName.trim();
@@ -686,6 +660,9 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           <Check size={24} color={c.fgOnInk} strokeWidth={2} />
         </Pressable>
       )}
+
+      {menu.element}
+      {prompt.element}
     </SafeAreaView>
   );
 }

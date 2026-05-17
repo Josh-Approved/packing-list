@@ -17,8 +17,6 @@ import {
   StyleSheet,
   Pressable,
   Alert,
-  Platform,
-  ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Plus, MoreHorizontal } from 'lucide-react-native';
@@ -31,6 +29,7 @@ import { useTripsStore } from '../store/trips';
 import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
 import { FundingFooter } from '../components/FundingFooter';
 import ReviewModal from '../components/ReviewModal';
+import { useActionMenu, usePrompt, type ActionOption } from '../components/Dialogs';
 import { useReviewModal } from '../store/reviewModal';
 import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
@@ -55,6 +54,9 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const reviewVisible = useReviewModal((st) => st.visible);
   const hideReview = useReviewModal((st) => st.hide);
 
+  const menu = useActionMenu();
+  const prompt = usePrompt();
+
   const handleNewTrip = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     // Step 1 is the Trip Information screen. The trip itself is only minted
@@ -64,51 +66,46 @@ export default function TripsHomeScreen({ navigation }: Props) {
   }, [navigation]);
 
   const handleTripLongPress = useCallback((trip: Trip) => {
-    if (Platform.OS !== 'ios') return; // iOS-only for v1
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ['Duplicate', 'Rename', 'Delete', 'Cancel'],
-        cancelButtonIndex: 3,
-        destructiveButtonIndex: 2,
-        title: trip.name,
-      },
-      (idx) => {
-        if (idx === 0) {
-          // Duplicate — create a copy and stay on the home screen so the user
-          // sees both cards. They can rename or open from there.
-          duplicateTrip(trip.id);
-        } else if (idx === 1) {
-          // Rename — Alert.prompt with current name as default.
-          Alert.prompt(
-            'Rename trip',
-            undefined,
-            (text?: string) => {
-              if (!text || !text.trim()) return;
-              updateTrip(trip.id, (t) => ({ ...t, name: text.trim() }));
-            },
-            'plain-text',
-            trip.name
-          );
-        } else if (idx === 2) {
-          // Delete — confirm before destroying. Two-step protects against
-          // accidental long-press on a trip with real data in it.
-          Alert.alert(
-            `Delete "${trip.name}"?`,
-            'This trip and its items will be removed. This cannot be undone.',
-            [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Delete',
-                style: 'destructive',
-                onPress: () => deleteTrip(trip.id),
-              },
-            ]
-          );
-        }
-      }
-    );
-  }, [duplicateTrip, updateTrip, deleteTrip]);
+    menu.open({
+      title: trip.name,
+      options: [
+        // Duplicate — create a copy and stay on the home screen so the user
+        // sees both cards. They can rename or open from there.
+        { label: 'Duplicate', onPress: () => duplicateTrip(trip.id) },
+        {
+          label: 'Rename',
+          onPress: () =>
+            prompt.open({
+              title: 'Rename trip',
+              initialValue: trip.name,
+              selectAll: true,
+              onSubmit: (name) =>
+                updateTrip(trip.id, (t) => ({ ...t, name })),
+            }),
+        },
+        {
+          label: 'Delete',
+          destructive: true,
+          // Two-step confirm protects against an accidental long-press on a
+          // trip with real data in it. Alert.alert is cross-platform.
+          onPress: () =>
+            Alert.alert(
+              `Delete "${trip.name}"?`,
+              'This trip and its items will be removed. This cannot be undone.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: () => deleteTrip(trip.id),
+                },
+              ]
+            ),
+        },
+      ],
+    });
+  }, [menu, prompt, duplicateTrip, updateTrip, deleteTrip]);
 
   const handleExport = useCallback(async () => {
     if (trips.length === 0) return;
@@ -172,29 +169,17 @@ export default function TripsHomeScreen({ navigation }: Props) {
     // out of sync with their indices. Export is only offered when there's
     // something to export; Import is always offered (recovery on a fresh
     // install IS the empty state); Settings is always offered.
-    const actions: { label: string; run: () => void }[] = [];
+    const options: ActionOption[] = [];
     if (trips.length > 0) {
-      actions.push({ label: 'Export all trips', run: handleExport });
+      options.push({ label: 'Export all trips', onPress: handleExport });
     }
-    actions.push({ label: 'Import trips…', run: handleImport });
-    actions.push({ label: 'Settings', run: () => navigation.navigate('Settings') });
-
-    if (Platform.OS === 'ios') {
-      const options = [...actions.map((a) => a.label), 'Cancel'];
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options, cancelButtonIndex: options.length - 1 },
-        (idx) => {
-          actions[idx]?.run();
-        }
-      );
-    } else {
-      // Android fallback (v1 is iOS-only; safety net).
-      Alert.alert('Trips', undefined, [
-        ...actions.map((a) => ({ text: a.label, onPress: a.run })),
-        { text: 'Cancel', style: 'cancel' as const },
-      ]);
-    }
-  }, [trips.length, handleExport, handleImport, navigation]);
+    options.push({ label: 'Import trips…', onPress: handleImport });
+    options.push({
+      label: 'Settings',
+      onPress: () => navigation.navigate('Settings'),
+    });
+    menu.open({ options });
+  }, [menu, trips.length, handleExport, handleImport, navigation]);
 
   const isEmpty = trips.length === 0;
 
@@ -269,6 +254,9 @@ export default function TripsHomeScreen({ navigation }: Props) {
         iosAppStoreId={APP_STORE_ID}
         androidPackageName={ANDROID_PACKAGE}
       />
+
+      {menu.element}
+      {prompt.element}
     </SafeAreaView>
   );
 }
