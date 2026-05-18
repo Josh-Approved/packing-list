@@ -19,6 +19,7 @@ import {
 } from '../data/trip';
 import { makeId } from '../lib/id';
 import { mergeImported } from '../lib/transfer';
+import { useSettingsStore } from './settings';
 import {
   loadAllTrips,
   saveTrip,
@@ -148,7 +149,10 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
     const now = Date.now();
     const trip: Trip = {
       id,
-      ...applyTripInfo(info, []),
+      // Account gender personalizes the seeded list (e.g. bras / period
+      // products). Read at create time — it's account-level, never stored
+      // on the trip itself.
+      ...applyTripInfo(info, [], useSettingsStore.getState().gender),
       packers: DEFAULT_PACKERS,
       createdAt: now,
       updatedAt: now,

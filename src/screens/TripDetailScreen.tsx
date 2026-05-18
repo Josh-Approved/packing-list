@@ -121,6 +121,26 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
   }, []);
 
+  // Inline-rename keyboard fix. The editing TextInput lives inside a nested
+  // reorderable list whose ScrollViewContainer doesn't self-scroll a focused
+  // field into view, so an item near the bottom ends up hidden behind the
+  // keyboard. We hold a ref to the outer scroll view and to a wrapper around
+  // its content; when a row starts editing it measures its own offset within
+  // that content and we scroll it comfortably below the header (well clear of
+  // the keyboard, which always covers the bottom).
+  const scrollRef = useRef<ScrollView>(null);
+  const contentRef = useRef<View>(null);
+  const scrollEditingIntoView = useCallback((node: TextInput | null) => {
+    const content = contentRef.current;
+    const sv = scrollRef.current;
+    if (!node || !content || !sv) return;
+    node.measureLayout(
+      content,
+      (_x, y) => sv.scrollTo({ y: Math.max(0, y - space.s7), animated: true }),
+      () => {}
+    );
+  }, []);
+
   // Review prompt. The "satisfying success" for a packing app is finishing
   // the build of a trip's list — so we fire as the user *leaves* Trip Detail
   // with a non-empty list (beforeRemove covers the back chevron, the Done
@@ -479,10 +499,12 @@ export default function TripDetailScreen({ route, navigation }: Props) {
         </View>
 
         <ScrollViewContainer
+          ref={scrollRef}
           style={s.scroll}
           contentContainerStyle={s.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          <View ref={contentRef} collapsable={false}>
           {/* Condensed trip info — stays out of the way; tap to reopen the
               Trip Information step and edit name / duration / types /
               thoroughness / laundry. */}
@@ -566,6 +588,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
                       onStartEdit={() => handleStartEditItem(row.item)}
                       onChangeEditingName={setEditingName}
                       onFinishEdit={handleFinishEditItem}
+                      onEditFocus={scrollEditingIntoView}
                       c={c}
                       s={s}
                     />
@@ -581,6 +604,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
               scrolled). The FAB sits at bottom: target.min + space.s6 +
               insets.bottom and is 56pt tall; clear its top edge + a margin. */}
           <View style={{ height: target.min + space.s6 + 56 + space.s5 + insets.bottom }} />
+          </View>
         </ScrollViewContainer>
 
         {/* ---------- Undo snackbar (above the sticky add-item bar) ---------- */}
@@ -998,6 +1022,7 @@ interface ItemRowProps {
   onStartEdit: () => void;
   onChangeEditingName: (text: string) => void;
   onFinishEdit: () => void;
+  onEditFocus: (node: TextInput | null) => void;
   c: Colors;
   s: ItemRowStyles;
 }
@@ -1015,6 +1040,7 @@ function ItemRow({
   onStartEdit,
   onChangeEditingName,
   onFinishEdit,
+  onEditFocus,
   c,
   s,
 }: ItemRowProps) {
@@ -1032,6 +1058,15 @@ function ItemRow({
     // once when edit opens, not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing]);
+
+  const inputRef = useRef<TextInput>(null);
+  useEffect(() => {
+    if (!isEditing) return;
+    // Wait a beat so the row is laid out and the keyboard is animating in,
+    // then lift the focused field clear of the keyboard.
+    const id = setTimeout(() => onEditFocus(inputRef.current), 80);
+    return () => clearTimeout(id);
+  }, [isEditing, onEditFocus]);
 
   return (
     <View style={s.itemRow}>
@@ -1065,6 +1100,7 @@ function ItemRow({
       <View style={s.itemNameWrap}>
         {isEditing ? (
           <TextInput
+            ref={inputRef}
             value={editingName}
             onChangeText={(t) => {
               if (selection) setSelection(undefined);

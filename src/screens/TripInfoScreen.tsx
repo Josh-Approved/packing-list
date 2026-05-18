@@ -46,6 +46,7 @@ import {
   type TripTypeId,
 } from '../data/trip';
 import { useTripsStore } from '../store/trips';
+import { useSettingsStore } from '../store/settings';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { Stepper } from '../components/Stepper';
@@ -98,6 +99,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
   );
   const createTrip = useTripsStore((st) => st.createTrip);
   const updateTrip = useTripsStore((st) => st.updateTrip);
+  const gender = useSettingsStore((st) => st.gender);
 
   // Local draft. Seeded once from the trip in edit mode (legacy trips get
   // their missing laundry/thoroughness fields filled by tripOpts). In create
@@ -147,7 +149,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
   const handleSubmit = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (isEdit && tripId) {
-      updateTrip(tripId, (t) => ({ ...t, ...applyTripInfo(draft, t.items) }));
+      updateTrip(tripId, (t) => ({ ...t, ...applyTripInfo(draft, t.items, gender) }));
       navigation.goBack();
     } else {
       const id = createTrip(draft);
@@ -155,7 +157,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
       // stack behind the list the user is now working in.
       navigation.replace('TripDetail', { tripId: id });
     }
-  }, [isEdit, tripId, draft, updateTrip, createTrip, navigation]);
+  }, [isEdit, tripId, draft, gender, updateTrip, createTrip, navigation]);
 
   const selectedBlurb = useMemo(
     () =>

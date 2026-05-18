@@ -47,6 +47,15 @@ export type Category =
  */
 export type Thoroughness = 'minimalist' | 'normal' | 'thorough';
 
+/**
+ * Account-level gender preference. Only ever used to decide which gendered
+ * seed rules are suggested when a list is generated (e.g. bras / period
+ * products). It is NOT stored on a Trip, never leaves the device, and
+ * 'unspecified' (the default, and what a dismissed first-run prompt leaves)
+ * behaves exactly as the app did before this existed — no gendered extras.
+ */
+export type GenderPref = 'female' | 'male' | 'unspecified';
+
 export interface Packer {
   id: string;
   name: string;
@@ -115,6 +124,13 @@ export interface ItemRule {
    * 'thorough' = the careful-packer extras.
    */
   tier?: Thoroughness;
+  /**
+   * Only suggest this rule when the account gender preference matches.
+   * Omitted = everyone (the default — unchanged behavior). A rule with a
+   * gender is skipped entirely for any other preference, including
+   * 'unspecified'.
+   */
+  gender?: Exclude<GenderPref, 'unspecified'>;
 }
 
 export interface TripTypeDef {
@@ -169,12 +185,19 @@ export interface CompositionOpts {
   canDoLaundry: boolean;
   laundryIntervalDays: number;
   thoroughness: Thoroughness;
+  /**
+   * Account gender preference. Account-level (not per-trip), so callers pass
+   * the current setting in at compose time. Defaults to 'unspecified', which
+   * suppresses every gendered rule — identical to the pre-gender behavior.
+   */
+  gender: GenderPref;
 }
 
 export const DEFAULT_COMPOSITION_OPTS: CompositionOpts = {
   canDoLaundry: false,
   laundryIntervalDays: LAUNDRY_DEFAULT_INTERVAL,
   thoroughness: THOROUGHNESS_DEFAULT,
+  gender: 'unspecified',
 };
 
 /**
@@ -183,12 +206,14 @@ export const DEFAULT_COMPOSITION_OPTS: CompositionOpts = {
  * exactly as the pre-laundry, normal-thoroughness app did.
  */
 export function tripOpts(
-  trip: Pick<Trip, 'canDoLaundry' | 'laundryIntervalDays' | 'thoroughness'>
+  trip: Pick<Trip, 'canDoLaundry' | 'laundryIntervalDays' | 'thoroughness'>,
+  gender: GenderPref = 'unspecified'
 ): CompositionOpts {
   return {
     canDoLaundry: trip.canDoLaundry ?? false,
     laundryIntervalDays: trip.laundryIntervalDays ?? LAUNDRY_DEFAULT_INTERVAL,
     thoroughness: trip.thoroughness ?? THOROUGHNESS_DEFAULT,
+    gender,
   };
 }
 
@@ -221,10 +246,12 @@ export const TRIP_TYPES: TripTypeDef[] = [
     itemRules: [
       // Core — you cannot travel without these.
       { name: 'Underwear', category: 'Clothing', perDay: 1, tier: 'minimalist' },
+      { name: 'Bras', category: 'Clothing', perDayDivide: 3, tier: 'minimalist', gender: 'female' },
       { name: 'Socks', category: 'Clothing', perDay: 1, tier: 'minimalist' },
       { name: 'T-shirts', category: 'Clothing', perDay: 1, tier: 'minimalist' },
       { name: 'Toothbrush', category: 'Toiletries', fixed: 1, tier: 'minimalist' },
       { name: 'Toothpaste', category: 'Toiletries', fixed: 1, shared: true, tier: 'minimalist' },
+      { name: 'Tampons / pads', category: 'Toiletries', fixed: 1, tier: 'minimalist', gender: 'female' },
       { name: 'Phone charger', category: 'Electronics', fixed: 1, tier: 'minimalist' },
       { name: 'Wallet', category: 'Documents', fixed: 1, tier: 'minimalist' },
       { name: 'Phone', category: 'Electronics', fixed: 1, tier: 'minimalist' },
@@ -609,6 +636,9 @@ export function composeItems(
     if (!typeDef) continue;
     for (const rule of typeDef.itemRules) {
       if (!ruleInScope(rule, opts.thoroughness)) continue;
+      // Gendered rules only generate when the account preference matches;
+      // 'unspecified' (and a dismissed prompt) gets none of them.
+      if (rule.gender && rule.gender !== opts.gender) continue;
       const key = rule.name.toLowerCase();
       const qty = computeQuantity(rule, duration, opts);
       const existing = generated.get(key);
@@ -697,23 +727,25 @@ type ComposableTrip = Pick<
 /** Toggle a trip type and recompute items. Returns new {typeIds, items}. */
 export function applyTypeToggle(
   trip: ComposableTrip,
-  typeId: TripTypeId
+  typeId: TripTypeId,
+  gender: GenderPref = 'unspecified'
 ): { typeIds: TripTypeId[]; items: TripItem[] } {
   const isSelected = trip.typeIds.includes(typeId);
   const typeIds = isSelected
     ? trip.typeIds.filter((t) => t !== typeId)
     : [...trip.typeIds, typeId];
-  const items = composeItems(typeIds, trip.duration, trip.items, tripOpts(trip));
+  const items = composeItems(typeIds, trip.duration, trip.items, tripOpts(trip, gender));
   return { typeIds, items };
 }
 
 /** Recompute items for a new duration, preserving modifications. */
 export function applyDurationChange(
   trip: ComposableTrip,
-  duration: number
+  duration: number,
+  gender: GenderPref = 'unspecified'
 ): TripItem[] {
   const clamped = Math.min(MAX_DURATION_DAYS, Math.max(MIN_DURATION_DAYS, Math.round(duration)));
-  return composeItems(trip.typeIds, clamped, trip.items, tripOpts(trip));
+  return composeItems(trip.typeIds, clamped, trip.items, tripOpts(trip, gender));
 }
 
 /** The user-editable trip-info bundle the wizard / condensed header writes. */
@@ -733,7 +765,8 @@ export interface TripInfo {
  */
 export function applyTripInfo(
   info: TripInfo,
-  existingItems: TripItem[] = []
+  existingItems: TripItem[] = [],
+  gender: GenderPref = 'unspecified'
 ): Pick<Trip, 'name' | 'duration' | 'typeIds' | 'canDoLaundry' | 'laundryIntervalDays' | 'thoroughness' | 'items'> {
   const duration = Math.min(
     MAX_DURATION_DAYS,
@@ -744,6 +777,7 @@ export function applyTripInfo(
     canDoLaundry: info.canDoLaundry,
     laundryIntervalDays,
     thoroughness: info.thoroughness,
+    gender,
   };
   return {
     name: info.name.trim() || 'Untitled trip',

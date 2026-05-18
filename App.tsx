@@ -37,6 +37,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAppFonts, lightColors, darkColors, typography } from './src/theme';
 import { useTripsStore } from './src/store/trips';
+import { useSettingsStore } from './src/store/settings';
 import { syncNow } from './src/sync/cloudSync';
 import TripsHomeScreen from './src/screens/TripsHomeScreen';
 import TripInfoScreen from './src/screens/TripInfoScreen';
@@ -81,10 +82,13 @@ export default function App() {
   const [fontsLoaded] = useAppFonts();
   const hydrated = useTripsStore((s) => s.hydrated);
   const hydrate = useTripsStore((s) => s.hydrate);
+  const settingsHydrated = useSettingsStore((s) => s.hydrated);
+  const hydrateSettings = useSettingsStore((s) => s.hydrate);
 
   useEffect(() => {
     hydrate();
-  }, [hydrate]);
+    hydrateSettings();
+  }, [hydrate, hydrateSettings]);
 
   // CloudKit sync: once after the local store is ready, then on every
   // return to foreground. Fire-and-forget and self-guarded — no-ops with
@@ -100,7 +104,7 @@ export default function App() {
 
   // SplashScreen stays visible until BOTH fonts and disk-loaded trips are
   // ready (no FOUT, no flash of "no trips yet" on a populated database).
-  if (!fontsLoaded || !hydrated) return null;
+  if (!fontsLoaded || !hydrated || !settingsHydrated) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -37,7 +37,7 @@ import {
   type Colors,
 } from '../theme';
 
-function useReducedMotion(): boolean {
+export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     let alive = true;
