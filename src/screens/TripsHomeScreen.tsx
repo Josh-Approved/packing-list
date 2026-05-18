@@ -19,17 +19,14 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, MoreHorizontal } from 'lucide-react-native';
+import { Plus, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import * as Sharing from 'expo-sharing';
-import * as DocumentPicker from 'expo-document-picker';
-import { File, Paths } from 'expo-file-system';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
-import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
 import { FundingFooter } from '../components/FundingFooter';
 import ReviewModal from '../components/ReviewModal';
-import { useActionMenu, usePrompt, type ActionOption } from '../components/Dialogs';
+import GenderPrompt from '../components/GenderPrompt';
+import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { useReviewModal } from '../store/reviewModal';
 import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
@@ -47,7 +44,6 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const duplicateTrip = useTripsStore((st) => st.duplicateTrip);
   const updateTrip = useTripsStore((st) => st.updateTrip);
   const deleteTrip = useTripsStore((st) => st.deleteTrip);
-  const importTrips = useTripsStore((st) => st.importTrips);
 
   // Review modal lives here (not Trip Detail): the completion is detected as
   // the user leaves Trip Detail, so the prompt surfaces once they're back.
@@ -107,79 +103,10 @@ export default function TripsHomeScreen({ navigation }: Props) {
     });
   }, [menu, prompt, duplicateTrip, updateTrip, deleteTrip]);
 
-  const handleExport = useCallback(async () => {
-    if (trips.length === 0) return;
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      const json = serializeTrips(trips);
-      const stamp = new Date().toISOString().slice(0, 10);
-      const file = new File(Paths.cache, `packing-list-${stamp}.json`);
-      // Overwrite any export made earlier the same day — the cache file is
-      // a throwaway hand-off to the share sheet, not a stored artifact.
-      if (file.exists) file.delete();
-      file.create();
-      file.write(json);
-      if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('Export unavailable', 'Sharing is not available on this device.');
-        return;
-      }
-      await Sharing.shareAsync(file.uri, {
-        mimeType: 'application/json',
-        UTI: 'public.json',
-        dialogTitle: 'Export packing lists',
-      });
-    } catch {
-      Alert.alert("Couldn't export", 'Something went wrong creating the export file.');
-    }
-  }, [trips]);
-
-  const handleImport = useCallback(async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/json',
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
-      if (result.canceled) return;
-      const asset = result.assets[0];
-      if (!asset) return;
-      const text = await new File(asset.uri).text();
-      let imported;
-      try {
-        imported = parseTransfer(text);
-      } catch (e) {
-        const msg =
-          e instanceof TransferError
-            ? e.message
-            : "This file isn't a Packing List export.";
-        Alert.alert("Couldn't import", msg);
-        return;
-      }
-      const n = importTrips(imported);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      Alert.alert('Import complete', `Added ${n} ${n === 1 ? 'trip' : 'trips'}.`);
-    } catch {
-      Alert.alert("Couldn't import", 'Something went wrong reading that file.');
-    }
-  }, [importTrips]);
-
-  const handleMenu = useCallback(() => {
+  const handleOpenSettings = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    // Build the action list dynamically so labels and handlers can't drift
-    // out of sync with their indices. Export is only offered when there's
-    // something to export; Import is always offered (recovery on a fresh
-    // install IS the empty state); Settings is always offered.
-    const options: ActionOption[] = [];
-    if (trips.length > 0) {
-      options.push({ label: 'Export all trips', onPress: handleExport });
-    }
-    options.push({ label: 'Import trips…', onPress: handleImport });
-    options.push({
-      label: 'Settings',
-      onPress: () => navigation.navigate('Settings'),
-    });
-    menu.open({ options });
-  }, [menu, trips.length, handleExport, handleImport, navigation]);
+    navigation.navigate('Settings');
+  }, [navigation]);
 
   const isEmpty = trips.length === 0;
 
@@ -190,13 +117,13 @@ export default function TripsHomeScreen({ navigation }: Props) {
           Packing list
         </Text>
         <Pressable
-          onPress={handleMenu}
+          onPress={handleOpenSettings}
           hitSlop={12}
           style={({ pressed }) => [s.menuBtn, pressed && s.menuBtnPressed]}
           accessibilityRole="button"
-          accessibilityLabel="More: export, import, settings"
+          accessibilityLabel="Settings"
         >
-          <MoreHorizontal size={22} color={c.fg} strokeWidth={1.5} />
+          <Settings size={22} color={c.fg} strokeWidth={1.5} />
         </Pressable>
       </View>
 
@@ -254,6 +181,8 @@ export default function TripsHomeScreen({ navigation }: Props) {
         iosAppStoreId={APP_STORE_ID}
         androidPackageName={ANDROID_PACKAGE}
       />
+
+      <GenderPrompt />
 
       {menu.element}
       {prompt.element}

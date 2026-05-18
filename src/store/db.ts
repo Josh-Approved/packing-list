@@ -57,6 +57,10 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       k TEXT PRIMARY KEY NOT NULL,
       v TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS app_settings (
+      k TEXT PRIMARY KEY NOT NULL,
+      v TEXT NOT NULL
+    );
   `);
   await migrateTripColumns(_db);
   return _db;
@@ -199,6 +203,28 @@ export async function setSyncMeta(k: string, v: string): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     'INSERT OR REPLACE INTO sync_meta (k, v) VALUES (?, ?)',
+    [k, v]
+  );
+}
+
+// ---------- App settings (account-level prefs) ----------
+// Same k/v shape as sync_meta but a separate table: these are user-facing
+// preferences (gender, first-run prompt seen), not sync bookkeeping, and
+// must never be entangled with the CloudKit sync cursor.
+
+export async function getAppSetting(k: string): Promise<string | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ v: string }>(
+    'SELECT v FROM app_settings WHERE k = ?',
+    [k]
+  );
+  return row?.v ?? null;
+}
+
+export async function setAppSetting(k: string, v: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO app_settings (k, v) VALUES (?, ?)',
     [k, v]
   );
 }

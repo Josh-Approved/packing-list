@@ -14,6 +14,7 @@ export const FEEDBACK_EMAIL = 'feedback@joshapproved.com';
 export const REPO_URL = 'https://github.com/josh-approved/packing-list';
 export const PRIVACY_URL =
   'https://github.com/josh-approved/packing-list/blob/master/PRIVACY.md';
+export const STUDIO_URL = 'https://joshapproved.com';
 
 // Numeric App Store Connect app id — matches eas.json
 // submit.production.ios.ascAppId. Non-secret.
@@ -64,4 +65,8 @@ export function openPrivacy(): void {
 
 export function openSource(): void {
   open(REPO_URL);
+}
+
+export function openStudio(): void {
+  open(STUDIO_URL);
 }
