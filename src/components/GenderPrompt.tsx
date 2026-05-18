@@ -2,8 +2,8 @@
  * First-run gender prompt.
  *
  * Shown once, over the trips list, the first time the app opens. It only
- * tailors which basics get suggested when a list is generated (e.g. bras /
- * period products) — nothing else. Dismissing it ("Not now", the scrim, or
+ * tailors which gender-specific basics get suggested when a list is
+ * generated — nothing else. Dismissing it ("Not now", the scrim, or
  * the hardware back button) leaves the preference 'unspecified' (no gendered
  * extras) and never asks again; it's always changeable in Settings.
  *
@@ -66,10 +66,8 @@ export default function GenderPrompt() {
             One quick thing
           </Text>
           <Text style={s.body}>
-            So new trips suggest the right basics — like bras or period
-            products — you can tell the app your gender. It's only used to
-            pre-fill suggested items, never leaves this device, and you can
-            change it anytime in Settings.
+            Your gender only tailors which basics new trips suggest — it stays
+            on this device and you can change it anytime in Settings.
           </Text>
           <View style={s.choices}>
             {CHOICES.map((ch) => (
