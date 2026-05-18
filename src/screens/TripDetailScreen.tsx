@@ -575,10 +575,12 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             )}
           </View>
 
-          {/* Bottom spacer — must clear the sticky add-item bar (~target.min
-              + paddingTop + paddingBottom incl. safe-area inset). Generous to
-              avoid the just-added item being hidden under the bar. */}
-          <View style={{ height: target.min + space.s7 + insets.bottom }} />
+          {/* Bottom spacer — must clear BOTH the sticky add-item bar AND the
+              floating Done FAB above it, otherwise the last item's +/- stepper
+              is occluded by the FAB at rest (its "+" becomes untappable until
+              scrolled). The FAB sits at bottom: target.min + space.s6 +
+              insets.bottom and is 56pt tall; clear its top edge + a margin. */}
+          <View style={{ height: target.min + space.s6 + 56 + space.s5 + insets.bottom }} />
         </ScrollViewContainer>
 
         {/* ---------- Undo snackbar (above the sticky add-item bar) ---------- */}
@@ -1087,7 +1089,7 @@ function ItemRow({
           >
             <Text
               style={[s.itemName, item.packed && s.itemNamePacked]}
-              numberOfLines={1}
+              numberOfLines={2}
             >
               {item.name}
             </Text>
