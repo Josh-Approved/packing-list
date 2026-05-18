@@ -242,6 +242,49 @@ export default function TripInfoScreen({ route, navigation }: Props) {
             </View>
           </View>
 
+          {/* Laundry */}
+          <View style={s.section}>
+            <Text style={s.sectionLabel}>Laundry</Text>
+            <Pressable
+              onPress={handleToggleLaundry}
+              style={({ pressed }) => [s.checkRow, pressed && s.pressedDim]}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: draft.canDoLaundry }}
+              accessibilityLabel="I can do laundry on this trip"
+            >
+              <View style={[s.checkbox, draft.canDoLaundry && s.checkboxOn]}>
+                {draft.canDoLaundry && (
+                  <Check size={16} color={c.fgOnAccent} strokeWidth={2.25} />
+                )}
+              </View>
+              <Text style={s.checkLabel}>I can do laundry on this trip</Text>
+            </Pressable>
+
+            {draft.canDoLaundry && (
+              <View style={s.laundryDetail}>
+                <View style={s.row}>
+                  <Stepper
+                    value={draft.laundryIntervalDays}
+                    onChange={(n) => set('laundryIntervalDays', n)}
+                    min={MIN_LAUNDRY_INTERVAL}
+                    max={MAX_LAUNDRY_INTERVAL}
+                    label="Days between laundry"
+                  />
+                  <Text style={s.unit}>
+                    {draft.laundryIntervalDays === 1
+                      ? 'day between washes'
+                      : 'days between washes'}
+                  </Text>
+                </View>
+                <Text style={s.helper}>
+                  Per-day items (underwear, socks, shirts) cover one wash cycle
+                  instead of the whole trip, so the list won't balloon on a long
+                  one.
+                </Text>
+              </View>
+            )}
+          </View>
+
           {/* Trip types */}
           <View style={s.section}>
             <Text style={s.sectionLabel}>Trip types</Text>
@@ -286,49 +329,6 @@ export default function TripInfoScreen({ route, navigation }: Props) {
               })}
             </View>
             <Text style={s.helper}>{selectedBlurb}</Text>
-          </View>
-
-          {/* Laundry */}
-          <View style={s.section}>
-            <Text style={s.sectionLabel}>Laundry</Text>
-            <Pressable
-              onPress={handleToggleLaundry}
-              style={({ pressed }) => [s.checkRow, pressed && s.pressedDim]}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: draft.canDoLaundry }}
-              accessibilityLabel="I can do laundry on this trip"
-            >
-              <View style={[s.checkbox, draft.canDoLaundry && s.checkboxOn]}>
-                {draft.canDoLaundry && (
-                  <Check size={16} color={c.fgOnAccent} strokeWidth={2.25} />
-                )}
-              </View>
-              <Text style={s.checkLabel}>I can do laundry on this trip</Text>
-            </Pressable>
-
-            {draft.canDoLaundry && (
-              <View style={s.laundryDetail}>
-                <View style={s.row}>
-                  <Stepper
-                    value={draft.laundryIntervalDays}
-                    onChange={(n) => set('laundryIntervalDays', n)}
-                    min={MIN_LAUNDRY_INTERVAL}
-                    max={MAX_LAUNDRY_INTERVAL}
-                    label="Days between laundry"
-                  />
-                  <Text style={s.unit}>
-                    {draft.laundryIntervalDays === 1
-                      ? 'day between washes'
-                      : 'days between washes'}
-                  </Text>
-                </View>
-                <Text style={s.helper}>
-                  Per-day items (underwear, socks, shirts) cover one wash cycle
-                  instead of the whole trip, so the list won't balloon on a long
-                  one.
-                </Text>
-              </View>
-            )}
           </View>
         </ScrollView>
 
