@@ -8,23 +8,29 @@
     <!-- Background: aged ochre (the packing-list per-app accent) -->
     <rect x="0" y="0" width="1024" height="1024" fill="#B58D3F"></rect>
 
-    <!-- Suitcase glyph: paper-white, bold strokes, fills ~60% of the canvas.
+    <!-- Suitcase glyph: paper-white, bold strokes, fills ~55% of the canvas.
          Classic luggage profile (wider than tall), arched handle, horizontal
-         lid seam, two filled latches centered on the seam. No corner check. -->
+         lid seam, two filled latches centered on the seam. No corner check.
+         Geometry is vertically centered: the glyph's full ink bounding box —
+         handle-top stroke edge (y 246 - 18) down to body-bottom stroke edge
+         (y 778 + 18) — leaves equal 228px padding above and below in the 1024
+         canvas. Do not re-bias down (canonical: app icons are centered with
+         equal top/bottom padding). Regenerate the PNGs from this file via
+         `node scripts/build-icon.mjs`. -->
     <g stroke="#FAFAF7" stroke-linecap="round" stroke-linejoin="round" fill="none">
       <!-- Handle (arched bracket above body) -->
-      <path d="M 412 440 L 412 350 Q 412 308 454 308 L 570 308 Q 612 308 612 350 L 612 440"
+      <path d="M 412 378 L 412 288 Q 412 246 454 246 L 570 246 Q 612 246 612 288 L 612 378"
             stroke-width="36"></path>
 
       <!-- Suitcase body -->
-      <rect x="212" y="440" width="600" height="400" rx="44" stroke-width="36"></rect>
+      <rect x="212" y="378" width="600" height="400" rx="44" stroke-width="36"></rect>
 
       <!-- Center horizontal lid seam -->
-      <line x1="212" y1="640" x2="812" y2="640" stroke-width="22"></line>
+      <line x1="212" y1="578" x2="812" y2="578" stroke-width="22"></line>
 
       <!-- Two filled latches centered on the seam -->
-      <rect x="368" y="612" width="88" height="56" rx="10" fill="#FAFAF7" stroke="none"></rect>
-      <rect x="568" y="612" width="88" height="56" rx="10" fill="#FAFAF7" stroke="none"></rect>
+      <rect x="368" y="550" width="88" height="56" rx="10" fill="#FAFAF7" stroke="none"></rect>
+      <rect x="568" y="550" width="88" height="56" rx="10" fill="#FAFAF7" stroke="none"></rect>
     </g>
   </g>
 </svg>
