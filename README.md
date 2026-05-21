@@ -27,7 +27,7 @@ Requires Node, the Expo tooling, and Xcode for the iOS simulator.
 
 ## Privacy
 
-Your data stays on your device. No servers, no accounts, no analytics. See [PRIVACY.md](PRIVACY.md).
+Your data stays with you. We don't collect any of it — no accounts, no tracking, no analytics. See [PRIVACY.md](PRIVACY.md).
 
 ## License
 
