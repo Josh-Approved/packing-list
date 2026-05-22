@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Coffee, Mail } from 'lucide-react-native';
+import { HandHeart, Mail } from 'lucide-react-native';
 import { useTheme, typography, space, target } from '../theme';
 import type { Colors } from '../theme';
 import { openBmac, openFeedback } from '../lib/links';
@@ -25,10 +25,10 @@ export function FundingFooter() {
         onPress={openBmac}
         style={({ pressed }) => [s.row, pressed && s.pressed]}
         accessibilityRole="link"
-        accessibilityLabel="Buy me a coffee"
+        accessibilityLabel="Support this app"
       >
-        <Coffee size={18} color={c.fgMuted} strokeWidth={1.5} />
-        <Text style={s.label}>Buy me a coffee?</Text>
+        <HandHeart size={18} color={c.fgMuted} strokeWidth={1.5} />
+        <Text style={s.label}>Support this app</Text>
       </Pressable>
       <Pressable
         onPress={openFeedback}
