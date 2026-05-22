@@ -15,8 +15,9 @@
  * gesture-based library we add later.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useColorScheme, LogBox, AppState } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 
 // Silence a benign dev warning: react-native-reorderable-list nests its own
 // VirtualizedList inside its ScrollViewContainer, which RN's blanket warning
@@ -43,6 +44,11 @@ import TripsHomeScreen from './src/screens/TripsHomeScreen';
 import TripInfoScreen from './src/screens/TripInfoScreen';
 import TripDetailScreen from './src/screens/TripDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import AnimatedSplash from './src/components/AnimatedSplash';
+
+// Hold the native launch screen until the JS splash is mounted to take over, so
+// the icon never blinks out between the two. AnimatedSplash calls hideAsync().
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export type RootStackParamList = {
   TripsHome: undefined;
@@ -102,25 +108,32 @@ export default function App() {
     return () => sub.remove();
   }, [hydrated]);
 
-  // SplashScreen stays visible until BOTH fonts and disk-loaded trips are
-  // ready (no FOUT, no flash of "no trips yet" on a populated database).
-  if (!fontsLoaded || !hydrated || !settingsHydrated) return null;
+  // Content is ready once fonts AND disk-loaded data are in (no FOUT, no flash
+  // of "no trips yet" on a populated database). The animated splash overlays
+  // until its intro has played and content is ready, then crossfades out.
+  const ready = fontsLoaded && hydrated && settingsHydrated;
+  const [splashDone, setSplashDone] = useState(false);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <NavigationContainer theme={buildNavTheme(isDark)}>
-          <StatusBar style={isDark ? 'light' : 'dark'} />
-          <Stack.Navigator
-            initialRouteName="TripsHome"
-            screenOptions={{ headerShown: false }}
-          >
-            <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
-            <Stack.Screen name="TripInfo" component={TripInfoScreen} />
-            <Stack.Screen name="TripDetail" component={TripDetailScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+        {ready && (
+          <NavigationContainer theme={buildNavTheme(isDark)}>
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+            <Stack.Navigator
+              initialRouteName="TripsHome"
+              screenOptions={{ headerShown: false }}
+            >
+              <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
+              <Stack.Screen name="TripInfo" component={TripInfoScreen} />
+              <Stack.Screen name="TripDetail" component={TripDetailScreen} />
+              <Stack.Screen name="Settings" component={SettingsScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        )}
+        {!splashDone && (
+          <AnimatedSplash ready={ready} onFinish={() => setSplashDone(true)} />
+        )}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
