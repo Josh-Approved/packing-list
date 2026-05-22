@@ -6,7 +6,7 @@
   </defs>
   <g clip-path="url(#appIconClip)">
     <!-- Background: aged ochre (the packing-list per-app accent) -->
-    <rect x="0" y="0" width="1024" height="1024" fill="#B58D3F"></rect>
+    <rect id="bg" x="0" y="0" width="1024" height="1024" fill="#B58D3F"></rect>
 
     <!-- Suitcase glyph: paper-white, bold strokes, fills ~55% of the canvas.
          Classic luggage profile (wider than tall), arched handle, horizontal
@@ -17,7 +17,7 @@
          canvas. Do not re-bias down (canonical: app icons are centered with
          equal top/bottom padding). Regenerate the PNGs from this file via
          `node scripts/build-icon.mjs`. -->
-    <g stroke="#FAFAF7" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <g id="glyph" stroke="#FAFAF7" stroke-linecap="round" stroke-linejoin="round" fill="none">
       <!-- Handle (arched bracket above body) -->
       <path d="M 412 378 L 412 288 Q 412 246 454 246 L 570 246 Q 612 246 612 288 L 612 378"
             stroke-width="36"></path>
