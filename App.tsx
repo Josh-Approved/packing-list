@@ -44,6 +44,7 @@ import TripsHomeScreen from './src/screens/TripsHomeScreen';
 import TripInfoScreen from './src/screens/TripInfoScreen';
 import TripDetailScreen from './src/screens/TripDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import Credits from './src/components/Credits';
 import AnimatedSplash from './src/components/AnimatedSplash';
 
 // Hold the native launch screen until the JS splash is mounted to take over, so
@@ -57,6 +58,7 @@ export type RootStackParamList = {
   TripInfo: { tripId?: string } | undefined;
   TripDetail: { tripId: string };
   Settings: undefined;
+  Acknowledgements: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -128,6 +130,9 @@ export default function App() {
               <Stack.Screen name="TripInfo" component={TripInfoScreen} />
               <Stack.Screen name="TripDetail" component={TripDetailScreen} />
               <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="Acknowledgements">
+                {(props) => <Credits onBack={() => props.navigation.goBack()} />}
+              </Stack.Screen>
             </Stack.Navigator>
           </NavigationContainer>
         )}

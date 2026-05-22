@@ -30,6 +30,7 @@ import {
   Cloud,
   Upload,
   Download,
+  Library,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
@@ -281,6 +282,11 @@ export default function SettingsScreen({ navigation }: Props) {
             <AboutRow icon={Star} label="Leave a review" onPress={openReview} />
             <AboutRow icon={Shield} label="Privacy" onPress={openPrivacy} />
             <AboutRow icon={Code} label="Source code" onPress={openSource} />
+            <AboutRow
+              icon={Library}
+              label="Acknowledgements"
+              onPress={() => navigation.navigate('Acknowledgements')}
+            />
           </View>
           <Text style={s.version}>{versionLabel()}</Text>
         </View>
