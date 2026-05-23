@@ -41,6 +41,7 @@ yarn-error.*
 /android
 
 # local build artifacts (eas build --local)
-build-*.ipa
-build-*.apk
-build-*.aab
+*.ipa
+*.apk
+*.aab
+build-*.tar.gz
