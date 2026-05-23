@@ -15,7 +15,7 @@
  * items themselves stay on the packing list screen.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ import {
   Pressable,
   TextInput,
   Platform,
-  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, ChevronLeft } from 'lucide-react-native';
@@ -144,6 +144,34 @@ export default function TripInfoScreen({ route, navigation }: Props) {
     setDraft((d) => ({ ...d, thoroughness: value }));
   }, []);
 
+  // Hide the primary CTA while the keyboard is up so people use the keyboard's
+  // "done" key to leave the name field rather than tapping Continue and
+  // committing a trip they haven't finished setting up. Tracked explicitly
+  // (not via KeyboardAvoidingView) so it's deterministic on Android too, where
+  // the default adjustResize would otherwise push the CTA above the keyboard.
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvt, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvt, () => setKeyboardVisible(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  // Create mode opens straight into naming the trip: focus the name field once
+  // the push animation settles (autoFocus is unreliable under native-stack).
+  const nameInputRef = useRef<TextInput>(null);
+  useEffect(() => {
+    if (isEdit) return;
+    const unsub = navigation.addListener('transitionEnd', (e) => {
+      if (!e.data.closing) nameInputRef.current?.focus();
+    });
+    return unsub;
+  }, [isEdit, navigation]);
+
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleSubmit = useCallback(() => {
@@ -185,10 +213,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView
-        style={s.kbWrap}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <View style={s.kbWrap}>
         <View style={s.headerBar}>
           <Pressable
             onPress={handleBack}
@@ -217,6 +242,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
           <View style={s.section}>
             <Text style={s.sectionLabel}>Trip name</Text>
             <TextInput
+              ref={nameInputRef}
               value={draft.name}
               onChangeText={(t) => set('name', t)}
               placeholder="Untitled trip"
@@ -332,18 +358,21 @@ export default function TripInfoScreen({ route, navigation }: Props) {
           </View>
         </ScrollView>
 
-        {/* Primary CTA — ink-on-paper per the design system. */}
-        <View style={[s.ctaBar, { paddingBottom: Math.max(space.s4, insets.bottom) }]}>
-          <Pressable
-            onPress={handleSubmit}
-            style={({ pressed }) => [s.cta, pressed && s.ctaPressed]}
-            accessibilityRole="button"
-            accessibilityLabel={isEdit ? 'Save trip information' : 'Continue to packing list'}
-          >
-            <Text style={s.ctaLabel}>{isEdit ? 'Save' : 'Continue'}</Text>
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
+        {/* Primary CTA — ink-on-paper per the design system. Hidden while the
+            keyboard is up so it can't be tapped instead of finishing the name. */}
+        {!keyboardVisible && (
+          <View style={[s.ctaBar, { paddingBottom: Math.max(space.s4, insets.bottom) }]}>
+            <Pressable
+              onPress={handleSubmit}
+              style={({ pressed }) => [s.cta, pressed && s.ctaPressed]}
+              accessibilityRole="button"
+              accessibilityLabel={isEdit ? 'Save trip information' : 'Continue to packing list'}
+            >
+              <Text style={s.ctaLabel}>{isEdit ? 'Save' : 'Continue'}</Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
