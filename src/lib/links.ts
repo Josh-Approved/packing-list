@@ -56,7 +56,7 @@ export function openFeedback(): void {
 export function openReview(): void {
   // iOS write-review deep link. Same URL form as the canonical ReviewModal
   // so the Settings row and the prompt resolve identically. Live post-launch.
-  open(`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`);
+  open(`itms-apps://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`);
 }
 
 export function openPrivacy(): void {
