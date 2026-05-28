@@ -49,7 +49,7 @@ import { useTripsStore } from '../store/trips';
 import { useSettingsStore } from '../store/settings';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
-import { boundedContent } from '../lib/layout';
+import { boundedContent } from '../theme';
 import { Stepper } from '../components/Stepper';
 import { Chip } from '../components/Chip';
 import type { RootStackParamList } from '../../App';

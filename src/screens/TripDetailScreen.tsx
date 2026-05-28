@@ -60,7 +60,7 @@ import { recordTripBuildIfEligible } from '../lib/reviewTrigger';
 import { useReviewModal } from '../store/reviewModal';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
-import { boundedContent } from '../lib/layout';
+import { boundedContent } from '../theme';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { Stepper } from '../components/Stepper';

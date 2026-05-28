@@ -32,7 +32,7 @@ import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
-import { boundedContent } from '../lib/layout';
+import { boundedContent } from '../theme';
 import type { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TripsHome'>;

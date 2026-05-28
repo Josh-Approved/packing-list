@@ -39,7 +39,7 @@ import { File, Paths } from 'expo-file-system';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
-import { boundedContent } from '../lib/layout';
+import { boundedContent } from '../theme';
 import { AboutRow } from '../components/AboutRow';
 import Wordmark from '../components/Wordmark';
 import { useTripsStore } from '../store/trips';
