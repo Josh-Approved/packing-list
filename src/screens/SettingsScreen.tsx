@@ -39,6 +39,7 @@ import { File, Paths } from 'expo-file-system';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
+import { boundedContent } from '../lib/layout';
 import { AboutRow } from '../components/AboutRow';
 import Wordmark from '../components/Wordmark';
 import { useTripsStore } from '../store/trips';
@@ -317,6 +318,7 @@ function makeStyles(c: Colors) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.bg },
     headerBar: {
+      ...boundedContent,
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.s2,
@@ -339,6 +341,7 @@ function makeStyles(c: Colors) {
     },
     scroll: { flex: 1 },
     scrollContent: {
+      ...boundedContent,
       paddingTop: space.s6,
       paddingBottom: space.s8,
     },

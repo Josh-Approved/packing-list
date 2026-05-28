@@ -32,6 +32,7 @@ import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
+import { boundedContent } from '../lib/layout';
 import type { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TripsHome'>;
@@ -266,6 +267,7 @@ function makeStyles(c: Colors) {
     safe: { flex: 1, backgroundColor: c.bg },
 
     header: {
+      ...boundedContent,
       paddingHorizontal: space.s5,
       paddingTop: space.s5,
       paddingBottom: space.s4,
@@ -292,6 +294,7 @@ function makeStyles(c: Colors) {
 
     // ---------- Empty state ----------
     emptyWrap: {
+      ...boundedContent,
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
@@ -334,6 +337,7 @@ function makeStyles(c: Colors) {
     // ---------- List ----------
     scroll: { flex: 1 },
     scrollContent: {
+      ...boundedContent,
       paddingHorizontal: space.s5,
       // Extra bottom room so the funding footer scrolls clear of the
       // floating "+" FAB rather than tucking under it at the list end.

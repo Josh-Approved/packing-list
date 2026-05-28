@@ -60,6 +60,7 @@ import { recordTripBuildIfEligible } from '../lib/reviewTrigger';
 import { useReviewModal } from '../store/reviewModal';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
+import { boundedContent } from '../lib/layout';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { Stepper } from '../components/Stepper';
@@ -699,12 +700,14 @@ function makeStyles(c: Colors) {
     kbWrap: { flex: 1 },
     scroll: { flex: 1 },
     scrollContent: {
+      ...boundedContent,
       paddingHorizontal: space.s5,
       paddingBottom: space.s4,
     },
 
     // ---------- Header bar (back button) ----------
     headerBar: {
+      ...boundedContent,
       paddingHorizontal: space.s3,
       paddingTop: space.s2,
       paddingBottom: space.s2,
@@ -881,6 +884,7 @@ function makeStyles(c: Colors) {
 
     // ---------- Sticky add-item bar ----------
     addItemBar: {
+      ...boundedContent,
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.s3,

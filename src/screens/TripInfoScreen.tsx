@@ -49,6 +49,7 @@ import { useTripsStore } from '../store/trips';
 import { useSettingsStore } from '../store/settings';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
+import { boundedContent } from '../lib/layout';
 import { Stepper } from '../components/Stepper';
 import { Chip } from '../components/Chip';
 import type { RootStackParamList } from '../../App';
@@ -383,12 +384,14 @@ function makeStyles(c: Colors) {
     kbWrap: { flex: 1 },
     scroll: { flex: 1 },
     scrollContent: {
+      ...boundedContent,
       paddingHorizontal: space.s5,
       paddingBottom: space.s8,
     },
     pressedDim: { opacity: 0.6 },
 
     headerBar: {
+      ...boundedContent,
       paddingHorizontal: space.s3,
       paddingTop: space.s2,
       paddingBottom: space.s2,
@@ -547,6 +550,7 @@ function makeStyles(c: Colors) {
     },
 
     ctaBar: {
+      ...boundedContent,
       paddingHorizontal: space.s5,
       paddingTop: space.s4,
       borderTopWidth: StyleSheet.hairlineWidth,
