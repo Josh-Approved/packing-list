@@ -58,6 +58,7 @@ import {
 import { useTripsStore } from '../store/trips';
 import { recordTripBuildIfEligible } from '../lib/reviewTrigger';
 import { useReviewModal } from '../store/reviewModal';
+import { useDonationModal } from '../store/donationModal';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
 import { boundedContent } from '../theme';
@@ -149,16 +150,18 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   // and the canonical threshold live in recordTripBuildIfEligible(); the
   // modal itself is mounted on Trips Home (this screen is unmounting).
   const showReviewModal = useReviewModal((s) => s.show);
+  const showDonationModal = useDonationModal((s) => s.show);
   useEffect(() => {
     const unsub = navigation.addListener('beforeRemove', () => {
       const t = useTripsStore.getState().trips.find((x) => x.id === tripId);
       if (!t || t.items.length === 0) return;
-      recordTripBuildIfEligible(tripId).then((should) => {
-        if (should) showReviewModal();
+      recordTripBuildIfEligible(tripId).then(({ review, donation }) => {
+        if (review) showReviewModal();
+        else if (donation) showDonationModal();
       });
     });
     return unsub;
-  }, [navigation, tripId, showReviewModal]);
+  }, [navigation, tripId, showReviewModal, showDonationModal]);
 
   // ---------- Handlers ----------
 
@@ -787,7 +790,6 @@ function makeStyles(c: Colors) {
       fontSize: 12,
       lineHeight: 16,
       letterSpacing: 0.5,
-      textTransform: 'uppercase',
       color: c.fgMuted,
     },
 

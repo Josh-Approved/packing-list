@@ -6,7 +6,7 @@
  * drift apart. URLs are fixed studio-wide — do not localize or per-app them.
  */
 
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import * as Application from 'expo-application';
 
 export const BMAC_URL = 'https://buymeacoffee.com/jtysonwilliams';
@@ -54,9 +54,15 @@ export function openFeedback(): void {
 }
 
 export function openReview(): void {
-  // iOS write-review deep link. Same URL form as the canonical ReviewModal
-  // so the Settings row and the prompt resolve identically. Live post-launch.
-  open(`itms-apps://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`);
+  // Write-review deep link. Same per-platform URL form as the canonical
+  // ReviewModal so the Settings row and the prompt resolve identically — on
+  // Android the iOS-only itms-apps scheme is a no-op, so branch. Live
+  // post-launch.
+  const url =
+    Platform.OS === 'ios'
+      ? `itms-apps://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`
+      : `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}&showAllReviews=true`;
+  open(url);
 }
 
 export function openPrivacy(): void {

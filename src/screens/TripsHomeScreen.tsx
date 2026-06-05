@@ -25,9 +25,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
 import { FundingFooter } from '../components/FundingFooter';
 import ReviewModal from '../components/ReviewModal';
+import DonationModal from '../components/DonationModal';
 import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { useReviewModal } from '../store/reviewModal';
+import { useDonationModal } from '../store/donationModal';
 import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { useTheme, typography, space, target, radius } from '../theme';
@@ -50,6 +52,8 @@ export default function TripsHomeScreen({ navigation }: Props) {
   // the user leaves Trip Detail, so the prompt surfaces once they're back.
   const reviewVisible = useReviewModal((st) => st.visible);
   const hideReview = useReviewModal((st) => st.hide);
+  const donationVisible = useDonationModal((st) => st.visible);
+  const hideDonation = useDonationModal((st) => st.hide);
 
   const menu = useActionMenu();
   const prompt = usePrompt();
@@ -181,6 +185,12 @@ export default function TripsHomeScreen({ navigation }: Props) {
         appName="Packing List - Josh Approved"
         iosAppStoreId={APP_STORE_ID}
         androidPackageName={ANDROID_PACKAGE}
+      />
+
+      <DonationModal
+        visible={donationVisible}
+        onDismiss={hideDonation}
+        appName="Packing List"
       />
 
       <GenderPrompt />

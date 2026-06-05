@@ -1,10 +1,11 @@
 /**
- * App-side policy for what counts as a review-prompt "completion".
+ * App-side policy for what counts as a prompt "completion" (review + donation).
  *
- * The canonical review module (src/storage/reviewPrompt.ts) is synced from
- * the factory and unforked — it only counts completions and owns the
- * studio-wide threshold/cap (first prompt at the 2nd completion, etc.). What
- * a "completion" *is* is per-app latitude, and lives here.
+ * The canonical review/donation modules (src/storage/reviewPrompt.ts,
+ * donationPrompt.ts) are synced from the factory and unforked — they only
+ * count completions and own the studio-wide thresholds/caps (review: first
+ * prompt at the 2nd completion, cap 3; donation: first at the 5th, cap 2).
+ * What a "completion" *is* is per-app latitude, and lives here.
  *
  * For Packing List a completion is: the user finished building a distinct
  * trip's list (left Trip Detail with at least one item). Two guards make it
@@ -16,11 +17,12 @@
  *
  * With the canonical "first prompt at 2nd completion" gate that yields:
  * trip 1 → skipped, trip 2 → completion #1 (no prompt), trip 3 → completion
- * #2 → prompt.
+ * #2 → review prompt.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { recordSuccessfulCompletion } from '../storage/reviewPrompt';
+import { recordSuccessfulCompletion as recordReviewCompletion } from '../storage/reviewPrompt';
+import { recordSuccessfulCompletion as recordDonationCompletion } from '../storage/donationPrompt';
 
 const KEY = '@packing-list/review-trips';
 
@@ -51,25 +53,40 @@ async function save(state: TripBuildState): Promise<void> {
   }
 }
 
+/** Which prompt (if any) to surface for this completion. At most one is true. */
+export interface PromptDecision {
+  review: boolean;
+  donation: boolean;
+}
+
+const NO_PROMPT: PromptDecision = { review: false, donation: false };
+
 /**
  * Call when the user leaves Trip Detail with a non-empty list. Applies the
  * skip-first + dedupe policy; on a genuine new completion, advances the
- * canonical counter. Returns true if the review modal should be shown now.
+ * canonical counters and decides which prompt to show.
+ *
+ * Review takes precedence on the same completion — it burns slower (3 prompts
+ * vs 2) and returning early means the donation counter doesn't tick, so the
+ * next genuine completion is still eligible for the donation prompt.
  */
 export async function recordTripBuildIfEligible(
   tripId: string
-): Promise<boolean> {
+): Promise<PromptDecision> {
   const state = await load();
 
   if (state.firstTripId === null) {
     state.firstTripId = tripId; // their first list — exempt forever
     await save(state);
-    return false;
+    return NO_PROMPT;
   }
-  if (tripId === state.firstTripId) return false;
-  if (state.counted.includes(tripId)) return false;
+  if (tripId === state.firstTripId) return NO_PROMPT;
+  if (state.counted.includes(tripId)) return NO_PROMPT;
 
   state.counted.push(tripId);
   await save(state);
-  return recordSuccessfulCompletion();
+
+  if (await recordReviewCompletion()) return { review: true, donation: false };
+  if (await recordDonationCompletion()) return { review: false, donation: true };
+  return NO_PROMPT;
 }

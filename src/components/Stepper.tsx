@@ -20,13 +20,7 @@
  */
 
 import React, { useCallback } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  AccessibilityInfo,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Minus, Plus } from 'lucide-react-native';
 import { useTheme, typography, radius, target } from '../theme';
@@ -131,16 +125,6 @@ export function Stepper({
       </Pressable>
     </View>
   );
-}
-
-// Reduce-motion check (used to suppress any future transition; right now the
-// stepper is static so this is here for parity if we add micro-animations).
-async function _checkReduceMotion(): Promise<boolean> {
-  try {
-    return await AccessibilityInfo.isReduceMotionEnabled();
-  } catch {
-    return false;
-  }
 }
 
 function makeStyles(c: Colors, prominent: boolean) {

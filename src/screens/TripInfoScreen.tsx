@@ -441,7 +441,6 @@ function makeStyles(c: Colors) {
       fontSize: 12,
       lineHeight: 16,
       letterSpacing: 0.5,
-      textTransform: 'uppercase',
       color: c.fgMuted,
     },
     helper: {
