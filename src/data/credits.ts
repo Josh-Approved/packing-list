@@ -9,7 +9,7 @@ export interface CreditEntry {
   url: string;
 }
 
-export const CREDITS_INTRO = "Packing List is built on the work of these open-source projects.";
+export const CREDITS_INTRO = "Packing List is built on the work of these open source projects.";
 
 export const CREDITS: CreditEntry[] = [
   {

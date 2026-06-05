@@ -1,5 +1,5 @@
 {
-  "intro": "Packing List is built on the work of these open-source projects.",
+  "intro": "Packing List is built on the work of these open source projects.",
   "include": [
     { "package": "react-native", "displayName": "React Native" },
     { "package": "expo", "displayName": "Expo" },

@@ -12,7 +12,7 @@ Anyone who packs more than once a year and is tired of either over-packing or fo
 
 ## How to get it
 
-Coming soon to the App Store. Until then you can run it locally.
+Get it on the [App Store](https://apps.apple.com/app/id6770051644), or run it locally.
 
 ## Run it locally
 
@@ -27,7 +27,7 @@ Requires Node, the Expo tooling, and Xcode for the iOS simulator.
 
 ## Privacy
 
-Your data stays with you. We don't collect any of it — no accounts, no tracking, no analytics. See [PRIVACY.md](PRIVACY.md).
+Your data stays with you — no accounts, no tracking, no analytics, and none of it is collected. See [PRIVACY.md](PRIVACY.md).
 
 ## License
 

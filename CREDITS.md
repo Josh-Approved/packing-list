@@ -1,6 +1,6 @@
 # Acknowledgements
 
-Packing List is built on the work of these open-source projects.
+Packing List is built on the work of these open source projects.
 
 - **React Native** `0.81.5` — MIT — https://reactnative.dev/
 - **Expo** `54.0.34` — MIT — https://github.com/expo/expo/tree/main/packages/expo
