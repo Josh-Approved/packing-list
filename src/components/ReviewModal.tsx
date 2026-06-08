@@ -47,8 +47,7 @@ interface Props {
   storageKey?: string;
 }
 
-const DEFAULT_BODY =
-  'A quick rating helps more people find this free, ad-free app.';
+const DEFAULT_BODY = 'A quick rating helps more people find this app.';
 
 export default function ReviewModal({
   visible,
