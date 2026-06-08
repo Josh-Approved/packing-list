@@ -35,7 +35,6 @@
     "plugins": [
       "expo-font",
       "expo-sqlite",
-      "./plugins/withCloudKit",
       "./plugins/withGradleJvmArgs"
     ],
     "extra": {

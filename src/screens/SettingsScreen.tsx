@@ -2,14 +2,14 @@
  * SettingsScreen — the single known destination reached via the header gear
  * on the trips list. Holds, top to bottom:
  *
- *   1. App settings — gender (tailors suggested basics) + iCloud backup.
+ *   1. App settings — gender (tailors suggested basics).
  *   2. Your data — export / import all trips.
  *   3. About — the five canonical entries + version (canonical-requirements
  *      § Settings / About screen).
  *   4. The "josh approved" stamp (canonical attribution, mirrors FWT).
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -27,7 +27,6 @@ import {
   Star,
   Shield,
   Code,
-  Cloud,
   Upload,
   Download,
   Library,
@@ -54,20 +53,8 @@ import {
   openStudio,
   versionLabel,
 } from '../lib/links';
-import { isCloudSyncAvailable } from '../../modules/cloud-sync';
-import { syncNow, lastSyncAt } from '../sync/cloudSync';
 import type { GenderPref } from '../data/trip';
 import type { RootStackParamList } from '../../App';
-
-function formatSince(ms: number): string {
-  const d = Math.max(0, Date.now() - ms);
-  const min = Math.round(d / 60000);
-  if (min < 1) return 'just now';
-  if (min < 60) return `${min} min ago`;
-  const hr = Math.round(min / 60);
-  if (hr < 24) return `${hr} hr ago`;
-  return `${Math.round(hr / 24)} d ago`;
-}
 
 const GENDER_OPTIONS: { label: string; value: GenderPref }[] = [
   { label: 'Female', value: 'female' },
@@ -85,51 +72,6 @@ export default function SettingsScreen({ navigation }: Props) {
   const importTrips = useTripsStore((st) => st.importTrips);
   const gender = useSettingsStore((st) => st.gender);
   const setGender = useSettingsStore((st) => st.setGender);
-
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isCloudSyncAvailable) return;
-    let alive = true;
-    lastSyncAt().then((t) => {
-      if (alive && t) setSyncMsg(`Last backed up ${formatSince(t)}`);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const handleSync = useCallback(async () => {
-    if (syncing) return;
-    setSyncing(true);
-    setSyncMsg('Backing up…');
-    const r = await syncNow();
-    switch (r.status) {
-      case 'ok':
-        setSyncMsg(
-          r.pulled + r.pushed === 0
-            ? 'Up to date'
-            : `Backed up • ${r.pulled} in, ${r.pushed} out`
-        );
-        break;
-      case 'noAccount':
-        setSyncMsg('Sign in to iCloud to back up your trips.');
-        break;
-      case 'unavailable':
-        setSyncMsg('iCloud backup needs the latest app version.');
-        break;
-      case 'restricted':
-      case 'temporarilyUnavailable':
-      case 'couldNotDetermine':
-        setSyncMsg('iCloud is unavailable right now.');
-        break;
-      case 'error':
-        setSyncMsg("Couldn't reach iCloud. It'll retry next time.");
-        break;
-    }
-    setSyncing(false);
-  }, [syncing]);
 
   const handleSetGender = useCallback(
     (g: GenderPref) => {
@@ -247,19 +189,6 @@ export default function SettingsScreen({ navigation }: Props) {
           Only used to pre-fill suggested items like bras or period products
           when a list is generated. Stays on this device.
         </Text>
-
-        {isCloudSyncAvailable && (
-          <View style={s.section}>
-            <Text style={s.sectionLabel}>Backup</Text>
-            <View style={s.block}>
-              <AboutRow icon={Cloud} label="Back up to iCloud" onPress={handleSync} />
-            </View>
-            <Text style={s.caption}>
-              {syncMsg ??
-                'Your trips stay on this phone. Tap to also keep a private copy in your iCloud.'}
-            </Text>
-          </View>
-        )}
 
         <View style={s.section}>
           <Text style={s.sectionLabel}>Your data</Text>

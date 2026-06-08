@@ -20,13 +20,7 @@ import {
 import { makeId } from '../lib/id';
 import { mergeImported } from '../lib/transfer';
 import { useSettingsStore } from './settings';
-import {
-  loadAllTrips,
-  saveTrip,
-  deleteTripFromDb,
-  putTombstone,
-  removeTombstone,
-} from './db';
+import { loadAllTrips, saveTrip, deleteTripFromDb } from './db';
 
 /**
  * Heal duplicate ids in loaded data (legacy `${prefix}${Date.now()}` ids
@@ -109,12 +103,6 @@ interface TripsState {
   importTrips: (imported: Trip[]) => number;
 
   deleteTrip: (id: string) => void;
-
-  /** Apply a resolved CloudKit sync result. Remote is authoritative for the
-   *  trips it carries — upserts keep their incoming `updatedAt` (NOT bumped,
-   *  so last-writer-wins stays stable across devices); deletes are removed
-   *  locally. Persistence + tombstone bookkeeping handled here. */
-  applySync: (changes: { upserts: Trip[]; deletes: string[] }) => void;
 }
 
 // The sole packer a freshly created trip starts with. Trip configuration
@@ -221,45 +209,5 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
     deleteTripFromDb(id).catch((err) =>
       console.warn('packing-list: failed to delete trip from disk', err)
     );
-    // Record the delete so the next sync can propagate it; without this a
-    // pull would re-adopt the trip from the cloud.
-    putTombstone(id, Date.now()).catch((err) =>
-      console.warn('packing-list: failed to write tombstone', err)
-    );
-  },
-
-  applySync: ({ upserts, deletes }) => {
-    if (upserts.length === 0 && deletes.length === 0) return;
-    const delSet = new Set(deletes);
-    const upMap = new Map(upserts.map((t) => [t.id, t]));
-
-    set((s) => {
-      const next: Trip[] = [];
-      for (const t of s.trips) {
-        if (delSet.has(t.id)) continue; // removed by remote
-        next.push(upMap.get(t.id) ?? t); // replaced by remote, or unchanged
-      }
-      // Trips that exist remotely but not locally yet.
-      for (const t of upserts) {
-        if (!s.trips.some((x) => x.id === t.id)) next.push(t);
-      }
-      next.sort((a, b) => b.updatedAt - a.updatedAt);
-      return { trips: next };
-    });
-
-    for (const t of upserts) {
-      saveTrip(t).catch((err) =>
-        console.warn('packing-list: failed to persist synced trip', err)
-      );
-      // Adopting a live remote trip cancels any stale local tombstone.
-      removeTombstone(t.id).catch(() => {});
-    }
-    for (const id of deletes) {
-      deleteTripFromDb(id).catch((err) =>
-        console.warn('packing-list: failed to delete synced trip', err)
-      );
-      // Keep a local tombstone so we converge and never resurrect it.
-      putTombstone(id, Date.now()).catch(() => {});
-    }
   },
 }));

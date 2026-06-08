@@ -2,10 +2,7 @@
  * SQLite persistence layer for trips.
  *
  * Single-table-per-trip schema with JSON-encoded array columns
- * (typeIds, packers, items). This deliberately matches the v1.1
- * CloudKit plan from the spec ("items stored as a JSON blob on the
- * record") so the storage shape is consistent across local + cloud
- * and no relational migration is needed when sync lands.
+ * (typeIds, packers, items), so no relational migration is needed.
  *
  * All functions are async. Callers should fire-and-forget on writes
  * (catch silently — UI is the source of truth) and await on the
@@ -48,14 +45,6 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       thoroughness        TEXT NOT NULL DEFAULT 'normal',
       createdAt           INTEGER NOT NULL,
       updatedAt           INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS tombstones (
-      id        TEXT PRIMARY KEY NOT NULL,
-      deletedAt INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS sync_meta (
-      k TEXT PRIMARY KEY NOT NULL,
-      v TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS app_settings (
       k TEXT PRIMARY KEY NOT NULL,
@@ -163,54 +152,8 @@ export async function deleteTripFromDb(id: string): Promise<void> {
   await db.runAsync('DELETE FROM trips WHERE id = ?', [id]);
 }
 
-// ---------- CloudKit sync support ----------
-// Tombstones let a local delete propagate to other devices: without a record
-// of "trip X was deleted at T" a pull would just re-adopt X from the cloud.
-
-interface TombstoneRow {
-  id: string;
-  deletedAt: number;
-}
-
-export async function loadTombstones(): Promise<TombstoneRow[]> {
-  const db = await getDb();
-  return db.getAllAsync<TombstoneRow>('SELECT id, deletedAt FROM tombstones');
-}
-
-export async function putTombstone(id: string, deletedAt: number): Promise<void> {
-  const db = await getDb();
-  await db.runAsync(
-    'INSERT OR REPLACE INTO tombstones (id, deletedAt) VALUES (?, ?)',
-    [id, deletedAt]
-  );
-}
-
-export async function removeTombstone(id: string): Promise<void> {
-  const db = await getDb();
-  await db.runAsync('DELETE FROM tombstones WHERE id = ?', [id]);
-}
-
-export async function getSyncMeta(k: string): Promise<string | null> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<{ v: string }>(
-    'SELECT v FROM sync_meta WHERE k = ?',
-    [k]
-  );
-  return row?.v ?? null;
-}
-
-export async function setSyncMeta(k: string, v: string): Promise<void> {
-  const db = await getDb();
-  await db.runAsync(
-    'INSERT OR REPLACE INTO sync_meta (k, v) VALUES (?, ?)',
-    [k, v]
-  );
-}
-
 // ---------- App settings (account-level prefs) ----------
-// Same k/v shape as sync_meta but a separate table: these are user-facing
-// preferences (gender, first-run prompt seen), not sync bookkeeping, and
-// must never be entangled with the CloudKit sync cursor.
+// User-facing preferences (gender, first-run prompt seen), stored locally.
 
 export async function getAppSetting(k: string): Promise<string | null> {
   const db = await getDb();
