@@ -1,0 +1,17 @@
+# helper: leave the app on TripDetail with a populated list (for the adb-driven
+# drag-reorder check, which Maestro can't do reliably).
+appId: com.joshapproved.packinglist
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Not now"
+    optional: true
+- tapOn: "New trip"
+- inputText: "Reorder Test"
+- hideKeyboard
+- tapOn: "Beach"
+- tapOn:
+    text: "Continue to packing list"
+- assertVisible:
+    text: "Category .*, tap to change"

@@ -1,0 +1,41 @@
+# packing-list — store-screenshot capture flow (token-cheap: Maestro drives, no agent in the loop).
+#
+# Run (app already installed on the target sim, gender prompt already dismissed once):
+#   maestro --device <udid> test qa/flows/mobile.yaml
+# Captures qa/captures/ipad/{list,packers,types}.png. Frame with:
+#   node ../josh-approved-factory/scripts/render-screenshots.mjs packing-list --store ipad
+#
+# Notes for whoever maintains this:
+#  - RN <Modal> content is NOT in Maestro's iOS a11y tree (gender prompt, Dialogs
+#    prompt). The add-packer prompt is handled via the keyboard "done" key
+#    (returnKeyType=done + onSubmitEditing), not a tap on its button.
+#  - No clearState: relies on the existing "Greece, 4 days" trip + the
+#    already-dismissed gender prompt. Re-running adds more packers (harmless for
+#    a one-shot capture).
+appId: com.joshapproved.packinglist
+---
+- launchApp
+# Home — the populated trip list (hero / slot 1).
+- assertVisible:
+    text: "Greece.*"
+- takeScreenshot: "qa/captures/ipad/list"
+# Open the trip, add 2 packers so the split UX (assignee pills) shows.
+- tapOn:
+    text: "Greece.*"
+- assertVisible: "Packers"
+- tapOn: "Add packer"
+- inputText: "Sam"
+- pressKey: Enter
+- tapOn: "Add packer"
+- inputText: "Maya"
+- pressKey: Enter
+- takeScreenshot: "qa/captures/ipad/packers"
+# Back to home, then open the new-trip flow for the trip-type picker.
+- tapOn: "Back to trips"
+- assertVisible: "New trip"
+- tapOn: "New trip"
+- hideKeyboard
+- tapOn: "Beach"
+- tapOn: "Hiking"
+- tapOn: "Urban"
+- takeScreenshot: "qa/captures/ipad/types"

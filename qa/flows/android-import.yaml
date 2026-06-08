@@ -1,0 +1,27 @@
+# packing-list — Android import round-trip (the export half is proven by
+# android-smoke.yaml's share-sheet; this drives the SAF document picker, which
+# is the Android-specific import risk: content:// → cache copy → File().text()).
+#
+# Prereq: /sdcard/Download/import-fixture.json pushed to the device (a valid
+# 1-trip export per src/lib/transfer.ts). Run:
+#   maestro --device emulator-5554 test qa/flows/android-import.yaml
+appId: com.joshapproved.packinglist
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    text: "Not now"
+    optional: true
+- tapOn: "Settings"
+- assertVisible: "Your data"
+- tapOn: "Import trips…"
+# --- system SAF document picker (outside the app) ---
+- tapOn:
+    text: "import-fixture.*"
+    optional: true
+- assertVisible:
+    text: "Import complete|Added 1 trip"
+- takeScreenshot: "qa/captures/android-smoke/05-import-complete"
+- tapOn:
+    text: "OK"
+    optional: true

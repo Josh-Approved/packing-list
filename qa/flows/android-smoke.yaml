@@ -1,0 +1,75 @@
+# packing-list — Android v1 smoke test (token-cheap: Maestro drives, no agent in the loop).
+#
+# Exercises the flows that were unverified on Android (CLAUDE.md "Android Play
+# Store release" TODO): packer rename/remove, category pick (both via the
+# cross-platform Dialogs.tsx primitives), and export. Drag-reorder is driven
+# separately via adb (Maestro can't reliably long-press-drag a reorderable row).
+#
+# Run:  maestro --device emulator-5554 test qa/flows/android-smoke.yaml
+# On Android, RN <Modal> content IS in the a11y tree (unlike iOS), so the
+# action-menu / prompt buttons are tappable directly.
+appId: com.joshapproved.packinglist
+---
+- launchApp:
+    clearState: true
+# First-run gender prompt — dismiss neutral.
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# --- Create a trip so there's something to act on ---
+- assertVisible: "New trip"
+- tapOn: "New trip"
+- inputText: "Smoke Test"
+- hideKeyboard
+- tapOn: "Beach"
+- tapOn:
+    text: "Continue to packing list"
+
+# --- 1. Category pick (Dialogs action menu) ---
+- assertVisible:
+    text: "Category .*, tap to change"
+- tapOn:
+    text: "Category .*, tap to change"
+- assertVisible: "Toiletries"
+- tapOn: "Toiletries"
+- assertVisible:
+    text: "Category Toiletries.*"
+- takeScreenshot: "qa/captures/android-smoke/01-category-pick"
+
+# --- 2. Packer add + rename + remove (Dialogs prompt + action menu) ---
+- tapOn: "Add packer"
+- inputText: "Sam"
+- pressKey: Enter
+- assertVisible:
+    text: "Packer Sam,.*"
+# rename
+- longPressOn:
+    text: "Packer Sam,.*"
+- tapOn: "Rename"
+- eraseText: 20
+- inputText: "Samuel"
+- pressKey: Enter
+- assertVisible:
+    text: "Packer Samuel,.*"
+- takeScreenshot: "qa/captures/android-smoke/02-packer-rename"
+# remove
+- longPressOn:
+    text: "Packer Samuel,.*"
+- tapOn: "Remove"
+- tapOn:
+    text: "Remove"
+    optional: true
+- assertNotVisible:
+    text: "Packer Samuel,.*"
+- takeScreenshot: "qa/captures/android-smoke/03-packer-removed"
+
+# --- 3. Export (Settings -> Your data -> Export) ---
+- tapOn: "Back to trips"
+- tapOn: "Settings"
+- assertVisible: "Your data"
+- tapOn: "Export all trips"
+# The OS share sheet is outside the app; assert we didn't hit the
+# "Export unavailable" error path. A visible share sheet = success.
+- assertNotVisible: "Export unavailable"
+- takeScreenshot: "qa/captures/android-smoke/04-export-sharesheet"
