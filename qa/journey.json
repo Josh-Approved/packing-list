@@ -1,0 +1,23 @@
+{
+  "$comment": "packing-list screenshot traversal, copy-free. Generates qa/flows/mobile.yaml (run scripts/qa/compile-flow.mjs). Screenshot names match qa/screenshots.config.json sources (list, packers, types). Mirrors the proven hand-written flow, but deterministic: the seeded trip already carries packers, so no live add-packer typing (RN <Modal> content isn't in the iOS a11y tree anyway).",
+  "appId": "com.joshapproved.packinglist",
+  "clearState": true,
+  "diagnosticLaunchShot": true,
+  "settleMs": 8000,
+  "steps": [
+    { "waitFor": "@first-trip", "timeout": 30000 },
+    { "screenshot": "list" },
+
+    { "tap": "@first-trip" },
+    { "waitFor": "@packers-heading", "timeout": 10000 },
+    { "screenshot": "packers" },
+    { "tap": "@back" },
+
+    { "tap": "@new-trip" },
+    { "hideKeyboard": true },
+    { "tap": "@type-beach" },
+    { "tap": "@type-hiking" },
+    { "tap": "@type-urban" },
+    { "screenshot": "types" }
+  ]
+}

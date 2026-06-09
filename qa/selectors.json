@@ -1,0 +1,12 @@
+{
+  "$comment": "Selector registry for packing-list. Flows reference @keys, never raw copy. Anchors target the seeded 'Greece' trip (src/qa/fixtures.ts), pre-loaded with packers so the shared-packing screen needs no live typing. text = Maestro regex; 'Greece.*' is anchored because the row shows 'Greece · 4 days'.",
+  "anchors": {
+    "first-trip":      { "text": "Greece.*", "note": "the seeded demo trip row" },
+    "packers-heading": { "text": "Packers" },
+    "back":            { "text": "Back to trips" },
+    "new-trip":        { "text": "New trip" },
+    "type-beach":      { "text": "Beach" },
+    "type-hiking":     { "text": "Hiking" },
+    "type-urban":      { "text": "Urban" }
+  }
+}

@@ -21,6 +21,8 @@ import { makeId } from '../lib/id';
 import { mergeImported } from '../lib/transfer';
 import { useSettingsStore } from './settings';
 import { loadAllTrips, saveTrip, deleteTripFromDb } from './db';
+import { QA_MODE } from '../qa/qaMode';
+import { qaTrips } from '../qa/fixtures';
 
 /**
  * Heal duplicate ids in loaded data (legacy `${prefix}${Date.now()}` ids
@@ -117,6 +119,13 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
   hydrate: async () => {
     try {
       const loaded = await loadAllTrips();
+      // QA capture boots cleared (clearState:true); seed deterministic data so
+      // every screen is screenshot-ready without typing live. Compile-time false
+      // in production (EXPO_PUBLIC_QA_MODE unset) → tree-shaken out.
+      if (QA_MODE && loaded.length === 0) {
+        set({ trips: qaTrips(), hydrated: true });
+        return;
+      }
       const { trips, changed } = repairIds(loaded);
       set({ trips, hydrated: true });
       // Persist any trips whose colliding ids we just healed.
