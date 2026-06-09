@@ -6,10 +6,12 @@
   "settleMs": 8000,
   "steps": [
     { "waitFor": "@first-trip", "timeout": 30000 },
+    { "assert": "@first-trip" },
     { "screenshot": "list" },
 
     { "tap": "@first-trip" },
     { "waitFor": "@packers-heading", "timeout": 10000 },
+    { "assert": "@packer-sam" },
     { "screenshot": "packers" },
     { "tap": "@back" },
 

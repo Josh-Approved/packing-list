@@ -17,11 +17,13 @@ appId: com.joshapproved.packinglist
 - extendedWaitUntil:
     visible: { text: "Greece.*" }
     timeout: 30000
+- assertVisible: { text: "Greece.*" }
 - takeScreenshot: qa/captures/${STORE}/list
 - tapOn: { text: "Greece.*" }
 - extendedWaitUntil:
     visible: { text: "Packers" }
     timeout: 10000
+- assertVisible: { text: "Sam" }
 - takeScreenshot: qa/captures/${STORE}/packers
 - tapOn: { text: "Back to trips" }
 - tapOn: { text: "New trip" }

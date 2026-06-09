@@ -3,6 +3,7 @@
   "anchors": {
     "first-trip":      { "text": "Greece.*", "note": "the seeded demo trip row" },
     "packers-heading": { "text": "Packers" },
+    "packer-sam":      { "text": "Sam", "note": "a seeded packer Pill (src/qa/fixtures.ts) — outcome anchor for the add-packer action" },
     "back":            { "text": "Back to trips" },
     "new-trip":        { "text": "New trip" },
     "type-beach":      { "text": "Beach" },
