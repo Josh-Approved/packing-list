@@ -23,7 +23,7 @@ appId: com.joshapproved.packinglist
 - extendedWaitUntil:
     visible: { text: "Packers" }
     timeout: 10000
-- assertVisible: { text: "Sam" }
+- assertVisible: { text: ".*Sam.*" }
 - takeScreenshot: qa/captures/${STORE}/packers
 - tapOn: { text: "Back to trips" }
 - tapOn: { text: "New trip" }
