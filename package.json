@@ -49,7 +49,11 @@
   },
   "overrides": {
     "uuid": "^11.1.1",
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "shell-quote": "1.8.4",
+    "xcode": {
+      "uuid": "^11.1.1"
+    }
   },
   "private": true,
   "jest": {
