@@ -45,10 +45,14 @@ import TripDetailScreen from './src/screens/TripDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import Credits from './src/components/Credits';
 import AnimatedSplash from './src/components/AnimatedSplash';
+import { QA_MODE } from './src/qa/qaMode';
 
 // Hold the native launch screen until the JS splash is mounted to take over, so
 // the icon never blinks out between the two. AnimatedSplash calls hideAsync().
-SplashScreen.preventAutoHideAsync().catch(() => {});
+// Skipped under QA_MODE so the e2e screenshot harness sees deterministic frames.
+if (!QA_MODE) {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
 
 export type RootStackParamList = {
   TripsHome: undefined;
@@ -111,7 +115,7 @@ export default function App() {
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <Stack.Navigator
               initialRouteName="TripsHome"
-              screenOptions={{ headerShown: false }}
+              screenOptions={{ headerShown: false, animation: QA_MODE ? 'none' : undefined }}
             >
               <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
               <Stack.Screen name="TripInfo" component={TripInfoScreen} />
@@ -123,7 +127,7 @@ export default function App() {
             </Stack.Navigator>
           </NavigationContainer>
         )}
-        {!splashDone && (
+        {!QA_MODE && !splashDone && (
           <AnimatedSplash ready={ready} onFinish={() => setSplashDone(true)} />
         )}
       </SafeAreaProvider>
