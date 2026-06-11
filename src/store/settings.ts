@@ -15,6 +15,7 @@
 import { create } from 'zustand';
 import type { GenderPref } from '../data/trip';
 import { getAppSetting, setAppSetting } from './db';
+import { QA_MODE } from '../qa/qaMode';
 
 const K_GENDER = 'gender';
 const K_PROMPT_SEEN = 'genderPromptSeen';
@@ -50,6 +51,14 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
   hydrated: false,
 
   hydrate: async () => {
+    // QA seed boot: skip the first-run gender prompt so the deterministic
+    // capture/flow lands on the seeded trips list, not the prompt overlay.
+    // Mirrors the trips store's QA seeding; EXPO_PUBLIC_QA_MODE is unset in
+    // production, so this branch is tree-shaken out of release builds.
+    if (QA_MODE) {
+      set({ gender: 'unspecified', genderPromptSeen: true, hydrated: true });
+      return;
+    }
     try {
       const [g, seen] = await Promise.all([
         getAppSetting(K_GENDER),
