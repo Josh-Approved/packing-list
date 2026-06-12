@@ -27,7 +27,10 @@ appId: com.joshapproved.packinglist
 - takeScreenshot: qa/captures/${STORE}/packers
 - tapOn: { text: "Back to trips" }
 - tapOn: { text: "New trip" }
-- hideKeyboard
+- extendedWaitUntil:
+    visible: { text: "Trip information" }
+    timeout: 10000
+- tapOn: { text: "Trip information" }
 - tapOn: { text: "Beach" }
 - tapOn: { text: "Hiking" }
 - tapOn: { text: "Urban" }

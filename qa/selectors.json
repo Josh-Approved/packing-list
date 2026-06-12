@@ -6,6 +6,7 @@
     "packer-sam":      { "text": ".*Sam.*", "note": "a seeded packer Pill (src/qa/fixtures.ts) — outcome anchor for the add-packer action. Wrapped in .* because the packers row is one merged a11y element ('Me, Sam, Maya') on iOS (Pressable children collapse into the parent label); Maestro full-matches the regex, so bare 'Sam' never matched a screen where Sam is plainly visible." },
     "back":            { "text": "Back to trips" },
     "new-trip":        { "text": "New trip" },
+    "trip-info-title": { "text": "Trip information", "note": "Static header on TripInfoScreen, inside its keyboardShouldPersistTaps=\"handled\" ScrollView. Tapped to dismiss the auto-raised name-input keyboard before the trip-type buttons — replaces a hideKeyboard step that is flaky on iOS (no standard dismiss action). Cross-platform deterministic." },
     "type-beach":      { "text": "Beach" },
     "type-hiking":     { "text": "Hiking" },
     "type-urban":      { "text": "Urban" }

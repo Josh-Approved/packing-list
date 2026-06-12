@@ -1,0 +1,20 @@
+{
+  "anchors": {
+    "back": {
+      "text": "Back to trips",
+      "id": null
+    },
+    "type-beach": {
+      "text": "Beach",
+      "id": null
+    },
+    "type-hiking": {
+      "text": "Hiking",
+      "id": null
+    },
+    "type-urban": {
+      "text": "Urban",
+      "id": null
+    }
+  }
+}
