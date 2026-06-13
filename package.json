@@ -55,7 +55,10 @@
     "shell-quote": "1.8.4",
     "xcode": {
       "uuid": "^11.1.1"
-    }
+    },
+    "@xmldom/xmldom": "0.8.13",
+    "ws": "^8.20.1",
+    "brace-expansion": "^5.0.6"
   },
   "private": true,
   "jest": {
