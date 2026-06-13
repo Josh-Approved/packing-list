@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.joshapproved.packinglist",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleName": "Packing List"
       }
     },
     "android": {
