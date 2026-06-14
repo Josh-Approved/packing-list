@@ -32,6 +32,4 @@ appId: com.joshapproved.packinglist
     timeout: 10000
 - tapOn: { text: "Trip information" }
 - tapOn: { text: "Beach" }
-- tapOn: { text: "Hiking" }
-- tapOn: { text: "Urban" }
 - takeScreenshot: qa/captures/${STORE}/types

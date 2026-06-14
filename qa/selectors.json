@@ -7,8 +7,6 @@
     "back":            { "text": "Back to trips" },
     "new-trip":        { "text": "New trip" },
     "trip-info-title": { "text": "Trip information", "note": "Static header on TripInfoScreen, inside its keyboardShouldPersistTaps=\"handled\" ScrollView. Tapped to dismiss the auto-raised name-input keyboard before the trip-type buttons — replaces a hideKeyboard step that is flaky on iOS (no standard dismiss action). Cross-platform deterministic." },
-    "type-beach":      { "text": "Beach" },
-    "type-hiking":     { "text": "Hiking" },
-    "type-urban":      { "text": "Urban" }
+    "type-beach":      { "text": "Beach" }
   }
 }

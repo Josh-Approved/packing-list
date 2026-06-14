@@ -19,8 +19,6 @@
     { "waitFor": "@trip-info-title", "timeout": 10000 },
     { "tap": "@trip-info-title" },
     { "tap": "@type-beach" },
-    { "tap": "@type-hiking" },
-    { "tap": "@type-urban" },
     { "screenshot": "types" }
   ]
 }
