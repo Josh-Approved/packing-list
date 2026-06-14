@@ -1,0 +1,136 @@
+/**
+ * App-specific copy. APP-OWNED — every user-facing string in this app's domain
+ * screens lives here (canon § Translations: no copy hardcoded in components).
+ * Reference it via `t('<key>')` from `../i18n`. Voice canon applies: sentence
+ * case, plain second person, no emoji. These overlay the shell strings, so the
+ * `common`/`settings`/`about` namespaces extend (not replace) the shell's.
+ */
+
+export const APP_STRINGS = {
+  // Extends the shell common namespace (back/cancel/save/delete/rename/add).
+  common: {
+    day: 'day',
+    days: 'days',
+    remove: 'Remove',
+  },
+  home: {
+    title: 'Packing list',
+    emptyTitle: 'No trips yet',
+    emptyHint: 'Create your first trip to get a checklist that fits.',
+    newTrip: 'New trip',
+    duplicate: 'Duplicate',
+    renameTrip: 'Rename trip',
+    deleteTitle: 'Delete "{name}"?',
+    deleteMessage: 'This trip and its items will be removed. This cannot be undone.',
+    noItems: 'No items',
+    packedProgress: '{packed} of {total} packed',
+    cardA11y: '{name}, {duration} days, {packed} of {total} packed. Long press for options.',
+  },
+  trip: {
+    missing: 'This trip no longer exists.',
+    backToList: 'Back to packing list',
+    backToTrips: 'Back to trips',
+    title: 'Trip information',
+    subtitle: 'Set this up once. You can change it any time from the list.',
+    name: 'Trip name',
+    namePlaceholder: 'Untitled trip',
+    nameA11y: 'Trip name',
+    duration: 'Duration',
+    durationStepper: 'Trip duration in days',
+    laundry: 'Laundry',
+    laundryToggle: 'I can do laundry on this trip',
+    laundryStepper: 'Days between laundry',
+    washCycleOne: 'day between washes',
+    washCycleOther: 'days between washes',
+    laundryHelper:
+      "Per-day items (underwear, socks, shirts) cover one wash cycle instead of the whole trip, so the list won't balloon on a long one.",
+    types: 'Trip types',
+    thoroughnessLabel: 'How thoroughly to pack',
+    continue: 'Continue',
+    continueA11y: 'Continue to packing list',
+    saveA11y: 'Save trip information',
+    minimalist: 'Minimalist',
+    minimalistBlurb: 'Just the essentials. Pack light and do more laundry.',
+    normal: 'Normal',
+    normalBlurb: 'The usual list — a solid checklist for most trips.',
+    thorough: 'Thorough',
+    thoroughBlurb: 'Everything, including the just-in-case extras.',
+  },
+  detail: {
+    missing: 'This trip no longer exists.',
+    backToTrips: 'Back to trips',
+    renamePacker: 'Rename packer',
+    addPacker: 'Add packer',
+    packerNamePlaceholder: 'Name',
+    category: 'Category',
+    yourList: 'Your list',
+    suggestedItems: 'Suggested items',
+    noTripTypes: 'No trip types',
+    laundryEvery: 'Laundry every {count} {unit}',
+    shared: 'Shared',
+    tripInfoA11y: '{name}. {meta}. Edit trip information.',
+    noItemsYet: 'No items yet',
+    packedProgress: '{packed} of {total} packed',
+    packers: 'Packers',
+    packerA11y: 'Packer {name}, long press to rename or remove',
+    itemsEmpty: 'Add a trip type above, or type an item below to start your list.',
+    removed: 'Removed "{name}"',
+    undo: 'Undo',
+    undoA11y: 'Undo removing {name}',
+    categoryA11y: 'Category {category}, tap to change',
+    addItemPlaceholder: 'Add an item',
+    newItemA11y: 'New item name',
+    addItem: 'Add item',
+    doneEditing: 'Done editing this trip',
+    reorderA11y: 'Reorder {name}',
+    itemPackedA11y: '{name} packed',
+    renameItem: 'Rename item',
+    itemRenameA11y: '{name}, tap to rename',
+    quantityOf: 'Quantity of {name}',
+    assigneeA11y: 'Assigned to {name}, tap to change',
+  },
+  gender: {
+    female: 'Female',
+    male: 'Male',
+    unspecified: 'Prefer not to say',
+    section: 'Gender',
+    a11y: 'Gender for suggested items',
+    caption:
+      'Only used to pre-fill suggested items like bras or period products when a list is generated. Stays on this device.',
+    promptTitle: 'One quick thing',
+    promptBody:
+      'Your gender only tailors which basics new trips suggest — it stays on this device and you can change it anytime in Settings.',
+    notNow: 'Not now',
+    dismiss: 'Dismiss',
+  },
+  stepper: {
+    increase: 'Increase',
+    decrease: 'Decrease',
+  },
+  dialog: {
+    closeMenu: 'Close menu',
+  },
+  // Extends the shell settings namespace (title/appearance/language/yourData/about reused).
+  settings: {
+    exportAll: 'Export all trips',
+    importTrips: 'Import trips…',
+    dataCaption:
+      'Export writes a JSON file you can save or share. Import always adds to your trips — it never replaces them.',
+    exportDialogTitle: 'Export packing lists',
+    exportUnavailableTitle: 'Export unavailable',
+    exportUnavailableMessage: 'Sharing is not available on this device.',
+    couldntExportTitle: "Couldn't export",
+    couldntExportMessage: 'Something went wrong creating the export file.',
+    couldntImportTitle: "Couldn't import",
+    couldntImportMessage: 'Something went wrong reading that file.',
+    notAnExport: "This file isn't a Packing List export.",
+    importComplete: 'Import complete',
+    addedTripsOne: 'Added {count} trip.',
+    addedTripsOther: 'Added {count} trips.',
+  },
+  // Extends the shell about namespace (support/feedback/review/privacy/source/oneLiner reused).
+  about: {
+    learnMoreA11y: 'Learn more about Josh Approved',
+    learnMoreHint: 'Opens joshapproved.com in your browser',
+  },
+} as const;

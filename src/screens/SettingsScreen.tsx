@@ -36,10 +36,12 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme, typography, space, target, radius } from '../theme';
+import { useTheme, typography, space, target, radius, AppearanceToggle } from '../theme';
 import type { Colors } from '../theme';
 import { boundedContent } from '../theme';
+import { t } from '../i18n';
 import { AboutRow } from '../components/AboutRow';
+import { LanguageSetting } from '../components/LanguageSetting';
 import Wordmark from '../components/Wordmark';
 import { useTripsStore } from '../store/trips';
 import { useSettingsStore } from '../store/settings';
@@ -56,10 +58,11 @@ import {
 import type { GenderPref } from '../data/trip';
 import type { RootStackParamList } from '../../App';
 
-const GENDER_OPTIONS: { label: string; value: GenderPref }[] = [
-  { label: 'Female', value: 'female' },
-  { label: 'Male', value: 'male' },
-  { label: 'Prefer not to say', value: 'unspecified' },
+// Keys, not resolved strings — t() is called at render time (canon § Translations).
+const GENDER_OPTIONS: { labelKey: string; value: GenderPref }[] = [
+  { labelKey: 'gender.female', value: 'female' },
+  { labelKey: 'gender.male', value: 'male' },
+  { labelKey: 'gender.unspecified', value: 'unspecified' },
 ];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
@@ -95,16 +98,16 @@ export default function SettingsScreen({ navigation }: Props) {
       file.create();
       file.write(json);
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('Export unavailable', 'Sharing is not available on this device.');
+        Alert.alert(t('settings.exportUnavailableTitle'), t('settings.exportUnavailableMessage'));
         return;
       }
       await Sharing.shareAsync(file.uri, {
         mimeType: 'application/json',
         UTI: 'public.json',
-        dialogTitle: 'Export packing lists',
+        dialogTitle: t('settings.exportDialogTitle'),
       });
     } catch {
-      Alert.alert("Couldn't export", 'Something went wrong creating the export file.');
+      Alert.alert(t('settings.couldntExportTitle'), t('settings.couldntExportMessage'));
     }
   }, [trips]);
 
@@ -126,15 +129,20 @@ export default function SettingsScreen({ navigation }: Props) {
         const msg =
           e instanceof TransferError
             ? e.message
-            : "This file isn't a Packing List export.";
-        Alert.alert("Couldn't import", msg);
+            : t('settings.notAnExport');
+        Alert.alert(t('settings.couldntImportTitle'), msg);
         return;
       }
       const n = importTrips(imported);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      Alert.alert('Import complete', `Added ${n} ${n === 1 ? 'trip' : 'trips'}.`);
+      Alert.alert(
+        t('settings.importComplete'),
+        n === 1
+          ? t('settings.addedTripsOne', { count: n })
+          : t('settings.addedTripsOther', { count: n })
+      );
     } catch {
-      Alert.alert("Couldn't import", 'Something went wrong reading that file.');
+      Alert.alert(t('settings.couldntImportTitle'), t('settings.couldntImportMessage'));
     }
   }, [importTrips]);
 
@@ -146,21 +154,21 @@ export default function SettingsScreen({ navigation }: Props) {
           hitSlop={12}
           style={({ pressed }) => [s.backBtn, pressed && s.backBtnPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Back"
+          accessibilityLabel={t('common.back')}
         >
           <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
         </Pressable>
         <Text style={s.title} accessibilityRole="header">
-          Settings
+          {t('settings.title')}
         </Text>
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-        <Text style={s.sectionLabel}>Gender</Text>
+        <Text style={s.sectionLabel}>{t('gender.section')}</Text>
         <View
           style={s.segmented}
           accessibilityRole="radiogroup"
-          accessibilityLabel="Gender for suggested items"
+          accessibilityLabel={t('gender.a11y')}
         >
           {GENDER_OPTIONS.map((opt, i) => {
             const selected = opt.value === gender;
@@ -176,45 +184,49 @@ export default function SettingsScreen({ navigation }: Props) {
                 ]}
                 accessibilityRole="radio"
                 accessibilityState={{ selected }}
-                accessibilityLabel={opt.label}
+                accessibilityLabel={t(opt.labelKey)}
               >
                 <Text style={[s.segmentText, selected && s.segmentTextOn]}>
-                  {opt.label}
+                  {t(opt.labelKey)}
                 </Text>
               </Pressable>
             );
           })}
         </View>
-        <Text style={s.caption}>
-          Only used to pre-fill suggested items like bras or period products
-          when a list is generated. Stays on this device.
-        </Text>
+        <Text style={s.caption}>{t('gender.caption')}</Text>
 
         <View style={s.section}>
-          <Text style={s.sectionLabel}>Your data</Text>
-          <View style={s.block}>
-            {trips.length > 0 && (
-              <AboutRow icon={Upload} label="Export all trips" onPress={handleExport} />
-            )}
-            <AboutRow icon={Download} label="Import trips…" onPress={handleImport} />
-          </View>
-          <Text style={s.caption}>
-            Export writes a JSON file you can save or share. Import always adds
-            to your trips — it never replaces them.
-          </Text>
+          <Text style={s.sectionLabel}>{t('settings.appearance')}</Text>
+          <AppearanceToggle />
         </View>
 
         <View style={s.section}>
-          <Text style={s.sectionLabel}>About</Text>
+          <Text style={s.sectionLabel}>{t('settings.language')}</Text>
+          <LanguageSetting />
+        </View>
+
+        <View style={s.section}>
+          <Text style={s.sectionLabel}>{t('settings.yourData')}</Text>
           <View style={s.block}>
-            <AboutRow icon={HandHeart} label="Support this app" onPress={openBmac} />
-            <AboutRow icon={Mail} label="Send feedback" onPress={openFeedback} />
-            <AboutRow icon={Star} label="Leave a review" onPress={openReview} />
-            <AboutRow icon={Shield} label="Privacy" onPress={openPrivacy} />
-            <AboutRow icon={Code} label="Source code" onPress={openSource} />
+            {trips.length > 0 && (
+              <AboutRow icon={Upload} label={t('settings.exportAll')} onPress={handleExport} />
+            )}
+            <AboutRow icon={Download} label={t('settings.importTrips')} onPress={handleImport} />
+          </View>
+          <Text style={s.caption}>{t('settings.dataCaption')}</Text>
+        </View>
+
+        <View style={s.section}>
+          <Text style={s.sectionLabel}>{t('settings.about')}</Text>
+          <View style={s.block}>
+            <AboutRow icon={HandHeart} label={t('about.support')} onPress={openBmac} />
+            <AboutRow icon={Mail} label={t('about.feedback')} onPress={openFeedback} />
+            <AboutRow icon={Star} label={t('about.review')} onPress={openReview} />
+            <AboutRow icon={Shield} label={t('about.privacy')} onPress={openPrivacy} />
+            <AboutRow icon={Code} label={t('about.source')} onPress={openSource} />
             <AboutRow
               icon={Library}
-              label="Acknowledgements"
+              label={t('about.acknowledgements')}
               onPress={() => navigation.navigate('Acknowledgements')}
             />
           </View>
@@ -223,19 +235,16 @@ export default function SettingsScreen({ navigation }: Props) {
 
         <View style={s.stamp}>
           <Wordmark />
-          <Text style={s.stampText}>
-            Privacy-first replacements for paywalled utility apps. Open source.
-            Pay what you want.
-          </Text>
+          <Text style={s.stampText}>{t('about.oneLiner')}</Text>
           <Pressable
             onPress={openStudio}
             hitSlop={8}
             accessibilityRole="link"
-            accessibilityLabel="Learn more about Josh Approved"
-            accessibilityHint="Opens joshapproved.com in your browser"
+            accessibilityLabel={t('about.learnMoreA11y')}
+            accessibilityHint={t('about.learnMoreHint')}
             style={({ pressed }) => pressed && s.backBtnPressed}
           >
-            <Text style={s.stampLink}>Learn more</Text>
+            <Text style={s.stampLink}>{t('about.learnMore')}</Text>
           </Pressable>
         </View>
       </ScrollView>

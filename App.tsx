@@ -36,7 +36,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useAppFonts, lightColors, darkColors, typography } from './src/theme';
+import { useAppFonts, lightColors, darkColors, typography, useApplyThemePreference } from './src/theme';
+import { useApplyLocalePreference, useLocaleVersion } from './src/i18n/localePreference';
 import { useTripsStore } from './src/store/trips';
 import { useSettingsStore } from './src/store/settings';
 import TripsHomeScreen from './src/screens/TripsHomeScreen';
@@ -89,6 +90,14 @@ function buildNavTheme(isDark: boolean): Theme {
 }
 
 export default function App() {
+  // Restore + apply the saved appearance preference (System/Light/Dark) before
+  // first paint; drives useColorScheme() here and in every screen.
+  useApplyThemePreference();
+  // Restore + apply the saved language; localeVersion keys <NavigationContainer>
+  // below so a switch re-renders the whole app in the new language (canon
+  // § Translations — a JS-dictionary i18n has no OS primitive like the theme).
+  useApplyLocalePreference();
+  const localeVersion = useLocaleVersion();
   const isDark = useColorScheme() === 'dark';
   const [fontsLoaded] = useAppFonts();
   const hydrated = useTripsStore((s) => s.hydrated);
@@ -111,7 +120,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         {ready && (
-          <NavigationContainer theme={buildNavTheme(isDark)}>
+          <NavigationContainer key={localeVersion} theme={buildNavTheme(isDark)}>
             <StatusBar style={isDark ? 'light' : 'dark'} />
             <Stack.Navigator
               initialRouteName="TripsHome"

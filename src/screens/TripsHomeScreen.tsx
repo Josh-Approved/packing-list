@@ -32,6 +32,7 @@ import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
 import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
+import { t as tr } from '../i18n';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { boundedContent } from '../theme';
@@ -73,12 +74,12 @@ export default function TripsHomeScreen({ navigation }: Props) {
       options: [
         // Duplicate — create a copy and stay on the home screen so the user
         // sees both cards. They can rename or open from there.
-        { label: 'Duplicate', onPress: () => duplicateTrip(trip.id) },
+        { label: tr('home.duplicate'), onPress: () => duplicateTrip(trip.id) },
         {
-          label: 'Rename',
+          label: tr('common.rename'),
           onPress: () =>
             prompt.open({
-              title: 'Rename trip',
+              title: tr('home.renameTrip'),
               initialValue: trip.name,
               selectAll: true,
               onSubmit: (name) =>
@@ -86,18 +87,18 @@ export default function TripsHomeScreen({ navigation }: Props) {
             }),
         },
         {
-          label: 'Delete',
+          label: tr('common.delete'),
           destructive: true,
           // Two-step confirm protects against an accidental long-press on a
           // trip with real data in it. Alert.alert is cross-platform.
           onPress: () =>
             Alert.alert(
-              `Delete "${trip.name}"?`,
-              'This trip and its items will be removed. This cannot be undone.',
+              tr('home.deleteTitle', { name: trip.name }),
+              tr('home.deleteMessage'),
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: tr('common.cancel'), style: 'cancel' },
                 {
-                  text: 'Delete',
+                  text: tr('common.delete'),
                   style: 'destructive',
                   onPress: () => deleteTrip(trip.id),
                 },
@@ -119,14 +120,14 @@ export default function TripsHomeScreen({ navigation }: Props) {
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <View style={s.header}>
         <Text style={s.title} accessibilityRole="header">
-          Packing list
+          {tr('home.title')}
         </Text>
         <Pressable
           onPress={handleOpenSettings}
           hitSlop={12}
           style={({ pressed }) => [s.menuBtn, pressed && s.menuBtnPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Settings"
+          accessibilityLabel={tr('settings.title')}
         >
           <Settings size={22} color={c.fg} strokeWidth={1.5} />
         </Pressable>
@@ -134,16 +135,16 @@ export default function TripsHomeScreen({ navigation }: Props) {
 
       {isEmpty ? (
         <View style={s.emptyWrap}>
-          <Text style={s.emptyTitle}>No trips yet</Text>
-          <Text style={s.emptyHint}>Create your first trip to get a checklist that fits.</Text>
+          <Text style={s.emptyTitle}>{tr('home.emptyTitle')}</Text>
+          <Text style={s.emptyHint}>{tr('home.emptyHint')}</Text>
           <Pressable
             onPress={handleNewTrip}
             style={({ pressed }) => [s.primaryBtn, pressed && s.primaryBtnPressed]}
             accessibilityRole="button"
-            accessibilityLabel="New trip"
+            accessibilityLabel={tr('home.newTrip')}
           >
             <Plus size={18} color={c.fgOnInk} strokeWidth={1.5} />
-            <Text style={s.primaryBtnLabel}>New trip</Text>
+            <Text style={s.primaryBtnLabel}>{tr('home.newTrip')}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -173,7 +174,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
           onPress={handleNewTrip}
           style={({ pressed }) => [s.fab, pressed && s.fabPressed]}
           accessibilityRole="button"
-          accessibilityLabel="New trip"
+          accessibilityLabel={tr('home.newTrip')}
         >
           <Plus size={24} color={c.fgOnInk} strokeWidth={1.5} />
         </Pressable>
@@ -231,17 +232,24 @@ function TripCard({
       onLongPress={onLongPress}
       style={({ pressed }) => [s.card, pressed && s.cardPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`${trip.name}, ${trip.duration} days, ${packedCount} of ${totalCount} packed. Long press for options.`}
+      accessibilityLabel={tr('home.cardA11y', {
+        name: trip.name,
+        duration: trip.duration,
+        packed: packedCount,
+        total: totalCount,
+      })}
     >
       <Text style={s.cardName} numberOfLines={1}>{trip.name}</Text>
 
       <View style={s.cardMetaRow}>
         <Text style={s.cardMeta}>
-          {trip.duration} {trip.duration === 1 ? 'day' : 'days'}
+          {trip.duration} {trip.duration === 1 ? tr('common.day') : tr('common.days')}
         </Text>
         <Text style={s.cardMetaDot}>·</Text>
         <Text style={s.cardMeta}>
-          {totalCount === 0 ? 'No items' : `${packedCount} of ${totalCount} packed`}
+          {totalCount === 0
+            ? tr('home.noItems')
+            : tr('home.packedProgress', { packed: packedCount, total: totalCount })}
         </Text>
       </View>
 

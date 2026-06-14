@@ -23,6 +23,7 @@ import React, { useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Minus, Plus } from 'lucide-react-native';
+import { t } from '../i18n';
 import { useTheme, typography, radius, target } from '../theme';
 import type { Colors } from '../theme';
 
@@ -91,7 +92,7 @@ export function Stepper({
         disabled={minusDisabled}
         hitSlop={6}
         accessibilityRole="button"
-        accessibilityLabel={onRemove && value <= min ? 'Remove' : 'Decrease'}
+        accessibilityLabel={onRemove && value <= min ? t('common.remove') : t('stepper.decrease')}
         style={({ pressed }) => [
           s.btn,
           s.btnLeft,
@@ -113,7 +114,7 @@ export function Stepper({
         disabled={plusDisabled}
         hitSlop={6}
         accessibilityRole="button"
-        accessibilityLabel="Increase"
+        accessibilityLabel={t('stepper.increase')}
         style={({ pressed }) => [
           s.btn,
           s.btnRight,

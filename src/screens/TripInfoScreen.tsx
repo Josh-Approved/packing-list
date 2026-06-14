@@ -47,6 +47,7 @@ import {
 } from '../data/trip';
 import { useTripsStore } from '../store/trips';
 import { useSettingsStore } from '../store/settings';
+import { t as tr } from '../i18n';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { boundedContent } from '../theme';
@@ -56,26 +57,15 @@ import type { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TripInfo'>;
 
+// Keys, not resolved strings — t() is called at render time (canon § Translations).
 const THOROUGHNESS_OPTIONS: {
   value: Thoroughness;
-  label: string;
-  blurb: string;
+  labelKey: string;
+  blurbKey: string;
 }[] = [
-  {
-    value: 'minimalist',
-    label: 'Minimalist',
-    blurb: 'Just the essentials. Pack light and do more laundry.',
-  },
-  {
-    value: 'normal',
-    label: 'Normal',
-    blurb: 'The usual list — a solid checklist for most trips.',
-  },
-  {
-    value: 'thorough',
-    label: 'Thorough',
-    blurb: 'Everything, including the just-in-case extras.',
-  },
+  { value: 'minimalist', labelKey: 'trip.minimalist', blurbKey: 'trip.minimalistBlurb' },
+  { value: 'normal', labelKey: 'trip.normal', blurbKey: 'trip.normalBlurb' },
+  { value: 'thorough', labelKey: 'trip.thorough', blurbKey: 'trip.thoroughBlurb' },
 ];
 
 const DEFAULT_INFO: TripInfo = {
@@ -188,12 +178,13 @@ export default function TripInfoScreen({ route, navigation }: Props) {
     }
   }, [isEdit, tripId, draft, gender, updateTrip, createTrip, navigation]);
 
-  const selectedBlurb = useMemo(
+  const selectedBlurbKey = useMemo(
     () =>
-      THOROUGHNESS_OPTIONS.find((o) => o.value === draft.thoroughness)?.blurb ??
+      THOROUGHNESS_OPTIONS.find((o) => o.value === draft.thoroughness)?.blurbKey ??
       '',
     [draft.thoroughness]
   );
+  const selectedBlurb = selectedBlurbKey ? tr(selectedBlurbKey) : '';
 
   // Edit mode for a trip that vanished (e.g. deleted on another device
   // mid-edit). Mirror TripDetail's missing-trip fallback.
@@ -201,12 +192,12 @@ export default function TripInfoScreen({ route, navigation }: Props) {
     return (
       <SafeAreaView style={s.safe} edges={['top']}>
         <View style={s.headerBar}>
-          <Pressable onPress={handleBack} hitSlop={12} style={s.backBtn} accessibilityLabel="Back">
+          <Pressable onPress={handleBack} hitSlop={12} style={s.backBtn} accessibilityLabel={tr('common.back')}>
             <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
           </Pressable>
         </View>
         <View style={s.missingWrap}>
-          <Text style={s.missingText}>This trip no longer exists.</Text>
+          <Text style={s.missingText}>{tr('trip.missing')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -221,7 +212,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
             hitSlop={12}
             style={({ pressed }) => [s.backBtn, pressed && s.pressedDim]}
             accessibilityRole="button"
-            accessibilityLabel={isEdit ? 'Back to packing list' : 'Back to trips'}
+            accessibilityLabel={isEdit ? tr('trip.backToList') : tr('trip.backToTrips')}
           >
             <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
           </Pressable>
@@ -233,58 +224,58 @@ export default function TripInfoScreen({ route, navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={s.title} accessibilityRole="header">
-            Trip information
+            {tr('trip.title')}
           </Text>
           <Text style={s.subtitle}>
-            Set this up once. You can change it any time from the list.
+            {tr('trip.subtitle')}
           </Text>
 
           {/* Trip name */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>Trip name</Text>
+            <Text style={s.sectionLabel}>{tr('trip.name')}</Text>
             <TextInput
               ref={nameInputRef}
               value={draft.name}
               onChangeText={(t) => set('name', t)}
-              placeholder="Untitled trip"
+              placeholder={tr('trip.namePlaceholder')}
               placeholderTextColor={c.fgSubtle}
               style={s.nameInput}
               returnKeyType="done"
-              accessibilityLabel="Trip name"
+              accessibilityLabel={tr('trip.nameA11y')}
             />
           </View>
 
           {/* Duration */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>Duration</Text>
+            <Text style={s.sectionLabel}>{tr('trip.duration')}</Text>
             <View style={s.row}>
               <Stepper
                 value={draft.duration}
                 onChange={(n) => set('duration', n)}
                 min={MIN_DURATION_DAYS}
                 max={MAX_DURATION_DAYS}
-                label="Trip duration in days"
+                label={tr('trip.durationStepper')}
               />
-              <Text style={s.unit}>{draft.duration === 1 ? 'day' : 'days'}</Text>
+              <Text style={s.unit}>{draft.duration === 1 ? tr('common.day') : tr('common.days')}</Text>
             </View>
           </View>
 
           {/* Laundry */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>Laundry</Text>
+            <Text style={s.sectionLabel}>{tr('trip.laundry')}</Text>
             <Pressable
               onPress={handleToggleLaundry}
               style={({ pressed }) => [s.checkRow, pressed && s.pressedDim]}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: draft.canDoLaundry }}
-              accessibilityLabel="I can do laundry on this trip"
+              accessibilityLabel={tr('trip.laundryToggle')}
             >
               <View style={[s.checkbox, draft.canDoLaundry && s.checkboxOn]}>
                 {draft.canDoLaundry && (
                   <Check size={16} color={c.fgOnAccent} strokeWidth={2.25} />
                 )}
               </View>
-              <Text style={s.checkLabel}>I can do laundry on this trip</Text>
+              <Text style={s.checkLabel}>{tr('trip.laundryToggle')}</Text>
             </Pressable>
 
             {draft.canDoLaundry && (
@@ -295,18 +286,16 @@ export default function TripInfoScreen({ route, navigation }: Props) {
                     onChange={(n) => set('laundryIntervalDays', n)}
                     min={MIN_LAUNDRY_INTERVAL}
                     max={MAX_LAUNDRY_INTERVAL}
-                    label="Days between laundry"
+                    label={tr('trip.laundryStepper')}
                   />
                   <Text style={s.unit}>
                     {draft.laundryIntervalDays === 1
-                      ? 'day between washes'
-                      : 'days between washes'}
+                      ? tr('trip.washCycleOne')
+                      : tr('trip.washCycleOther')}
                   </Text>
                 </View>
                 <Text style={s.helper}>
-                  Per-day items (underwear, socks, shirts) cover one wash cycle
-                  instead of the whole trip, so the list won't balloon on a long
-                  one.
+                  {tr('trip.laundryHelper')}
                 </Text>
               </View>
             )}
@@ -314,7 +303,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
           {/* Trip types */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>Trip types</Text>
+            <Text style={s.sectionLabel}>{tr('trip.types')}</Text>
             <View style={s.chipGrid}>
               {TRIP_TYPES.map((t) => (
                 <Chip
@@ -330,7 +319,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
           {/* Thoroughness */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>How thoroughly to pack</Text>
+            <Text style={s.sectionLabel}>{tr('trip.thoroughnessLabel')}</Text>
             <View style={s.segmented}>
               {THOROUGHNESS_OPTIONS.map((o, i) => {
                 const active = draft.thoroughness === o.value;
@@ -346,10 +335,10 @@ export default function TripInfoScreen({ route, navigation }: Props) {
                     ]}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: active }}
-                    accessibilityLabel={o.label}
+                    accessibilityLabel={tr(o.labelKey)}
                   >
                     <Text style={[s.segmentLabel, active && s.segmentLabelActive]}>
-                      {o.label}
+                      {tr(o.labelKey)}
                     </Text>
                   </Pressable>
                 );
@@ -367,9 +356,9 @@ export default function TripInfoScreen({ route, navigation }: Props) {
               onPress={handleSubmit}
               style={({ pressed }) => [s.cta, pressed && s.ctaPressed]}
               accessibilityRole="button"
-              accessibilityLabel={isEdit ? 'Save trip information' : 'Continue to packing list'}
+              accessibilityLabel={isEdit ? tr('trip.saveA11y') : tr('trip.continueA11y')}
             >
-              <Text style={s.ctaLabel}>{isEdit ? 'Save' : 'Continue'}</Text>
+              <Text style={s.ctaLabel}>{isEdit ? tr('common.save') : tr('trip.continue')}</Text>
             </Pressable>
           </View>
         )}

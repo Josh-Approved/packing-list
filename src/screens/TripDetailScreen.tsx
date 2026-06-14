@@ -61,6 +61,7 @@ import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
+import { t as tr } from '../i18n';
 import { boundedContent } from '../theme';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
@@ -249,10 +250,10 @@ export default function TripDetailScreen({ route, navigation }: Props) {
       title: packer.name,
       options: [
         {
-          label: 'Rename',
+          label: tr('common.rename'),
           onPress: () =>
             prompt.open({
-              title: 'Rename packer',
+              title: tr('detail.renamePacker'),
               initialValue: packer.name,
               selectAll: true,
               onSubmit: (name) =>
@@ -265,7 +266,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             }),
         },
         {
-          label: 'Remove',
+          label: tr('common.remove'),
           destructive: true,
           // Guard against removing the last packer; its items fall back to
           // the shared assignee.
@@ -332,9 +333,9 @@ export default function TripDetailScreen({ route, navigation }: Props) {
 
   const handleAddPacker = useCallback(() => {
     prompt.open({
-      title: 'Add packer',
-      placeholder: 'Name',
-      confirmLabel: 'Add',
+      title: tr('detail.addPacker'),
+      placeholder: tr('detail.packerNamePlaceholder'),
+      confirmLabel: tr('common.add'),
       onSubmit: (name) => {
         const id = makeId('p');
         updateTrip(tripId, (t) => ({
@@ -380,7 +381,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   const handleCategoryPick = useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
     menu.open({
-      title: 'Category',
+      title: tr('detail.category'),
       options: CATEGORY_ORDER.map((cat) => ({
         label: cat,
         onPress: () => {
@@ -436,18 +437,18 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     return (
       <SafeAreaView style={s.safe} edges={['top']}>
         <View style={s.headerBar}>
-          <Pressable onPress={handleBack} hitSlop={12} style={s.backBtn} accessibilityLabel="Back">
+          <Pressable onPress={handleBack} hitSlop={12} style={s.backBtn} accessibilityLabel={tr('common.back')}>
             <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
           </Pressable>
         </View>
         <View style={s.missingWrap}>
-          <Text style={s.missingText}>This trip no longer exists.</Text>
+          <Text style={s.missingText}>{tr('detail.missing')}</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  const itemsHeading = trip.typeIds.length === 0 ? 'Your list' : 'Suggested items';
+  const itemsHeading = trip.typeIds.length === 0 ? tr('detail.yourList') : tr('detail.suggestedItems');
   const packedCount = trip.items.filter((i) => i.packed).length;
   const totalCount = trip.items.length;
   const isSoloPacker = trip.packers.length === 1;
@@ -461,25 +462,28 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     .filter((n): n is string => !!n);
   const typeSummary =
     typeNames.length === 0
-      ? 'No trip types'
+      ? tr('detail.noTripTypes')
       : typeNames.length <= 2
         ? typeNames.join(', ')
         : `${typeNames.slice(0, 2).join(', ')} +${typeNames.length - 2}`;
   const metaParts = [
-    `${trip.duration} ${trip.duration === 1 ? 'day' : 'days'}`,
+    `${trip.duration} ${trip.duration === 1 ? tr('common.day') : tr('common.days')}`,
     typeSummary,
     o.thoroughness.charAt(0).toUpperCase() + o.thoroughness.slice(1),
   ];
   if (o.canDoLaundry) {
     metaParts.push(
-      `Laundry every ${o.laundryIntervalDays} ${o.laundryIntervalDays === 1 ? 'day' : 'days'}`
+      tr('detail.laundryEvery', {
+        count: o.laundryIntervalDays,
+        unit: o.laundryIntervalDays === 1 ? tr('common.day') : tr('common.days'),
+      })
     );
   }
   const tripMeta = metaParts.join('  ·  ');
 
   const assigneeLabel = (id: string): string => {
-    if (id === SHARED_ASSIGNEE) return 'Shared';
-    return trip.packers.find((p) => p.id === id)?.name ?? 'Shared';
+    if (id === SHARED_ASSIGNEE) return tr('detail.shared');
+    return trip.packers.find((p) => p.id === id)?.name ?? tr('detail.shared');
   };
 
   return (
@@ -496,7 +500,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             hitSlop={12}
             style={({ pressed }) => [s.backBtn, pressed && s.backBtnPressed]}
             accessibilityRole="button"
-            accessibilityLabel="Back to trips"
+            accessibilityLabel={tr('detail.backToTrips')}
           >
             <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
           </Pressable>
@@ -516,7 +520,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             onPress={handleOpenTripInfo}
             style={({ pressed }) => [s.tripInfoCard, pressed && s.tripInfoCardPressed]}
             accessibilityRole="button"
-            accessibilityLabel={`${trip.name}. ${tripMeta}. Edit trip information.`}
+            accessibilityLabel={tr('detail.tripInfoA11y', { name: trip.name, meta: tripMeta })}
           >
             <View style={s.tripInfoTop}>
               <Text style={s.tripInfoName} numberOfLines={1}>
@@ -530,12 +534,14 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           </Pressable>
 
           <Text style={s.progressText}>
-            {totalCount === 0 ? 'No items yet' : `${packedCount} of ${totalCount} packed`}
+            {totalCount === 0
+              ? tr('detail.noItemsYet')
+              : tr('detail.packedProgress', { packed: packedCount, total: totalCount })}
           </Text>
 
           {/* Packers */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>Packers</Text>
+            <Text style={s.sectionLabel}>{tr('detail.packers')}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -546,14 +552,14 @@ export default function TripDetailScreen({ route, navigation }: Props) {
                   key={p.id}
                   label={p.name}
                   onLongPress={() => handlePackerLongPress(p)}
-                  accessibilityLabel={`Packer ${p.name}, long press to rename or remove`}
+                  accessibilityLabel={tr('detail.packerA11y', { name: p.name })}
                 />
               ))}
               <Pressable
                 onPress={handleAddPacker}
                 style={({ pressed }) => [s.addBtn, pressed && s.addBtnPressed]}
                 accessibilityRole="button"
-                accessibilityLabel="Add packer"
+                accessibilityLabel={tr('detail.addPacker')}
               >
                 <Plus size={18} color={c.fg} strokeWidth={1.5} />
               </Pressable>
@@ -565,7 +571,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             <Text style={s.sectionLabel}>{itemsHeading}</Text>
             {flatRows.length === 0 ? (
               <Text style={s.empty}>
-                Add a trip type above, or type an item below to start your list.
+                {tr('detail.itemsEmpty')}
               </Text>
             ) : (
               <NestedReorderableList
@@ -615,15 +621,15 @@ export default function TripDetailScreen({ route, navigation }: Props) {
         {recentlyRemoved && (
           <View style={s.undoBar} accessibilityLiveRegion="polite">
             <Text style={s.undoBarText} numberOfLines={1}>
-              Removed "{recentlyRemoved.item.name}"
+              {tr('detail.removed', { name: recentlyRemoved.item.name })}
             </Text>
             <Pressable
               onPress={handleUndoRemove}
               style={({ pressed }) => [s.undoBarBtn, pressed && s.undoBarBtnPressed]}
               accessibilityRole="button"
-              accessibilityLabel={`Undo removing ${recentlyRemoved.item.name}`}
+              accessibilityLabel={tr('detail.undoA11y', { name: recentlyRemoved.item.name })}
             >
-              <Text style={s.undoBarBtnLabel}>Undo</Text>
+              <Text style={s.undoBarBtnLabel}>{tr('detail.undo')}</Text>
             </Pressable>
           </View>
         )}
@@ -634,7 +640,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             onPress={handleCategoryPick}
             style={({ pressed }) => [s.categoryPill, pressed && s.categoryPillPressed]}
             accessibilityRole="button"
-            accessibilityLabel={`Category ${draftCategory}, tap to change`}
+            accessibilityLabel={tr('detail.categoryA11y', { category: draftCategory })}
           >
             <Text style={s.categoryPillLabel}>{draftCategory}</Text>
             <ChevronDown size={14} color={c.fgMuted} strokeWidth={1.5} />
@@ -643,11 +649,11 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             value={draftName}
             onChangeText={handleDraftNameChange}
             onSubmitEditing={handleAddItem}
-            placeholder="Add an item"
+            placeholder={tr('detail.addItemPlaceholder')}
             placeholderTextColor={c.fgSubtle}
             returnKeyType="done"
             style={s.addItemInput}
-            accessibilityLabel="New item name"
+            accessibilityLabel={tr('detail.newItemA11y')}
           />
           <Pressable
             onPress={handleAddItem}
@@ -658,7 +664,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
               pressed && draftName.trim() && s.addItemBtnPressed,
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Add item"
+            accessibilityLabel={tr('detail.addItem')}
           >
             <Plus size={20} color={draftName.trim() ? c.fgOnInk : c.fgSubtle} strokeWidth={2} />
           </Pressable>
@@ -685,7 +691,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             pressed && s.doneFabPressed,
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Done editing this trip"
+          accessibilityLabel={tr('detail.doneEditing')}
         >
           <Check size={24} color={c.fgOnInk} strokeWidth={2} />
         </Pressable>
@@ -1082,7 +1088,7 @@ function ItemRow({
         onLongPress={drag}
         delayLongPress={250}
         style={s.dragHandle}
-        accessibilityLabel={`Reorder ${item.name}`}
+        accessibilityLabel={tr('detail.reorderA11y', { name: item.name })}
         hitSlop={6}
       >
         <GripVertical size={16} color={c.fgSubtle} strokeWidth={1.5} />
@@ -1098,7 +1104,7 @@ function ItemRow({
         ]}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: item.packed }}
-        accessibilityLabel={`${item.name} packed`}
+        accessibilityLabel={tr('detail.itemPackedA11y', { name: item.name })}
       >
         {item.packed && <Check size={16} color={c.fgOnAccent} strokeWidth={2.25} />}
       </Pressable>
@@ -1121,13 +1127,13 @@ function ItemRow({
             selection={selection}
             returnKeyType="done"
             style={s.itemNameEditing}
-            accessibilityLabel="Rename item"
+            accessibilityLabel={tr('detail.renameItem')}
           />
         ) : (
           <Pressable
             onPress={onStartEdit}
             accessibilityRole="button"
-            accessibilityLabel={`${item.name}, tap to rename`}
+            accessibilityLabel={tr('detail.itemRenameA11y', { name: item.name })}
           >
             <Text
               style={[s.itemName, item.packed && s.itemNamePacked]}
@@ -1144,7 +1150,7 @@ function ItemRow({
         onChange={onQuantityChange}
         onRemove={onItemRemove}
         min={1}
-        label={`Quantity of ${item.name}`}
+        label={tr('detail.quantityOf', { name: item.name })}
       />
 
       {/* Assignee pill — hidden in solo-packer case (no UI noise) */}
@@ -1153,7 +1159,7 @@ function ItemRow({
           label={assigneeLabel}
           active={item.assigneeId !== SHARED_ASSIGNEE}
           onPress={onAssigneeCycle}
-          accessibilityLabel={`Assigned to ${assigneeLabel}, tap to change`}
+          accessibilityLabel={tr('detail.assigneeA11y', { name: assigneeLabel })}
         />
       )}
     </View>

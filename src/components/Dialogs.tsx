@@ -36,6 +36,7 @@ import {
   hairline,
   type Colors,
 } from '../theme';
+import { t as tr } from '../i18n';
 
 export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -115,7 +116,7 @@ export function useActionMenu(): {
         style={s.sheetOverlay}
         onPress={close}
         accessibilityRole="button"
-        accessibilityLabel="Close menu"
+        accessibilityLabel={tr('dialog.closeMenu')}
       >
         <Pressable style={s.sheet} onPress={(e) => e.stopPropagation()}>
           {state.title ? (
@@ -142,9 +143,9 @@ export function useActionMenu(): {
             style={({ pressed }) => [s.sheetCancel, pressed && s.pressed]}
             onPress={close}
             accessibilityRole="button"
-            accessibilityLabel="Cancel"
+            accessibilityLabel={tr('common.cancel')}
           >
-            <Text style={s.sheetCancelText}>Cancel</Text>
+            <Text style={s.sheetCancelText}>{tr('common.cancel')}</Text>
           </Pressable>
         </Pressable>
       </Pressable>
@@ -224,7 +225,7 @@ export function usePrompt(): {
           style={s.centerOverlay}
           onPress={close}
           accessibilityRole="button"
-          accessibilityLabel="Cancel"
+          accessibilityLabel={tr('common.cancel')}
         >
           <Pressable style={s.card} onPress={(e) => e.stopPropagation()}>
             <Text style={s.cardTitle} accessibilityRole="header">
@@ -250,9 +251,9 @@ export function usePrompt(): {
                 style={({ pressed }) => [s.btnGhost, pressed && s.pressed]}
                 onPress={close}
                 accessibilityRole="button"
-                accessibilityLabel="Cancel"
+                accessibilityLabel={tr('common.cancel')}
               >
-                <Text style={s.btnGhostText}>Cancel</Text>
+                <Text style={s.btnGhostText}>{tr('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={({ pressed }) => [
@@ -263,10 +264,10 @@ export function usePrompt(): {
                 onPress={submit}
                 disabled={!canSubmit}
                 accessibilityRole="button"
-                accessibilityLabel={state.confirmLabel ?? 'Save'}
+                accessibilityLabel={state.confirmLabel ?? tr('common.save')}
               >
                 <Text style={s.btnPrimaryText}>
-                  {state.confirmLabel ?? 'Save'}
+                  {state.confirmLabel ?? tr('common.save')}
                 </Text>
               </Pressable>
             </View>
