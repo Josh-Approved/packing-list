@@ -61,7 +61,8 @@ import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
-import { t as tr } from '../i18n';
+import { t as tr, pickLocale, getLocale, CANONICAL_LOCALES } from '../i18n';
+import { useLocalePreference } from '../i18n/localePreference';
 import { boundedContent } from '../theme';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
@@ -98,6 +99,15 @@ export default function TripDetailScreen({ route, navigation }: Props) {
 
   const menu = useActionMenu();
   const prompt = usePrompt();
+
+  // Active in-app locale, so typed-in item names categorize in the user's
+  // chosen language (not just English). 'system' resolves the device locale to
+  // a supported tag; an explicit pick is used as-is. Falls back to 'en'.
+  const { pref } = useLocalePreference();
+  const activeLocale =
+    pref === 'system'
+      ? pickLocale(getLocale(), [...CANONICAL_LOCALES]) ?? 'en'
+      : pref;
 
   const { tripId } = route.params;
   const trip = useTripsStore((st) => st.trips.find((t) => t.id === tripId));
@@ -352,10 +362,10 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     // picked one for this draft. Inference returns null when nothing matches
     // — in that case keep whatever the user had.
     if (!userPickedCategory) {
-      const inferred = inferCategory(text);
+      const inferred = inferCategory(text, activeLocale);
       if (inferred) setDraftCategory(inferred);
     }
-  }, [userPickedCategory]);
+  }, [userPickedCategory, activeLocale]);
 
   const handleStartEditItem = useCallback((it: TripItem) => {
     setEditingItemId(it.id);

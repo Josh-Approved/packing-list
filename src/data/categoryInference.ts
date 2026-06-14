@@ -24,9 +24,12 @@
  */
 
 import { TRIP_TYPES, type Category } from './trip';
+import { KEYWORDS_BY_LOCALE } from './categoryKeywords';
 
 // ---------- Layer 1: seed-name → category map ----------
-// Built once at module load from the 13 trip types' itemRules.
+// Built once at module load from the 13 trip types' itemRules. The seed names
+// are stable internal English, never display-localized, so this layer stays
+// English-only — it's the highest-confidence exact-name signal.
 
 const SEED_NAME_TO_CATEGORY: Map<string, Category> = (() => {
   const m = new Map<string, Category>();
@@ -38,93 +41,25 @@ const SEED_NAME_TO_CATEGORY: Map<string, Category> = (() => {
   return m;
 })();
 
-// ---------- Layer 2: keyword dictionary ----------
-// Each list is intentionally curated — broad enough to cover everyday packing
-// items, narrow enough to avoid false positives. Add to these as we find
-// misses in real use; the data lives here so it's easy to tune.
-
-const CATEGORY_KEYWORDS: Record<Category, string[]> = {
-  Documents: [
-    'passport', 'visa', 'license', 'wallet', 'cash', 'currency', 'card',
-    'ticket', 'boarding pass', 'insurance', 'reservation', 'itinerary',
-    'id', 'documents', 'paperwork',
-  ],
-  Clothing: [
-    'shirt', 'tshirt', 't-shirt', 'pants', 'trousers', 'jeans', 'dress',
-    'skirt', 'jacket', 'coat', 'suit', 'sock', 'underwear', 'briefs',
-    'boxer', 'bra', 'belt', 'tie', 'hat', 'beanie', 'glove', 'mitten',
-    'scarf', 'sweater', 'jumper', 'hoodie', 'shorts', 'pajama', 'pyjama',
-    'swim', 'swimsuit', 'sandal', 'shoe', 'boot', 'sneaker', 'trainer',
-    'flip flop', 'flip-flop', 'slipper', 'thermal', 'fleece', 'parka',
-    'vest', 'leggings', 'tights', 'blouse', 'cardigan', 'tank top',
-    'pullover',
-  ],
-  Toiletries: [
-    'toothbrush', 'toothpaste', 'soap', 'shampoo', 'conditioner', 'razor',
-    'shave', 'deodorant', 'lotion', 'sunscreen', 'sunblock', 'moisturizer',
-    'mascara', 'lipstick', 'makeup', 'comb', 'hairbrush', 'floss',
-    'mouthwash', 'tampon', 'pad ', 'cotton', 'nail clipper', 'tweezer',
-    'perfume', 'cologne', 'aftershave', 'wipes', 'tissue', 'lip balm',
-    'chapstick', 'hand sanitizer', 'dental', 'feminine',
-  ],
-  Electronics: [
-    'phone', 'iphone', 'laptop', 'macbook', 'tablet', 'ipad', 'kindle',
-    'reader', 'charger', 'cable', 'usb', 'lightning', 'adapter', 'battery',
-    'powerbank', 'power bank', 'headphones', 'earbuds', 'airpods', 'camera',
-    'lens', 'tripod', 'speaker', 'mouse', 'keyboard', 'sd card',
-    'memory card', 'plug', 'converter', 'gopro', 'drone', 'gimbal',
-    'switch', 'console', 'controller',
-  ],
-  Gear: [
-    'tent', 'sleeping bag', 'backpack', 'pack', 'daypack', 'water bottle',
-    'bottle', 'thermos', 'cooler', 'flashlight', 'headlamp', 'lantern',
-    'compass', 'map', 'first aid', 'multi-tool', 'multitool', 'knife',
-    'rope', 'tarp', 'mat', 'pillow', 'towel', 'blanket', 'umbrella',
-    'binoculars', 'rain jacket', 'poncho', 'pole', 'stove', 'cookware',
-    'duffel', 'duffle', 'carry-on', 'carryon', 'suitcase', 'luggage',
-    'bag', 'fanny pack',
-  ],
-  Accessories: [
-    'sunglasses', 'glasses', 'jewelry', 'jewellery', 'necklace', 'earring',
-    'ring', 'bracelet', 'watch', 'bandana', 'cufflink', 'tie clip', 'pin',
-    'sun hat',
-  ],
-  Food: [
-    'snack', 'snacks', 'protein bar', 'granola', 'gel', 'jerky', 'nuts',
-    'fruit', 'water ', 'gatorade', 'electrolyte', 'coffee', 'tea',
-    'instant ', 'oatmeal', 'trail mix',
-  ],
-  Kids: [
-    'diaper', 'baby', 'pacifier', 'binky', 'formula', 'bib', 'onesie',
-    'stroller', 'bassinet', 'car seat', 'monitor', 'sippy', 'stuffed',
-    'kid ', 'child ', 'toddler',
-  ],
-  Misc: [], // intentionally empty — Misc is the explicit user fallback
-};
-
-// ---------- Inference ----------
+// ---------- Layer 2: locale-aware keyword dictionary ----------
+// The curated keyword lists now live in categoryKeywords.ts, keyed by locale,
+// so an item typed in the active in-app language matches that language's words.
+// English remains the per-key fallback (categoryKeywords.ts is the single
+// source of truth — this file no longer carries an inline English list).
 
 /**
- * Infer the most likely category for a typed-in item name.
- *
- * Returns null when no signal is found — caller should keep whatever the
- * user has currently selected rather than picking arbitrarily.
+ * Longest-keyword-wins scan of one locale's keyword map. `padded` is the typed
+ * name wrapped in spaces so word-boundary keywords like "kid " or "water "
+ * don't match mid-word ("kidney", "waterproof"). Returns null on no match.
  */
-export function inferCategory(name: string): Category | null {
-  const trimmed = name.trim().toLowerCase();
-  if (!trimmed) return null;
-
-  // Layer 1: exact match against seed items.
-  const direct = SEED_NAME_TO_CATEGORY.get(trimmed);
-  if (direct) return direct;
-
-  // Layer 2: longest-keyword wins across all categories. We pad the typed
-  // name with spaces so word-boundary keywords like "kid " or "water "
-  // don't match mid-word ("kidney", "waterproof").
-  const padded = ` ${trimmed} `;
+function matchKeywords(
+  padded: string,
+  map: Record<string, string[]> | undefined
+): Category | null {
+  if (!map) return null;
   let bestMatch: { category: Category; length: number } | null = null;
-  for (const category of Object.keys(CATEGORY_KEYWORDS) as Category[]) {
-    for (const keyword of CATEGORY_KEYWORDS[category]) {
+  for (const category of Object.keys(map) as Category[]) {
+    for (const keyword of map[category]) {
       if (padded.includes(keyword)) {
         if (!bestMatch || keyword.length > bestMatch.length) {
           bestMatch = { category, length: keyword.length };
@@ -133,4 +68,38 @@ export function inferCategory(name: string): Category | null {
     }
   }
   return bestMatch?.category ?? null;
+}
+
+// ---------- Inference ----------
+
+/**
+ * Infer the most likely category for a typed-in item name, in the active
+ * in-app locale.
+ *
+ * - Layer 1 (English seed exact-match) is tried first — highest confidence.
+ * - Layer 2 tries the active locale's keyword set, then falls back to English
+ *   (so English input still categorizes in any language mode, and an unknown
+ *   locale behaves exactly like the old English-only matcher).
+ *
+ * `locale` defaults to 'en' so existing English-only call sites keep working.
+ * Returns null when no signal is found — caller should keep whatever the user
+ * has currently selected rather than picking arbitrarily (Misc is never
+ * auto-assigned).
+ */
+export function inferCategory(name: string, locale: string = 'en'): Category | null {
+  const trimmed = name.trim().toLowerCase();
+  if (!trimmed) return null;
+
+  // Layer 1: exact match against seed items.
+  const direct = SEED_NAME_TO_CATEGORY.get(trimmed);
+  if (direct) return direct;
+
+  // Layer 2: locale keywords first, then English fallback.
+  const padded = ` ${trimmed} `;
+  const localeMap = KEYWORDS_BY_LOCALE[locale];
+  if (localeMap && localeMap !== KEYWORDS_BY_LOCALE.en) {
+    const hit = matchKeywords(padded, localeMap);
+    if (hit) return hit;
+  }
+  return matchKeywords(padded, KEYWORDS_BY_LOCALE.en);
 }

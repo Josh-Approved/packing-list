@@ -338,3 +338,65 @@ describe('inferCategory — fallback', () => {
     expect(inferCategory('   ')).toBeNull();
   });
 });
+
+// ===========================================================================
+// inferCategory — locale-aware Layer 2 (the Josh bug: app in Spanish, items
+// typed in Spanish landed in "Otros" because the matcher was English-only).
+// Each locale must categorize its own everyday vocabulary to the correct
+// NON-fallback category, and English input must still work in any mode.
+// ===========================================================================
+
+describe('inferCategory — localized keyword matching', () => {
+  it('Spanish (es)', () => {
+    expect(inferCategory('pasaporte', 'es')).toBe('Documents');
+    expect(inferCategory('cepillo de dientes', 'es')).toBe('Toiletries');
+    expect(inferCategory('camiseta', 'es')).toBe('Clothing');
+    expect(inferCategory('botella de agua', 'es')).toBe('Gear');
+    // English still categorizes in Spanish mode (per-key fallback).
+    expect(inferCategory('sneaker', 'es')).toBe('Clothing');
+  });
+
+  it('German (de)', () => {
+    expect(inferCategory('reisepass', 'de')).toBe('Documents');
+    expect(inferCategory('zahnbürste', 'de')).toBe('Toiletries');
+    expect(inferCategory('hemd', 'de')).toBe('Clothing');
+  });
+
+  it('French (fr)', () => {
+    expect(inferCategory('passeport', 'fr')).toBe('Documents');
+    expect(inferCategory('brosse à dents', 'fr')).toBe('Toiletries');
+    expect(inferCategory('chemise', 'fr')).toBe('Clothing');
+    // English fallback under French.
+    expect(inferCategory('fleece', 'fr')).toBe('Clothing');
+  });
+
+  it('Italian (it)', () => {
+    expect(inferCategory('passaporto', 'it')).toBe('Documents');
+    expect(inferCategory('spazzolino', 'it')).toBe('Toiletries');
+    expect(inferCategory('camicia', 'it')).toBe('Clothing');
+  });
+
+  it('Portuguese — Brazil (pt-BR)', () => {
+    expect(inferCategory('passaporte', 'pt-BR')).toBe('Documents');
+    expect(inferCategory('escova de dentes', 'pt-BR')).toBe('Toiletries');
+    expect(inferCategory('camisa', 'pt-BR')).toBe('Clothing');
+  });
+
+  it('Japanese (ja)', () => {
+    expect(inferCategory('パスポート', 'ja')).toBe('Documents');
+    expect(inferCategory('歯ブラシ', 'ja')).toBe('Toiletries');
+    expect(inferCategory('シャツ', 'ja')).toBe('Clothing');
+    // English fallback under Japanese.
+    expect(inferCategory('jerky', 'ja')).toBe('Food');
+  });
+
+  it('an unknown locale behaves exactly like the English-only matcher', () => {
+    expect(inferCategory('linen shirts', 'xx')).toBe('Clothing');
+    expect(inferCategory('manzanas', 'xx')).toBeNull(); // no Spanish words in en
+  });
+
+  it('the default (no locale arg) stays English — back-compat', () => {
+    expect(inferCategory('USB cable')).toBe('Electronics');
+    expect(inferCategory('pasaporte')).toBeNull(); // English mode: no es words
+  });
+});
