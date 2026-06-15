@@ -42,6 +42,11 @@ const open = (url: string) => {
   Linking.openURL(url).catch(() => {});
 };
 
+/** Canonical name used by synced shell components (FundingFooter). */
+export function openUrl(url: string): void {
+  open(url);
+}
+
 export function openBmac(): void {
   open(BMAC_URL);
 }
@@ -52,6 +57,9 @@ export function openFeedback(): void {
   const subject = encodeURIComponent(`${APP_NAME} ${versionAndBuild()} — feedback`);
   open(`mailto:${FEEDBACK_EMAIL}?subject=${subject}`);
 }
+
+/** Canonical name used by synced shell components (FundingFooter). */
+export const openFeedbackMail = openFeedback;
 
 export function openReview(): void {
   // Write-review deep link. Same per-platform URL form as the canonical
