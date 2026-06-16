@@ -30,7 +30,7 @@ import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
-import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
+import { APP_STORE_ID, ANDROID_PACKAGE, DONATIONS_ENABLED } from '../lib/links';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { t as tr } from '../i18n';
 import { useTheme, typography, space, target, radius } from '../theme';
@@ -150,7 +150,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
       ) : null}
 
       {isEmpty ? (
-        <FundingFooter />
+        DONATIONS_ENABLED ? <FundingFooter /> : null
       ) : (
         <ScrollView
           style={s.scroll}
@@ -165,7 +165,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
               c={c}
             />
           ))}
-          <FundingFooter />
+          {DONATIONS_ENABLED && <FundingFooter />}
         </ScrollView>
       )}
 

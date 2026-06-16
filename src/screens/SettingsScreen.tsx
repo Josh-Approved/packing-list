@@ -48,6 +48,7 @@ import { useSettingsStore } from '../store/settings';
 import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
 import {
   openBmac,
+  DONATIONS_ENABLED,
   openFeedback,
   openReview,
   openPrivacy,
@@ -219,7 +220,7 @@ export default function SettingsScreen({ navigation }: Props) {
         <View style={s.section}>
           <Text style={s.sectionLabel}>{t('settings.about')}</Text>
           <View style={s.block}>
-            <AboutRow icon={HandHeart} label={t('about.support')} onPress={openBmac} />
+            {DONATIONS_ENABLED && <AboutRow icon={HandHeart} label={t('about.support')} onPress={openBmac} />}
             <AboutRow icon={Mail} label={t('about.feedback')} onPress={openFeedback} />
             <AboutRow icon={Star} label={t('about.review')} onPress={openReview} />
             <AboutRow icon={Shield} label={t('about.privacy')} onPress={openPrivacy} />
