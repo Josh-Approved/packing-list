@@ -557,7 +557,7 @@ function makeStyles(c: Colors) {
     ctaLabel: {
       fontFamily: typography.bodyEmphasis,
       fontSize: 16,
-      color: c.fgOnInk,
+      color: c.inkButtonText,
     },
   });
 }

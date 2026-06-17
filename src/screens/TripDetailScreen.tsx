@@ -677,7 +677,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             accessibilityRole="button"
             accessibilityLabel={tr('detail.addItem')}
           >
-            <Plus size={20} color={draftName.trim() ? c.fgOnInk : c.fgSubtle} strokeWidth={2} />
+            <Plus size={20} color={draftName.trim() ? c.inkButtonText : c.fgSubtle} strokeWidth={2} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -704,7 +704,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel={tr('detail.doneEditing')}
         >
-          <Check size={24} color={c.fgOnInk} strokeWidth={2} />
+          <Check size={24} color={c.inkButtonText} strokeWidth={2} />
         </Pressable>
       )}
 
@@ -980,7 +980,7 @@ function makeStyles(c: Colors) {
       fontFamily: typography.body,
       fontSize: 14,
       lineHeight: 20,
-      color: c.fgOnInk,
+      color: c.inkButtonText,
     },
     undoBarBtn: {
       paddingHorizontal: space.s3,
@@ -994,7 +994,7 @@ function makeStyles(c: Colors) {
     undoBarBtnLabel: {
       fontFamily: typography.bodyEmphasis,
       fontSize: 14,
-      color: c.fgOnInk,
+      color: c.inkButtonText,
       textDecorationLine: 'underline',
     },
 

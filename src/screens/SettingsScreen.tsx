@@ -331,7 +331,7 @@ function makeStyles(c: Colors) {
       color: c.fg,
       textAlign: 'center',
     },
-    segmentTextOn: { color: c.fgOnInk },
+    segmentTextOn: { color: c.inkButtonText },
 
     caption: {
       fontFamily: typography.body,

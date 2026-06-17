@@ -143,7 +143,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
             accessibilityRole="button"
             accessibilityLabel={tr('home.newTrip')}
           >
-            <Plus size={18} color={c.fgOnInk} strokeWidth={1.5} />
+            <Plus size={18} color={c.inkButtonText} strokeWidth={1.5} />
             <Text style={s.primaryBtnLabel}>{tr('home.newTrip')}</Text>
           </Pressable>
         </View>
@@ -176,7 +176,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel={tr('home.newTrip')}
         >
-          <Plus size={24} color={c.fgOnInk} strokeWidth={1.5} />
+          <Plus size={24} color={c.inkButtonText} strokeWidth={1.5} />
         </Pressable>
       )}
 
@@ -349,7 +349,7 @@ function makeStyles(c: Colors) {
     primaryBtnLabel: {
       fontFamily: typography.bodyEmphasis,
       fontSize: 16,
-      color: c.fgOnInk,
+      color: c.inkButtonText,
     },
 
     // ---------- List ----------
