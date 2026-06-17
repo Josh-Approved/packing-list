@@ -9,7 +9,7 @@
  * Tapping "+" creates a new trip with smart defaults and navigates to it.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -19,18 +19,18 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Settings } from 'lucide-react-native';
+import { HandHeart, Mail, Plus, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
-import { FundingFooter } from '../components/FundingFooter';
 import ReviewModal from '../components/ReviewModal';
-import DonationModal from '../components/DonationModal';
+import TipJarSheet from '../components/TipJarSheet';
 import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
-import { APP_STORE_ID, ANDROID_PACKAGE, DONATIONS_ENABLED } from '../lib/links';
+import { APP_STORE_ID, ANDROID_PACKAGE, TIP_JAR_ENABLED, openFeedback } from '../lib/links';
+import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { t as tr } from '../i18n';
 import { useTheme, typography, space, target, radius } from '../theme';
@@ -53,8 +53,13 @@ export default function TripsHomeScreen({ navigation }: Props) {
   // the user leaves Trip Detail, so the prompt surfaces once they're back.
   const reviewVisible = useReviewModal((st) => st.visible);
   const hideReview = useReviewModal((st) => st.hide);
+  // The twice-only soft prompt — surfaced from Trip Detail via this store —
+  // now opens the IAP tip jar instead of the BMAC link-out.
   const donationVisible = useDonationModal((st) => st.visible);
   const hideDonation = useDonationModal((st) => st.hide);
+
+  // The quiet tertiary "Support this app" footer link opens the same sheet.
+  const [tipVisible, setTipVisible] = useState(false);
 
   const menu = useActionMenu();
   const prompt = usePrompt();
@@ -150,7 +155,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
       ) : null}
 
       {isEmpty ? (
-        DONATIONS_ENABLED ? <FundingFooter /> : null
+        <SupportFooter c={c} onSupport={() => setTipVisible(true)} />
       ) : (
         <ScrollView
           style={s.scroll}
@@ -165,7 +170,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
               c={c}
             />
           ))}
-          {DONATIONS_ENABLED && <FundingFooter />}
+          <SupportFooter c={c} onSupport={() => setTipVisible(true)} />
         </ScrollView>
       )}
 
@@ -188,11 +193,21 @@ export default function TripsHomeScreen({ navigation }: Props) {
         androidPackageName={ANDROID_PACKAGE}
       />
 
-      <DonationModal
-        visible={donationVisible}
-        onDismiss={hideDonation}
-        appName="Packing List"
-      />
+      {TIP_JAR_ENABLED && donationVisible && (
+        <TipJarSheet
+          visible
+          onDismiss={hideDonation}
+          productIds={TIP_PRODUCT_IDS}
+        />
+      )}
+
+      {TIP_JAR_ENABLED && tipVisible && (
+        <TipJarSheet
+          visible
+          onDismiss={() => setTipVisible(false)}
+          productIds={TIP_PRODUCT_IDS}
+        />
+      )}
 
       <GenderPrompt />
 
@@ -274,6 +289,66 @@ function TripCard({
       </View>
     </Pressable>
   );
+}
+
+// ----------------------------------------------------------------------------
+// Support / feedback footer
+// ----------------------------------------------------------------------------
+
+// The tertiary funding + feedback text-link row (canon § Funding & feedback —
+// quiet here, obvious in Settings). Mirrors the canonical FundingFooter, but
+// the "Support this app" link opens the IAP tip jar (App Store 3.1.1) instead
+// of the rejected Buy Me a Coffee link-out. Gated on TIP_JAR_ENABLED so the
+// whole funding surface stays off if the flag is.
+function SupportFooter({ c, onSupport }: { c: Colors; onSupport: () => void }) {
+  const s = makeFooterStyles(c);
+  if (!TIP_JAR_ENABLED) return null;
+  return (
+    <View style={s.wrap}>
+      <Pressable
+        style={({ pressed }) => [s.link, pressed && s.pressed]}
+        onPress={onSupport}
+        accessibilityRole="button"
+        accessibilityLabel={tr('about.support')}
+      >
+        <HandHeart size={14} color={c.fgMuted} strokeWidth={1.5} />
+        <Text style={s.text}>{tr('about.support')}</Text>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [s.link, pressed && s.pressed]}
+        onPress={openFeedback}
+        accessibilityRole="button"
+        accessibilityLabel={tr('about.feedback')}
+      >
+        <Mail size={14} color={c.fgMuted} strokeWidth={1.5} />
+        <Text style={s.text}>{tr('about.feedback')}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function makeFooterStyles(c: Colors) {
+  return StyleSheet.create({
+    wrap: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: space.s7,
+      paddingVertical: space.s5,
+    },
+    link: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.s2,
+      minHeight: target.min,
+    },
+    text: {
+      fontFamily: typography.body,
+      fontSize: 14,
+      lineHeight: 20,
+      color: c.fgMuted,
+    },
+    pressed: { opacity: 0.6 },
+  });
 }
 
 // ----------------------------------------------------------------------------

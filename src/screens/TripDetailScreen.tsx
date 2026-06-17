@@ -59,7 +59,7 @@ import { useTripsStore } from '../store/trips';
 import { recordTripBuildIfEligible } from '../lib/reviewTrigger';
 import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
-import { DONATIONS_ENABLED } from '../lib/links';
+import { TIP_JAR_ENABLED } from '../lib/links';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
 import { t as tr, pickLocale, getLocale, CANONICAL_LOCALES } from '../i18n';
@@ -169,7 +169,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
       if (!t || t.items.length === 0) return;
       recordTripBuildIfEligible(tripId).then(({ review, donation }) => {
         if (review) showReviewModal();
-        else if (DONATIONS_ENABLED && donation) showDonationModal();
+        else if (TIP_JAR_ENABLED && donation) showDonationModal();
       });
     });
     return unsub;

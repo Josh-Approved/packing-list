@@ -9,7 +9,7 @@
  *   4. The "josh approved" stamp (canonical attribution, mirrors FWT).
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -47,8 +47,7 @@ import { useTripsStore } from '../store/trips';
 import { useSettingsStore } from '../store/settings';
 import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
 import {
-  openBmac,
-  DONATIONS_ENABLED,
+  TIP_JAR_ENABLED,
   openFeedback,
   openReview,
   openPrivacy,
@@ -56,6 +55,8 @@ import {
   openStudio,
   versionLabel,
 } from '../lib/links';
+import TipJarSheet from '../components/TipJarSheet';
+import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
 import type { GenderPref } from '../data/trip';
 import type { RootStackParamList } from '../../App';
 
@@ -76,6 +77,7 @@ export default function SettingsScreen({ navigation }: Props) {
   const importTrips = useTripsStore((st) => st.importTrips);
   const gender = useSettingsStore((st) => st.gender);
   const setGender = useSettingsStore((st) => st.setGender);
+  const [tipVisible, setTipVisible] = useState(false);
 
   const handleSetGender = useCallback(
     (g: GenderPref) => {
@@ -220,7 +222,7 @@ export default function SettingsScreen({ navigation }: Props) {
         <View style={s.section}>
           <Text style={s.sectionLabel}>{t('settings.about')}</Text>
           <View style={s.block}>
-            {DONATIONS_ENABLED && <AboutRow icon={HandHeart} label={t('about.support')} onPress={openBmac} />}
+            {TIP_JAR_ENABLED && <AboutRow icon={HandHeart} label={t('about.support')} onPress={() => setTipVisible(true)} />}
             <AboutRow icon={Mail} label={t('about.feedback')} onPress={openFeedback} />
             <AboutRow icon={Star} label={t('about.review')} onPress={openReview} />
             <AboutRow icon={Shield} label={t('about.privacy')} onPress={openPrivacy} />
@@ -249,6 +251,14 @@ export default function SettingsScreen({ navigation }: Props) {
           </Pressable>
         </View>
       </ScrollView>
+
+      {TIP_JAR_ENABLED && tipVisible && (
+        <TipJarSheet
+          visible
+          onDismiss={() => setTipVisible(false)}
+          productIds={TIP_PRODUCT_IDS}
+        />
+      )}
     </SafeAreaView>
   );
 }
