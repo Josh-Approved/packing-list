@@ -10,6 +10,24 @@ import { Linking, Platform } from 'react-native';
 import * as Application from 'expo-application';
 
 export const BMAC_URL = 'https://buymeacoffee.com/jtysonwilliams';
+
+/**
+ * Gates every Buy Me a Coffee surface — the tertiary FundingFooter, the
+ * Settings/About support row, and the soft donation prompt. Set false
+ * 2026-06-16: Apple rejects external donation links for a for-profit app
+ * (App Store guideline 3.1.1 — must be In-App Purchase). It stays false —
+ * the BMAC link-out is the rejected surface; the IAP tip jar replaces it.
+ */
+export const DONATIONS_ENABLED: boolean = false;
+
+/**
+ * Gates the IAP tip jar — the sanctioned 3.1.1 replacement. It powers the same
+ * three placements the donation surfaces used (the home-screen support link,
+ * the Settings/About support row, and the twice-only soft prompt), each now
+ * opening the canonical TipJarSheet instead of a browser link.
+ */
+export const TIP_JAR_ENABLED: boolean = true;
+
 export const FEEDBACK_EMAIL = 'feedback@joshapproved.com';
 export const REPO_URL = 'https://github.com/josh-approved/packing-list';
 export const PRIVACY_URL =
@@ -42,6 +60,11 @@ const open = (url: string) => {
   Linking.openURL(url).catch(() => {});
 };
 
+/** Canonical name used by synced shell components (FundingFooter). */
+export function openUrl(url: string): void {
+  open(url);
+}
+
 export function openBmac(): void {
   open(BMAC_URL);
 }
@@ -52,6 +75,9 @@ export function openFeedback(): void {
   const subject = encodeURIComponent(`${APP_NAME} ${versionAndBuild()} — feedback`);
   open(`mailto:${FEEDBACK_EMAIL}?subject=${subject}`);
 }
+
+/** Canonical name used by synced shell components (FundingFooter). */
+export const openFeedbackMail = openFeedback;
 
 export function openReview(): void {
   // Write-review deep link. Same per-platform URL form as the canonical

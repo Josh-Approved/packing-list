@@ -1,43 +1,48 @@
 /**
- * Tertiary funding/feedback text-link row — the quiet, primary-screen half of
- * the canonical dual placement (the loud half is the Settings/About block).
+ * The tertiary funding + feedback text-link row for a primary screen (canon
+ * § Funding & feedback — dual placement: quiet here, obvious in Settings).
+ * Small muted Lucide icon, sentence-case label, no chrome. Present, not
+ * promotional — the label is the entire pitch.
  *
- * Design system § BMAC + Send feedback placement: NOT a button. No background,
- * no border, no chrome. Lucide icon 1.5px/18px + label, both fgMuted, body
- * size, sentence case, pressed = 0.6 opacity. Present, not promotional — the
- * label is the entire pitch.
+ * Canonical, app-agnostic — synced by `sync.mjs app-shell`; do not fork.
  */
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { HandHeart, Mail } from 'lucide-react-native';
-import { useTheme, typography, space, target } from '../theme';
-import type { Colors } from '../theme';
-import { openBmac, openFeedback } from '../lib/links';
+import { BMAC_URL, openUrl, openFeedbackMail } from '../lib/links';
+import { t } from '../i18n';
+import {
+  useTheme,
+  fontFamily,
+  space,
+  target,
+  type as ty,
+  type Colors,
+} from '../theme';
 
 export function FundingFooter() {
   const { c } = useTheme();
   const s = makeStyles(c);
-
   return (
     <View style={s.wrap}>
       <Pressable
-        onPress={openBmac}
-        style={({ pressed }) => [s.row, pressed && s.pressed]}
-        accessibilityRole="link"
-        accessibilityLabel="Support this app"
+        style={({ pressed }) => [s.link, pressed && s.pressed]}
+        onPress={() => openUrl(BMAC_URL)}
+        accessibilityRole="button"
+        accessibilityLabel={t('about.support')}
       >
-        <HandHeart size={18} color={c.fgMuted} strokeWidth={1.5} />
-        <Text style={s.label}>Support this app</Text>
+        <HandHeart size={14} color={c.fgMuted} strokeWidth={1.5} />
+        <Text style={s.text}>{t('about.support')}</Text>
       </Pressable>
       <Pressable
-        onPress={openFeedback}
-        style={({ pressed }) => [s.row, pressed && s.pressed]}
-        accessibilityRole="link"
-        accessibilityLabel="Send feedback"
+        style={({ pressed }) => [s.link, pressed && s.pressed]}
+        onPress={openFeedbackMail}
+        accessibilityRole="button"
+        accessibilityLabel={t('about.feedback')}
       >
-        <Mail size={18} color={c.fgMuted} strokeWidth={1.5} />
-        <Text style={s.label}>Send feedback</Text>
+        <Mail size={14} color={c.fgMuted} strokeWidth={1.5} />
+        <Text style={s.text}>{t('about.feedback')}</Text>
       </Pressable>
     </View>
   );
@@ -46,22 +51,22 @@ export function FundingFooter() {
 function makeStyles(c: Colors) {
   return StyleSheet.create({
     wrap: {
-      gap: space.s4,
-      paddingVertical: space.s6,
-      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: space.s7,
+      paddingVertical: space.s5,
     },
-    row: {
+    link: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: space.s3,
+      gap: space.s2,
       minHeight: target.min,
     },
-    pressed: { opacity: 0.6 },
-    label: {
-      fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+    text: {
+      ...ty.sm,
+      fontFamily: fontFamily.sans,
       color: c.fgMuted,
     },
+    pressed: { opacity: 0.6 },
   });
 }

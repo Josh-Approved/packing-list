@@ -9,7 +9,7 @@
  * Tapping "+" creates a new trip with smart defaults and navigates to it.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -19,19 +19,20 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Settings } from 'lucide-react-native';
+import { HandHeart, Mail, Plus, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
-import { FundingFooter } from '../components/FundingFooter';
 import ReviewModal from '../components/ReviewModal';
-import DonationModal from '../components/DonationModal';
+import TipJarSheet from '../components/TipJarSheet';
 import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
-import { APP_STORE_ID, ANDROID_PACKAGE } from '../lib/links';
+import { APP_STORE_ID, ANDROID_PACKAGE, TIP_JAR_ENABLED, openFeedback } from '../lib/links';
+import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
+import { t as tr } from '../i18n';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
 import { boundedContent } from '../theme';
@@ -52,8 +53,13 @@ export default function TripsHomeScreen({ navigation }: Props) {
   // the user leaves Trip Detail, so the prompt surfaces once they're back.
   const reviewVisible = useReviewModal((st) => st.visible);
   const hideReview = useReviewModal((st) => st.hide);
+  // The twice-only soft prompt — surfaced from Trip Detail via this store —
+  // now opens the IAP tip jar instead of the BMAC link-out.
   const donationVisible = useDonationModal((st) => st.visible);
   const hideDonation = useDonationModal((st) => st.hide);
+
+  // The quiet tertiary "Support this app" footer link opens the same sheet.
+  const [tipVisible, setTipVisible] = useState(false);
 
   const menu = useActionMenu();
   const prompt = usePrompt();
@@ -73,12 +79,12 @@ export default function TripsHomeScreen({ navigation }: Props) {
       options: [
         // Duplicate — create a copy and stay on the home screen so the user
         // sees both cards. They can rename or open from there.
-        { label: 'Duplicate', onPress: () => duplicateTrip(trip.id) },
+        { label: tr('home.duplicate'), onPress: () => duplicateTrip(trip.id) },
         {
-          label: 'Rename',
+          label: tr('common.rename'),
           onPress: () =>
             prompt.open({
-              title: 'Rename trip',
+              title: tr('home.renameTrip'),
               initialValue: trip.name,
               selectAll: true,
               onSubmit: (name) =>
@@ -86,18 +92,18 @@ export default function TripsHomeScreen({ navigation }: Props) {
             }),
         },
         {
-          label: 'Delete',
+          label: tr('common.delete'),
           destructive: true,
           // Two-step confirm protects against an accidental long-press on a
           // trip with real data in it. Alert.alert is cross-platform.
           onPress: () =>
             Alert.alert(
-              `Delete "${trip.name}"?`,
-              'This trip and its items will be removed. This cannot be undone.',
+              tr('home.deleteTitle', { name: trip.name }),
+              tr('home.deleteMessage'),
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: tr('common.cancel'), style: 'cancel' },
                 {
-                  text: 'Delete',
+                  text: tr('common.delete'),
                   style: 'destructive',
                   onPress: () => deleteTrip(trip.id),
                 },
@@ -119,14 +125,14 @@ export default function TripsHomeScreen({ navigation }: Props) {
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <View style={s.header}>
         <Text style={s.title} accessibilityRole="header">
-          Packing list
+          {tr('home.title')}
         </Text>
         <Pressable
           onPress={handleOpenSettings}
           hitSlop={12}
           style={({ pressed }) => [s.menuBtn, pressed && s.menuBtnPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Settings"
+          accessibilityLabel={tr('settings.title')}
         >
           <Settings size={22} color={c.fg} strokeWidth={1.5} />
         </Pressable>
@@ -134,22 +140,22 @@ export default function TripsHomeScreen({ navigation }: Props) {
 
       {isEmpty ? (
         <View style={s.emptyWrap}>
-          <Text style={s.emptyTitle}>No trips yet</Text>
-          <Text style={s.emptyHint}>Create your first trip to get a checklist that fits.</Text>
+          <Text style={s.emptyTitle}>{tr('home.emptyTitle')}</Text>
+          <Text style={s.emptyHint}>{tr('home.emptyHint')}</Text>
           <Pressable
             onPress={handleNewTrip}
             style={({ pressed }) => [s.primaryBtn, pressed && s.primaryBtnPressed]}
             accessibilityRole="button"
-            accessibilityLabel="New trip"
+            accessibilityLabel={tr('home.newTrip')}
           >
-            <Plus size={18} color={c.fgOnInk} strokeWidth={1.5} />
-            <Text style={s.primaryBtnLabel}>New trip</Text>
+            <Plus size={18} color={c.inkButtonText} strokeWidth={1.5} />
+            <Text style={s.primaryBtnLabel}>{tr('home.newTrip')}</Text>
           </Pressable>
         </View>
       ) : null}
 
       {isEmpty ? (
-        <FundingFooter />
+        <SupportFooter c={c} onSupport={() => setTipVisible(true)} />
       ) : (
         <ScrollView
           style={s.scroll}
@@ -164,7 +170,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
               c={c}
             />
           ))}
-          <FundingFooter />
+          <SupportFooter c={c} onSupport={() => setTipVisible(true)} />
         </ScrollView>
       )}
 
@@ -173,9 +179,9 @@ export default function TripsHomeScreen({ navigation }: Props) {
           onPress={handleNewTrip}
           style={({ pressed }) => [s.fab, pressed && s.fabPressed]}
           accessibilityRole="button"
-          accessibilityLabel="New trip"
+          accessibilityLabel={tr('home.newTrip')}
         >
-          <Plus size={24} color={c.fgOnInk} strokeWidth={1.5} />
+          <Plus size={24} color={c.inkButtonText} strokeWidth={1.5} />
         </Pressable>
       )}
 
@@ -187,11 +193,21 @@ export default function TripsHomeScreen({ navigation }: Props) {
         androidPackageName={ANDROID_PACKAGE}
       />
 
-      <DonationModal
-        visible={donationVisible}
-        onDismiss={hideDonation}
-        appName="Packing List"
-      />
+      {TIP_JAR_ENABLED && donationVisible && (
+        <TipJarSheet
+          visible
+          onDismiss={hideDonation}
+          productIds={TIP_PRODUCT_IDS}
+        />
+      )}
+
+      {TIP_JAR_ENABLED && tipVisible && (
+        <TipJarSheet
+          visible
+          onDismiss={() => setTipVisible(false)}
+          productIds={TIP_PRODUCT_IDS}
+        />
+      )}
 
       <GenderPrompt />
 
@@ -231,17 +247,24 @@ function TripCard({
       onLongPress={onLongPress}
       style={({ pressed }) => [s.card, pressed && s.cardPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`${trip.name}, ${trip.duration} days, ${packedCount} of ${totalCount} packed. Long press for options.`}
+      accessibilityLabel={tr('home.cardA11y', {
+        name: trip.name,
+        duration: trip.duration,
+        packed: packedCount,
+        total: totalCount,
+      })}
     >
       <Text style={s.cardName} numberOfLines={1}>{trip.name}</Text>
 
       <View style={s.cardMetaRow}>
         <Text style={s.cardMeta}>
-          {trip.duration} {trip.duration === 1 ? 'day' : 'days'}
+          {trip.duration} {trip.duration === 1 ? tr('common.day') : tr('common.days')}
         </Text>
         <Text style={s.cardMetaDot}>·</Text>
         <Text style={s.cardMeta}>
-          {totalCount === 0 ? 'No items' : `${packedCount} of ${totalCount} packed`}
+          {totalCount === 0
+            ? tr('home.noItems')
+            : tr('home.packedProgress', { packed: packedCount, total: totalCount })}
         </Text>
       </View>
 
@@ -266,6 +289,66 @@ function TripCard({
       </View>
     </Pressable>
   );
+}
+
+// ----------------------------------------------------------------------------
+// Support / feedback footer
+// ----------------------------------------------------------------------------
+
+// The tertiary funding + feedback text-link row (canon § Funding & feedback —
+// quiet here, obvious in Settings). Mirrors the canonical FundingFooter, but
+// the "Support this app" link opens the IAP tip jar (App Store 3.1.1) instead
+// of the rejected Buy Me a Coffee link-out. Gated on TIP_JAR_ENABLED so the
+// whole funding surface stays off if the flag is.
+function SupportFooter({ c, onSupport }: { c: Colors; onSupport: () => void }) {
+  const s = makeFooterStyles(c);
+  if (!TIP_JAR_ENABLED) return null;
+  return (
+    <View style={s.wrap}>
+      <Pressable
+        style={({ pressed }) => [s.link, pressed && s.pressed]}
+        onPress={onSupport}
+        accessibilityRole="button"
+        accessibilityLabel={tr('about.support')}
+      >
+        <HandHeart size={14} color={c.fgMuted} strokeWidth={1.5} />
+        <Text style={s.text}>{tr('about.support')}</Text>
+      </Pressable>
+      <Pressable
+        style={({ pressed }) => [s.link, pressed && s.pressed]}
+        onPress={openFeedback}
+        accessibilityRole="button"
+        accessibilityLabel={tr('about.feedback')}
+      >
+        <Mail size={14} color={c.fgMuted} strokeWidth={1.5} />
+        <Text style={s.text}>{tr('about.feedback')}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function makeFooterStyles(c: Colors) {
+  return StyleSheet.create({
+    wrap: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: space.s7,
+      paddingVertical: space.s5,
+    },
+    link: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space.s2,
+      minHeight: target.min,
+    },
+    text: {
+      fontFamily: typography.body,
+      fontSize: 14,
+      lineHeight: 20,
+      color: c.fgMuted,
+    },
+    pressed: { opacity: 0.6 },
+  });
 }
 
 // ----------------------------------------------------------------------------
@@ -341,7 +424,7 @@ function makeStyles(c: Colors) {
     primaryBtnLabel: {
       fontFamily: typography.bodyEmphasis,
       fontSize: 16,
-      color: c.fgOnInk,
+      color: c.inkButtonText,
     },
 
     // ---------- List ----------

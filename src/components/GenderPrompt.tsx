@@ -16,6 +16,7 @@
 import React from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSettingsStore } from '../store/settings';
+import { t as tr } from '../i18n';
 import { useReducedMotion } from './Dialogs';
 import {
   useTheme,
@@ -29,10 +30,12 @@ import {
 } from '../theme';
 import type { GenderPref } from '../data/trip';
 
-const CHOICES: { label: string; value: GenderPref }[] = [
-  { label: 'Female', value: 'female' },
-  { label: 'Male', value: 'male' },
-  { label: 'Prefer not to say', value: 'unspecified' },
+// Keys, not resolved strings — t() is called at render time so a language
+// switch re-resolves these (canon § Translations).
+const CHOICES: { labelKey: string; value: GenderPref }[] = [
+  { labelKey: 'gender.female', value: 'female' },
+  { labelKey: 'gender.male', value: 'male' },
+  { labelKey: 'gender.unspecified', value: 'unspecified' },
 ];
 
 export default function GenderPrompt() {
@@ -59,15 +62,14 @@ export default function GenderPrompt() {
         style={s.overlay}
         onPress={dismiss}
         accessibilityRole="button"
-        accessibilityLabel="Dismiss"
+        accessibilityLabel={tr('gender.dismiss')}
       >
         <Pressable style={s.card} onPress={(e) => e.stopPropagation()}>
           <Text style={s.title} accessibilityRole="header">
-            One quick thing
+            {tr('gender.promptTitle')}
           </Text>
           <Text style={s.body}>
-            Your gender only tailors which basics new trips suggest — it stays
-            on this device and you can change it anytime in Settings.
+            {tr('gender.promptBody')}
           </Text>
           <View style={s.choices}>
             {CHOICES.map((ch) => (
@@ -76,9 +78,9 @@ export default function GenderPrompt() {
                 onPress={() => setGender(ch.value)}
                 style={({ pressed }) => [s.choice, pressed && s.pressed]}
                 accessibilityRole="button"
-                accessibilityLabel={ch.label}
+                accessibilityLabel={tr(ch.labelKey)}
               >
-                <Text style={s.choiceText}>{ch.label}</Text>
+                <Text style={s.choiceText}>{tr(ch.labelKey)}</Text>
               </Pressable>
             ))}
           </View>
@@ -86,9 +88,9 @@ export default function GenderPrompt() {
             onPress={dismiss}
             style={({ pressed }) => [s.notNow, pressed && s.pressed]}
             accessibilityRole="button"
-            accessibilityLabel="Not now"
+            accessibilityLabel={tr('gender.notNow')}
           >
-            <Text style={s.notNowText}>Not now</Text>
+            <Text style={s.notNowText}>{tr('gender.notNow')}</Text>
           </Pressable>
         </Pressable>
       </Pressable>
