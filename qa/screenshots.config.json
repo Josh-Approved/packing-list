@@ -17,6 +17,12 @@
       { "id": "josh-approved", "kind": "card" },
       { "id": "types",         "source": "ipad/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
       { "id": "packers",       "source": "ipad/packers.png", "caption": "Split the list across everyone packing." }
+    ],
+    "androidTablet": [
+      { "id": "core",          "source": "androidTablet/list.png",    "caption": "Free packing list. Builds itself from your trip." },
+      { "id": "josh-approved", "kind": "card" },
+      { "id": "types",         "source": "androidTablet/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
+      { "id": "packers",       "source": "androidTablet/packers.png", "caption": "Split the list across everyone packing." }
     ]
   }
 }
