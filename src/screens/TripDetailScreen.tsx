@@ -34,6 +34,7 @@ import {
   TextInput,
   Platform,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, Plus, ChevronLeft, ChevronRight, ChevronDown, GripVertical } from 'lucide-react-native';
@@ -115,6 +116,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   const updateTrip = useTripsStore((st) => st.updateTrip);
 
   // Add-item local state (input text + selected category).
+  const inputRef = useRef<TextInput>(null);
   const [draftName, setDraftName] = useState('');
   const [draftCategory, setDraftCategory] = useState<Category>('Misc');
   // True once the user has manually picked a category for THIS draft —
@@ -405,7 +407,14 @@ export default function TripDetailScreen({ route, navigation }: Props) {
 
   const handleAddItem = useCallback(() => {
     const name = draftName.trim();
-    if (!name) return;
+    // blurOnSubmit={false} keeps the keyboard up after each add so you can
+    // rapid-fire several items in a row. An empty submit means "done adding" —
+    // drop the keyboard so the return key is never a dead end (mirrors
+    // grocery-list's add box; canon rn/keyboard-dismiss-escape).
+    if (!name) {
+      Keyboard.dismiss();
+      return;
+    }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     updateTrip(tripId, (t) => {
       // Dedup-by-name (case-insensitive): bump existing instead of duplicating.
@@ -432,6 +441,8 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     });
     setDraftName('');
     setUserPickedCategory(false); // reset for the next item
+    // Keep focus so the next item can be typed straight away.
+    requestAnimationFrame(() => inputRef.current?.focus());
   }, [draftName, draftCategory, updateTrip, tripId]);
 
   // ---------- Derived ----------
@@ -657,9 +668,11 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             <ChevronDown size={14} color={c.fgMuted} strokeWidth={1.5} />
           </Pressable>
           <TextInput
+            ref={inputRef}
             value={draftName}
             onChangeText={handleDraftNameChange}
             onSubmitEditing={handleAddItem}
+            blurOnSubmit={false}
             placeholder={tr('detail.addItemPlaceholder')}
             placeholderTextColor={c.fgSubtle}
             returnKeyType="done"
