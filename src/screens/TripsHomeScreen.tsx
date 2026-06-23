@@ -19,7 +19,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { HandHeart, Mail, Plus, Settings } from 'lucide-react-native';
+import { Plus, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
@@ -27,9 +27,10 @@ import ReviewModal from '../components/ReviewModal';
 import TipJarSheet from '../components/TipJarSheet';
 import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
+import { FundingFooter } from '../components/FundingFooter';
 import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
-import { APP_STORE_ID, ANDROID_PACKAGE, TIP_JAR_ENABLED, openFeedback } from '../lib/links';
+import { APP_STORE_ID, ANDROID_PACKAGE, TIP_JAR_ENABLED } from '../lib/links';
 import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
 import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
 import { t as tr } from '../i18n';
@@ -155,7 +156,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
       ) : null}
 
       {isEmpty ? (
-        <SupportFooter c={c} onSupport={() => setTipVisible(true)} />
+        <FundingFooter onSupport={() => setTipVisible(true)} />
       ) : (
         <ScrollView
           style={s.scroll}
@@ -170,7 +171,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
               c={c}
             />
           ))}
-          <SupportFooter c={c} onSupport={() => setTipVisible(true)} />
+          <FundingFooter onSupport={() => setTipVisible(true)} />
         </ScrollView>
       )}
 
@@ -289,66 +290,6 @@ function TripCard({
       </View>
     </Pressable>
   );
-}
-
-// ----------------------------------------------------------------------------
-// Support / feedback footer
-// ----------------------------------------------------------------------------
-
-// The tertiary funding + feedback text-link row (canon § Funding & feedback —
-// quiet here, obvious in Settings). Mirrors the canonical FundingFooter, but
-// the "Support this app" link opens the IAP tip jar (App Store 3.1.1) instead
-// of the rejected Buy Me a Coffee link-out. Gated on TIP_JAR_ENABLED so the
-// whole funding surface stays off if the flag is.
-function SupportFooter({ c, onSupport }: { c: Colors; onSupport: () => void }) {
-  const s = makeFooterStyles(c);
-  if (!TIP_JAR_ENABLED) return null;
-  return (
-    <View style={s.wrap}>
-      <Pressable
-        style={({ pressed }) => [s.link, pressed && s.pressed]}
-        onPress={onSupport}
-        accessibilityRole="button"
-        accessibilityLabel={tr('about.support')}
-      >
-        <HandHeart size={14} color={c.fgMuted} strokeWidth={1.5} />
-        <Text style={s.text}>{tr('about.support')}</Text>
-      </Pressable>
-      <Pressable
-        style={({ pressed }) => [s.link, pressed && s.pressed]}
-        onPress={openFeedback}
-        accessibilityRole="button"
-        accessibilityLabel={tr('about.feedback')}
-      >
-        <Mail size={14} color={c.fgMuted} strokeWidth={1.5} />
-        <Text style={s.text}>{tr('about.feedback')}</Text>
-      </Pressable>
-    </View>
-  );
-}
-
-function makeFooterStyles(c: Colors) {
-  return StyleSheet.create({
-    wrap: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: space.s7,
-      paddingVertical: space.s5,
-    },
-    link: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: space.s2,
-      minHeight: target.min,
-    },
-    text: {
-      fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
-      color: c.fgMuted,
-    },
-    pressed: { opacity: 0.6 },
-  });
 }
 
 // ----------------------------------------------------------------------------
