@@ -1,25 +1,25 @@
 {
   "stores": {
     "ios": [
-      { "id": "core",          "source": "ios/list.png",    "caption": "Free packing list. Builds itself from your trip." },
+      { "id": "core",          "source": "ios/list.png",    "caption": "A packing list. Builds itself from your trip." },
       { "id": "josh-approved", "kind": "card" },
       { "id": "types",         "source": "ios/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
       { "id": "packers",       "source": "ios/packers.png", "caption": "Split the list across everyone packing." }
     ],
     "android": [
-      { "id": "core",          "source": "android/list.png",    "caption": "Free packing list. Builds itself from your trip." },
+      { "id": "core",          "source": "android/list.png",    "caption": "A packing list. Builds itself from your trip." },
       { "id": "josh-approved", "kind": "card" },
       { "id": "types",         "source": "android/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
       { "id": "packers",       "source": "android/packers.png", "caption": "Split the list across everyone packing." }
     ],
     "ipad": [
-      { "id": "core",          "source": "ipad/list.png",    "caption": "Free packing list. Builds itself from your trip." },
+      { "id": "core",          "source": "ipad/list.png",    "caption": "A packing list. Builds itself from your trip." },
       { "id": "josh-approved", "kind": "card" },
       { "id": "types",         "source": "ipad/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
       { "id": "packers",       "source": "ipad/packers.png", "caption": "Split the list across everyone packing." }
     ],
     "androidTablet": [
-      { "id": "core",          "source": "androidTablet/list.png",    "caption": "Free packing list. Builds itself from your trip." },
+      { "id": "core",          "source": "androidTablet/list.png",    "caption": "A packing list. Builds itself from your trip." },
       { "id": "josh-approved", "kind": "card" },
       { "id": "types",         "source": "androidTablet/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
       { "id": "packers",       "source": "androidTablet/packers.png", "caption": "Split the list across everyone packing." }
