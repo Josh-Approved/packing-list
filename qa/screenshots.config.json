@@ -1,4 +1,6 @@
 {
+  "style": "signature",
+  "motif": "dots",
   "stores": {
     "ios": [
       { "id": "core",          "source": "ios/list.png",    "caption": "A packing list. Builds itself from your trip." },
