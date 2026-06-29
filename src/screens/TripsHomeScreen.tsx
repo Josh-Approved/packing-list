@@ -28,6 +28,7 @@ import TipJarSheet from '../components/TipJarSheet';
 import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { FundingFooter } from '../components/FundingFooter';
+import { usePullRevealFooter } from '../components/usePullRevealFooter';
 import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
 import { APP_STORE_ID, ANDROID_PACKAGE, TIP_JAR_ENABLED } from '../lib/links';
@@ -64,6 +65,9 @@ export default function TripsHomeScreen({ navigation }: Props) {
 
   const menu = useActionMenu();
   const prompt = usePrompt();
+
+  const { pullToReveal, reveal, onScrollJS, footerHeight, onFooterLayout } =
+    usePullRevealFooter();
 
   const handleNewTrip = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -160,7 +164,10 @@ export default function TripsHomeScreen({ navigation }: Props) {
       ) : (
         <ScrollView
           style={s.scroll}
-          contentContainerStyle={s.scrollContent}
+          contentContainerStyle={[s.scrollContent, { flexGrow: 1 }]}
+          onScroll={pullToReveal ? onScrollJS : undefined}
+          scrollEventThrottle={16}
+          alwaysBounceVertical={pullToReveal}
         >
           {trips.map((t) => (
             <TripCard
@@ -171,14 +178,24 @@ export default function TripsHomeScreen({ navigation }: Props) {
               c={c}
             />
           ))}
-          <FundingFooter onSupport={() => setTipVisible(true)} />
+          <View style={s.footerHolder} onLayout={onFooterLayout}>
+            <FundingFooter
+              onSupport={() => setTipVisible(true)}
+              reveal={reveal}
+              pullToReveal={pullToReveal}
+            />
+          </View>
         </ScrollView>
       )}
 
       {!isEmpty && (
         <Pressable
           onPress={handleNewTrip}
-          style={({ pressed }) => [s.fab, pressed && s.fabPressed]}
+          style={({ pressed }) => [
+            s.fab,
+            { bottom: footerHeight + space.s4 },
+            pressed && s.fabPressed,
+          ]}
           accessibilityRole="button"
           accessibilityLabel={tr('home.newTrip')}
         >
@@ -378,6 +395,7 @@ function makeStyles(c: Colors) {
       paddingBottom: space.s9,
       gap: space.s4,
     },
+    footerHolder: { marginTop: 'auto' },
 
     // ---------- Card ----------
     card: {
