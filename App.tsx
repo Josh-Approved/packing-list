@@ -1,22 +1,23 @@
 /**
  * App root.
  *
+ * The shell (<AppShell/>) owns the chrome — gesture root, safe-area provider,
+ * error boundary, the themed NavigationContainer + status bar, and the
+ * cold-start splash. App.tsx owns only the readiness gate, the screen list,
+ * and this app's startup effects (hydrating the trips + settings stores).
+ *
  * Two-screen stack: TripsHome (root) + TripDetail. State lives in
  * useTripsStore (Zustand) — see src/store/trips.ts. Storage is SQLite via
  * src/store/db.ts; the store loads existing trips on mount and persists
  * every change in the background.
  *
- * Render gates: useAppFonts (so IBM Plex is loaded before first paint) AND
- * the store's hydrated flag (so we don't render an empty "no trips yet"
+ * Render gate: useAppFonts (so IBM Plex is loaded before first paint) AND
+ * both stores' hydrated flags (so we don't render an empty "no trips yet"
  * state for half a second when there are actually trips on disk).
- *
- * GestureHandlerRootView wraps everything — required by react-native-
- * reorderable-list (drag-reorder for items, spec build step 6) and any other
- * gesture-based library we add later.
  */
 
-import React, { useEffect, useState } from 'react';
-import { useColorScheme, LogBox } from 'react-native';
+import React, { useEffect } from 'react';
+import { LogBox } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 
 // Silence a benign dev warning: react-native-reorderable-list nests its own
@@ -26,18 +27,10 @@ import * as SplashScreen from 'expo-splash-screen';
 LogBox.ignoreLogs([
   'VirtualizedLists should never be nested',
 ]);
-import {
-  NavigationContainer,
-  DefaultTheme,
-  DarkTheme,
-  type Theme,
-} from '@react-navigation/native';
+
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useAppFonts, lightColors, darkColors, typography, useApplyThemePreference } from './src/theme';
-import { useApplyLocalePreference, useLocaleVersion } from './src/i18n/localePreference';
+import { useAppFonts } from './src/theme';
+import { AppShell } from './src/shell/AppShell';
 import { useTripsStore } from './src/store/trips';
 import { useSettingsStore } from './src/store/settings';
 import TripsHomeScreen from './src/screens/TripsHomeScreen';
@@ -45,12 +38,12 @@ import TripInfoScreen from './src/screens/TripInfoScreen';
 import TripDetailScreen from './src/screens/TripDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import Credits from './src/components/Credits';
-import AnimatedSplash from './src/components/AnimatedSplash';
 import { QA_MODE } from './src/qa/qaMode';
 
 // Hold the native launch screen until the JS splash is mounted to take over, so
-// the icon never blinks out between the two. AnimatedSplash calls hideAsync().
-// Skipped under QA_MODE so the e2e screenshot harness sees deterministic frames.
+// the icon never blinks out between the two. AppShell owns hiding it via
+// AnimatedSplash. Skipped under QA_MODE so the e2e screenshot harness sees
+// deterministic frames.
 if (!QA_MODE) {
   SplashScreen.preventAutoHideAsync().catch(() => {});
 }
@@ -67,38 +60,7 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function buildNavTheme(isDark: boolean): Theme {
-  const c = isDark ? darkColors : lightColors;
-  const base = isDark ? DarkTheme : DefaultTheme;
-  return {
-    ...base,
-    colors: {
-      ...base.colors,
-      background: c.bg,
-      card: c.bg,
-      text: c.fg,
-      border: c.hairline,
-      primary: c.fg,
-    },
-    fonts: {
-      regular: { fontFamily: typography.body, fontWeight: '400' },
-      medium: { fontFamily: typography.bodyEmphasis, fontWeight: '500' },
-      bold: { fontFamily: typography.heading, fontWeight: '600' },
-      heavy: { fontFamily: typography.heading, fontWeight: '600' },
-    },
-  };
-}
-
 export default function App() {
-  // Restore + apply the saved appearance preference (System/Light/Dark) before
-  // first paint; drives useColorScheme() here and in every screen.
-  useApplyThemePreference();
-  // Restore + apply the saved language; localeVersion keys <NavigationContainer>
-  // below so a switch re-renders the whole app in the new language (canon
-  // § Translations — a JS-dictionary i18n has no OS primitive like the theme).
-  useApplyLocalePreference();
-  const localeVersion = useLocaleVersion();
-  const isDark = useColorScheme() === 'dark';
   const [fontsLoaded] = useAppFonts();
   const hydrated = useTripsStore((s) => s.hydrated);
   const hydrate = useTripsStore((s) => s.hydrate);
@@ -111,35 +73,23 @@ export default function App() {
   }, [hydrate, hydrateSettings]);
 
   // Content is ready once fonts AND disk-loaded data are in (no FOUT, no flash
-  // of "no trips yet" on a populated database). The animated splash overlays
-  // until its intro has played and content is ready, then crossfades out.
+  // of "no trips yet" on a populated database).
   const ready = fontsLoaded && hydrated && settingsHydrated;
-  const [splashDone, setSplashDone] = useState(false);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        {ready && (
-          <NavigationContainer key={localeVersion} theme={buildNavTheme(isDark)}>
-            <StatusBar style={isDark ? 'light' : 'dark'} />
-            <Stack.Navigator
-              initialRouteName="TripsHome"
-              screenOptions={{ headerShown: false, animation: QA_MODE ? 'none' : undefined }}
-            >
-              <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
-              <Stack.Screen name="TripInfo" component={TripInfoScreen} />
-              <Stack.Screen name="TripDetail" component={TripDetailScreen} />
-              <Stack.Screen name="Settings" component={SettingsScreen} />
-              <Stack.Screen name="Acknowledgements">
-                {(props) => <Credits onBack={() => props.navigation.goBack()} />}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>
-        )}
-        {!QA_MODE && !splashDone && (
-          <AnimatedSplash ready={ready} onFinish={() => setSplashDone(true)} />
-        )}
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <AppShell ready={ready}>
+      <Stack.Navigator
+        initialRouteName="TripsHome"
+        screenOptions={{ headerShown: false, animation: QA_MODE ? 'none' : undefined }}
+      >
+        <Stack.Screen name="TripsHome" component={TripsHomeScreen} />
+        <Stack.Screen name="TripInfo" component={TripInfoScreen} />
+        <Stack.Screen name="TripDetail" component={TripDetailScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen name="Acknowledgements">
+          {(props) => <Credits onBack={() => props.navigation.goBack()} />}
+        </Stack.Screen>
+      </Stack.Navigator>
+    </AppShell>
   );
 }
