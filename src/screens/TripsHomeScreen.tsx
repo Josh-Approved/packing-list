@@ -27,6 +27,7 @@ import ReviewModal from '../components/ReviewModal';
 import TipJarSheet from '../components/TipJarSheet';
 import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { FundingFooter } from '../components/FundingFooter';
 import { usePullRevealFooter } from '../components/usePullRevealFooter';
 import { useReviewModal } from '../store/reviewModal';
@@ -66,8 +67,16 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const menu = useActionMenu();
   const prompt = usePrompt();
 
-  const { pullToReveal, reveal, onScrollJS, footerHeight, onFooterLayout } =
-    usePullRevealFooter();
+  const {
+    pullToReveal,
+    reveal,
+    gesture,
+    onScrollJS,
+    onScrollViewLayout,
+    onContentSizeChange,
+    footerHeight,
+    onFooterLayout,
+  } = usePullRevealFooter();
 
   const handleNewTrip = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -162,12 +171,16 @@ export default function TripsHomeScreen({ navigation }: Props) {
       {isEmpty ? (
         <FundingFooter onSupport={() => setTipVisible(true)} />
       ) : (
+        <GestureDetector gesture={gesture}>
         <ScrollView
           style={s.scroll}
           contentContainerStyle={[s.scrollContent, { flexGrow: 1 }]}
           onScroll={pullToReveal ? onScrollJS : undefined}
           scrollEventThrottle={16}
           alwaysBounceVertical={pullToReveal}
+          overScrollMode={pullToReveal ? 'never' : 'auto'}
+          onLayout={onScrollViewLayout}
+          onContentSizeChange={(_w, h) => onContentSizeChange(_w, h)}
         >
           {trips.map((t) => (
             <TripCard
@@ -186,6 +199,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
             />
           </View>
         </ScrollView>
+        </GestureDetector>
       )}
 
       {!isEmpty && (
