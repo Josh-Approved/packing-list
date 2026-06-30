@@ -37,7 +37,8 @@
       "expo-font",
       "expo-sqlite",
       "expo-iap",
-      "./plugins/withGradleJvmArgs"
+      "./plugins/withGradleJvmArgs",
+      "expo-mail-composer"
     ],
     "extra": {
       "eas": {

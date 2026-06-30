@@ -48,13 +48,13 @@ import { useSettingsStore } from '../store/settings';
 import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';
 import {
   TIP_JAR_ENABLED,
-  openFeedback,
   openReview,
   openPrivacy,
   openSource,
   openStudio,
   versionLabel,
 } from '../lib/links';
+import { useFeedback } from '../feedback/FeedbackProvider';
 import TipJarSheet from '../components/TipJarSheet';
 import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
 import type { GenderPref } from '../data/trip';
@@ -72,6 +72,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 export default function SettingsScreen({ navigation }: Props) {
   const { c } = useTheme();
   const s = makeStyles(c);
+  const { open: openFeedback } = useFeedback();
 
   const trips = useTripsStore((st) => st.trips);
   const importTrips = useTripsStore((st) => st.importTrips);
@@ -223,7 +224,7 @@ export default function SettingsScreen({ navigation }: Props) {
           <Text style={s.sectionLabel}>{t('settings.about')}</Text>
           <View style={s.block}>
             {TIP_JAR_ENABLED && <AboutRow icon={HandHeart} label={t('about.support')} onPress={() => setTipVisible(true)} />}
-            <AboutRow icon={Mail} label={t('about.feedback')} onPress={openFeedback} />
+            <AboutRow icon={Mail} label={t('about.feedback')} onPress={() => openFeedback()} />
             <AboutRow icon={Star} label={t('about.review')} onPress={openReview} />
             <AboutRow icon={Shield} label={t('about.privacy')} onPress={openPrivacy} />
             <AboutRow icon={Code} label={t('about.source')} onPress={openSource} />
