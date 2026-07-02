@@ -1,0 +1,62 @@
+# Hand-authored WEDGE demo flow for the store/README GIF — the differentiator:
+# the list builds itself from the KIND of trip. Start a new trip, pick trip
+# types, and the packing list comes pre-filled with the right items instead of
+# a blank page (STORE_LISTING.md slot 3: "Choose trip types. Quantities adjust
+# to match."). NOT the generated screenshot journey. Driven headless by
+# josh-approved-factory/scripts/demo-capture.mjs. On the Trip Information screen
+# the name field auto-focuses (keyboard up hides the Continue CTA), so we tap
+# the "Trip information" title to dismiss the keyboard before the chips — the
+# same deterministic dismiss the screenshot journey uses (see qa/selectors.json).
+appId: com.joshapproved.packinglist
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 4000
+- extendedWaitUntil:
+    visible:
+      text: "New trip"
+    timeout: 20000
+- tapOn:
+    text: "New trip"
+- extendedWaitUntil:
+    visible:
+      text: "Trip information"
+    timeout: 10000
+- inputText: "Beach week"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    text: "Trip information"
+- waitForAnimationToEnd:
+    timeout: 800
+- scrollUntilVisible:
+    element:
+      text: "Beach"
+    direction: DOWN
+    timeout: 8000
+- tapOn:
+    text: "Beach"
+- waitForAnimationToEnd:
+    timeout: 700
+- scrollUntilVisible:
+    element:
+      text: "Business"
+    direction: DOWN
+    timeout: 8000
+- tapOn:
+    text: "Business"
+- waitForAnimationToEnd:
+    timeout: 900
+# The CTA's a11y label is "Continue to packing list"; Maestro full-matches the
+# text regex, so a bare "Continue" never matches (the iOS merged-label gotcha).
+- tapOn:
+    text: "Continue.*"
+- extendedWaitUntil:
+    visible:
+      text: "Suggested items"
+    timeout: 10000
+# Hold on the pre-filled list — this is the wedge payoff (the list built itself
+# from the trip types), so give it enough dwell to read even after speed-up.
+- waitForAnimationToEnd:
+    timeout: 4500

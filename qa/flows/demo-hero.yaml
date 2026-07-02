@@ -1,0 +1,39 @@
+# Hand-authored HERO demo flow for the store/README GIF — the everyday loop:
+# open a trip and check items off as you pack, watching progress fill in.
+# NOT the generated screenshot journey (qa/flows/mobile.yaml). Kept short and
+# human-paced so the recording reads as a real check-off loop. Driven headless
+# by josh-approved-factory/scripts/demo-capture.mjs (records the run + composites
+# it into the signature device frame). Runs against the QA_MODE build, which
+# seeds the "Greece" beach trip (src/qa/fixtures.ts). Checkboxes carry the
+# a11y label "<item> packed" (detail.itemPackedA11y); we tap those, never the
+# item name (tapping the name opens inline rename).
+appId: com.joshapproved.packinglist
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 4000
+- extendedWaitUntil:
+    visible:
+      text: "Greece.*"
+    timeout: 20000
+- tapOn:
+    text: "Greece.*"
+- extendedWaitUntil:
+    visible:
+      text: "Suggested items"
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 1500
+- tapOn:
+    text: "Socks packed"
+- waitForAnimationToEnd:
+    timeout: 900
+- tapOn:
+    text: "T-shirts packed"
+- waitForAnimationToEnd:
+    timeout: 900
+- tapOn:
+    text: "Underwear packed"
+- waitForAnimationToEnd:
+    timeout: 2200
