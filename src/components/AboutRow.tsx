@@ -1,38 +1,65 @@
 /**
- * Secondary row for the Settings/About block.
+ * A single Settings/About row: optional leading Lucide icon, label, and either
+ * a trailing value (e.g. the version) or an external-link chevron. Hairline-
+ * separated, no button chrome — design-system restraint. One component for
+ * every canonical entry — no per-row restyling.
  *
- * Design system § Settings / About screen: paper bg, full-width hairline
- * border, ink text + ink icon, Lucide 1.5px / 22px, sentence-case label,
- * right-aligned chevron. One component for all five canonical entries — no
- * per-row restyling.
+ * Canonical, app-agnostic — synced by `sync.mjs app-shell`; do not fork. (This
+ * is the de-drifted single source: grocery-list / packing-list had forked
+ * variants before the app-shell module.)
  */
 
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { ChevronRight, type LucideIcon } from 'lucide-react-native';
-import { useTheme, typography, space, target } from '../theme';
-import type { Colors } from '../theme';
+import {
+  useTheme,
+  fontFamily,
+  space,
+  target,
+  type as t,
+  hairline,
+  type Colors,
+} from '../theme';
 
 type Props = {
-  icon: LucideIcon;
   label: string;
-  onPress: () => void;
+  icon?: LucideIcon;
+  /** Static trailing text (e.g. "1.0.0 (1)"). Mutually exclusive with onPress. */
+  value?: string;
+  onPress?: () => void;
 };
 
-export function AboutRow({ icon: Icon, label, onPress }: Props) {
+export function AboutRow({ label, icon: Icon, value, onPress }: Props) {
   const { c } = useTheme();
   const s = makeStyles(c);
+  const body = (
+    <>
+      {Icon ? <Icon size={20} color={c.fgMuted} strokeWidth={1.5} /> : null}
+      <Text style={s.label}>{label}</Text>
+      {value ? (
+        <Text style={s.value}>{value}</Text>
+      ) : onPress ? (
+        <ChevronRight size={18} color={c.fgSubtle} strokeWidth={1.5} />
+      ) : null}
+    </>
+  );
 
+  if (!onPress) {
+    return (
+      <View style={s.row} accessibilityLabel={`${label}${value ? `, ${value}` : ''}`}>
+        {body}
+      </View>
+    );
+  }
   return (
     <Pressable
-      onPress={onPress}
       style={({ pressed }) => [s.row, pressed && s.pressed]}
+      onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <Icon size={22} color={c.fg} strokeWidth={1.5} />
-      <Text style={s.label}>{label}</Text>
-      <ChevronRight size={20} color={c.fgSubtle} strokeWidth={1.5} />
+      {body}
     </Pressable>
   );
 }
@@ -43,20 +70,22 @@ function makeStyles(c: Colors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: space.s4,
-      minHeight: target.min + space.s2,
-      paddingHorizontal: space.s5,
-      paddingVertical: space.s4,
-      backgroundColor: c.bgElevated,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      minHeight: target.min + 6,
+      paddingHorizontal: space.s6,
+      borderBottomWidth: hairline,
       borderBottomColor: c.hairline,
     },
-    pressed: { backgroundColor: c.bgSubtle },
     label: {
+      ...t.base,
       flex: 1,
-      fontFamily: typography.body,
-      fontSize: 16,
-      lineHeight: 22,
+      fontFamily: fontFamily.sans,
       color: c.fg,
     },
+    value: {
+      ...t.sm,
+      fontFamily: fontFamily.mono,
+      color: c.fgMuted,
+    },
+    pressed: { opacity: 0.6 },
   });
 }

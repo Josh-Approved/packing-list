@@ -42,7 +42,7 @@ import { boundedContent } from '../theme';
 import { t } from '../i18n';
 import { AboutRow } from '../components/AboutRow';
 import { LanguageSetting } from '../components/LanguageSetting';
-import Wordmark from '../components/Wordmark';
+import { Wordmark } from '../components/Wordmark';
 import { useTripsStore } from '../store/trips';
 import { useSettingsStore } from '../store/settings';
 import { serializeTrips, parseTransfer, TransferError } from '../lib/transfer';

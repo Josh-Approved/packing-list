@@ -1,13 +1,12 @@
 /**
- * Collision-proof id generator.
+ * Collision-proof id generator. Canonical, app-agnostic — synced by
+ * `sync.mjs app-shell`; do not fork.
  *
- * The original code generated ids as `${prefix}${Date.now()}`, which collides
- * when two entities are created in the same millisecond (rapid custom-item
- * adds, duplicate-then-create, etc.). Collisions corrupt React list keys and
- * break FlatList-based drag-reorder. This combines:
- *   - a base-36 timestamp (sortable-ish, compact)
- *   - a per-session monotonic counter (uniqueness within a run, even same-ms)
- *   - a short random suffix (uniqueness across sessions / reloads)
+ * `${prefix}${Date.now()}` collides when two entities are created in the same
+ * millisecond (rapid adds, duplicate-then-create). Collisions corrupt React
+ * list keys and — once cross-device sync lands — would let two devices mint
+ * the same id. Combines a base-36 timestamp, a per-session monotonic counter,
+ * and a short random suffix.
  */
 
 let counter = 0;
