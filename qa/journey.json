@@ -20,5 +20,25 @@
     { "tap": "@trip-info-title" },
     { "tap": "@type-beach" },
     { "screenshot": "types" }
-  ]
+  ],
+  "survival": {
+    "$comment": "T4 chaos net — state-survival subflow (compiles to qa/flows/state-survival.yaml; full profile + nightly, NOT per-PR). Core mutating action = add a packing item to the seeded trip (it auto-saves to disk). Then REAL process death (killApp on Android / stopApp on iOS), then relaunch keeping state and re-open the trip. Intent oracle: the item added before the kill is still on the list after it. The leading assertNot proves 'Compass' wasn't already there.",
+    "steps": [
+      { "waitFor": "@first-trip", "timeout": 30000 },
+      { "tap": "@first-trip" },
+      { "waitFor": "@packers-heading", "timeout": 10000 },
+      { "assertNot": "@survival-item" },
+      { "tap": "@add-item-input" },
+      { "type": "Compass" },
+      { "pressKey": "Enter" },
+      { "assert": "@survival-item" },
+      { "wait": 1500 },
+      { "killApp": true },
+      { "relaunch": true },
+      { "waitFor": "@first-trip", "timeout": 30000 },
+      { "tap": "@first-trip" },
+      { "waitFor": "@packers-heading", "timeout": 10000 },
+      { "assert": "@survival-item" }
+    ]
+  }
 }

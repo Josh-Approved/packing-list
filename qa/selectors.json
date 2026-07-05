@@ -7,6 +7,8 @@
     "back":            { "text": "Back to trips" },
     "new-trip":        { "text": "New trip" },
     "trip-info-title": { "text": "Trip information", "note": "Static header on TripInfoScreen, inside its keyboardShouldPersistTaps=\"handled\" ScrollView. Tapped to dismiss the auto-raised name-input keyboard before the trip-type buttons — replaces a hideKeyboard step that is flaky on iOS (no standard dismiss action). Cross-platform deterministic." },
-    "type-beach":      { "text": "Beach" }
+    "type-beach":      { "text": "Beach" },
+    "add-item-input":  { "text": "New item name", "note": "the sticky add-item TextInput on TripDetail (i18n detail.newItemA11y). A real RN TextInput, so it's in the a11y tree on both platforms — tap to focus, type, return-key (onSubmitEditing) adds. Used by the T4 survival flow." },
+    "survival-item":   { "text": ".*Compass.*", "note": "T4 survival marker — an item name absent from the beach-trip auto-list, so assertNot holds before the add and assert can only pass if the write persisted. Wrapped in .* for the iOS merged item-row a11y label." }
   }
 }
