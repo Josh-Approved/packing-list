@@ -145,14 +145,14 @@ export function runIntentFuzz<Model extends object, Real extends object>(
   );
 }
 
-function storyLines(details: fc.RunDetails<unknown>): string[] {
+function storyLines<T>(details: fc.RunDetails<T>): string[] {
   const ce: unknown = (details as { counterexample?: unknown }).counterexample;
   const first = Array.isArray(ce) ? ce[0] : ce;
   if (Array.isArray(first)) return first.map((c) => String(c));
   return [String(first)];
 }
 
-function describeCounterexample(details: fc.RunDetails<unknown>): string {
+function describeCounterexample<T>(details: fc.RunDetails<T>): string {
   const err = (details as { errorInstance?: unknown; error?: unknown }).errorInstance
     ?? (details as { error?: unknown }).error;
   if (err instanceof Error) return err.message.split('\n')[0].slice(0, 400);
