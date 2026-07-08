@@ -1,0 +1,572 @@
+{
+  "$comment": "Action-coverage registry (Uplevel-3 T3). Every user-facing action mapped to its proof: tier2-assert (a qa/journey.json waypoint) | rntl (a component test) | unit (a trust-core test) | none (a gap to backfill). Maintained by scripts/qa/action-coverage.mjs — it appends new-in-code actions + flags stale ones, never rewrites a proof by hand.",
+  "actions": [
+    {
+      "id": "components/AboutRow#pressable-56",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/AboutRow.tsx:56",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Chip#pressable-35",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Chip.tsx:35",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Credits#common.back",
+      "label": "common.back",
+      "where": "src/components/Credits.tsx:45",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Credits#pressable-66",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Credits.tsx:66",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-115",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:115",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-121",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:121",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-128",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:128",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-142",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:142",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-224",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:224",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-230",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:230",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#textinput-237",
+      "label": "TextInput (dynamic label)",
+      "where": "src/components/Dialogs.tsx:237",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-250",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:250",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-258",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:258",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/DonationModal#donate.supporta11y",
+      "label": "donate.supportA11y",
+      "where": "src/components/DonationModal.tsx:77",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/DonationModal#common.maybelater",
+      "label": "common.maybeLater",
+      "where": "src/components/DonationModal.tsx:85",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/FundingFooter#about.support",
+      "label": "about.support",
+      "where": "src/components/FundingFooter.tsx:78",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/FundingFooter#about.feedback",
+      "label": "about.feedback",
+      "where": "src/components/FundingFooter.tsx:89",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/GenderPrompt#pressable-61",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/GenderPrompt.tsx:61",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/GenderPrompt#pressable-67",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/GenderPrompt.tsx:67",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/GenderPrompt#pressable-76",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/GenderPrompt.tsx:76",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/GenderPrompt#pressable-87",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/GenderPrompt.tsx:87",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/LanguageSetting#pressable-95",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/LanguageSetting.tsx:95",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/LanguageSetting#common.cancel",
+      "label": "common.cancel",
+      "where": "src/components/LanguageSetting.tsx:113",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/LanguageSetting#pressable-114",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/LanguageSetting.tsx:114",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/LanguageSetting#common.done",
+      "label": "common.done",
+      "where": "src/components/LanguageSetting.tsx:117",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/LanguageSetting#pressable-135",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/LanguageSetting.tsx:135",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/MoreFromJA#pressable-58",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/MoreFromJA.tsx:58",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Pill#pressable-44",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Pill.tsx:44",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/ReviewModal#review.leavea11y",
+      "label": "review.leaveA11y",
+      "where": "src/components/ReviewModal.tsx:119",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/ReviewModal#common.notnow",
+      "label": "common.notNow",
+      "where": "src/components/ReviewModal.tsx:127",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/ScreenHeader#common.back",
+      "label": "common.back",
+      "where": "src/components/ScreenHeader.tsx:35",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/SettingsAbout#about.learnmorea11y",
+      "label": "about.learnMoreA11y",
+      "where": "src/components/SettingsAbout.tsx:68",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Stepper#pressable-89",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Stepper.tsx:89",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Stepper#stepper.increase",
+      "label": "stepper.increase",
+      "where": "src/components/Stepper.tsx:112",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/TipJarSheet#common.done",
+      "label": "common.done",
+      "where": "src/components/TipJarSheet.tsx:132",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/TipJarSheet#tip.tiera11y",
+      "label": "tip.tierA11y",
+      "where": "src/components/TipJarSheet.tsx:166",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/TipJarSheet#common.maybelater",
+      "label": "common.maybeLater",
+      "where": "src/components/TipJarSheet.tsx:194",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/SettingsScreen#common.back",
+      "label": "common.back",
+      "where": "src/screens/SettingsScreen.tsx:156",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/SettingsScreen#pressable-180",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/SettingsScreen.tsx:180",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/SettingsScreen#about.learnmorea11y",
+      "label": "about.learnMoreA11y",
+      "where": "src/screens/SettingsScreen.tsx:243",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-462",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:462",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-520",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:520",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-541",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:541",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-580",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:580",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-648",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:648",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-661",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:661",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#textinput-670",
+      "label": "TextInput (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:670",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-682",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:682",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-710",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:710",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-1111",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1111",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onLongPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-1121",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1121",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#textinput-1138",
+      "label": "TextInput (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1138",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-1157",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1157",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-195",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:195",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-210",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:210",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-266",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:266",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-327",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:327",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-355",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:355",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-144",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:144",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-159",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:159",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-206",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:206",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-277",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:277",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#alert-alert-action",
+      "label": "alert-action",
+      "where": "src/screens/TripsHomeScreen.tsx:114",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Alert.alert · button"
+    }
+  ]
+}
