@@ -46,3 +46,7 @@ yarn-error.*
 *.aab
 build-*.tar.gz
 google-service-account.json
+
+# Stryker mutation-testing sandbox/report output
+.stryker-tmp/
+reports/
