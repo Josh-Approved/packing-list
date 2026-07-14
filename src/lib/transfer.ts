@@ -117,9 +117,19 @@ function validateTrip(v: unknown): Trip {
     v.thoroughness === 'thorough'
       ? v.thoroughness
       : THOROUGHNESS_DEFAULT;
+  // Shared-sync fields are preserved verbatim so an export→import round-trip
+  // keeps the name clock and share pairing intact. Both are optional/lenient:
+  // an export made before they existed simply lacks them.
+  const shareIdentity =
+    isObj(v.shareIdentity) &&
+    isStr(v.shareIdentity.secret) &&
+    isNum(v.shareIdentity.createdAt)
+      ? { secret: v.shareIdentity.secret, createdAt: v.shareIdentity.createdAt }
+      : undefined;
   return {
     id: v.id,
     name: v.name,
+    nameUpdatedAt: isNum(v.nameUpdatedAt) ? v.nameUpdatedAt : v.createdAt,
     duration: v.duration,
     typeIds: v.typeIds as Trip['typeIds'],
     packers: v.packers.map(validatePacker),
@@ -129,6 +139,7 @@ function validateTrip(v: unknown): Trip {
       ? v.laundryIntervalDays
       : LAUNDRY_DEFAULT_INTERVAL,
     thoroughness,
+    ...(shareIdentity ? { shareIdentity } : {}),
     createdAt: v.createdAt,
     updatedAt: v.updatedAt,
   };

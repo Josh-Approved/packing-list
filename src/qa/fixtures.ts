@@ -17,10 +17,16 @@ export function qaTrips(): Trip[] {
     laundryIntervalDays: 4,
     thoroughness: 'normal',
   };
+  const composed = applyTripInfo(info, [], 'unspecified');
   return [
     {
       id: 'qa-greece',
-      ...applyTripInfo(info, [], 'unspecified'),
+      ...composed,
+      // Pin the shared-sync merge clocks to T0 so the fixture is fully
+      // deterministic (composeItems stamps addedAt/updatedAt from the live
+      // logical clock, which would otherwise differ call to call).
+      items: composed.items.map((it) => ({ ...it, addedAt: T0, updatedAt: T0 })),
+      nameUpdatedAt: T0,
       packers: [
         { id: 'me', name: 'Me' },
         { id: 'p-sam', name: 'Sam' },

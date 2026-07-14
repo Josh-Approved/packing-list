@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { makeId } from '../lib/id';
+import { now as clockNow } from '../sync/clock';
 
 // ============================================================================
 // Types
@@ -61,6 +62,18 @@ export interface Packer {
   name: string;
 }
 
+/**
+ * The persistent shared-trip identity. Absent until a trip is shared; written
+ * once at pairing and stored durably on every paired device (this is what
+ * makes "pair once, synced forever" hold). Mirrors grocery-list's
+ * ShareIdentity so both apps consume the same shared-sync module.
+ */
+export interface ShareIdentity {
+  /** Stable per-trip secret; the drop-box channel id derives from it. */
+  secret: string;
+  createdAt: number;
+}
+
 export interface TripItem {
   id: string;
   name: string;
@@ -81,16 +94,42 @@ export interface TripItem {
    *  must NOT regenerate a fresh duplicate. Undefined for items the user
    *  typed in themselves (no originating rule). */
   originName?: string;
+  // ---- shared-sync merge clocks (mirror grocery GroceryItem) ----
+  /** Stamped at item creation. Present on all fresh items; legacy items get it
+   *  defaulted at hydrate. */
+  addedAt: number;
+  /** Content clock. Stamped at creation and on any content edit
+   *  (name/quantity/category/assignee/…). NOT bumped by a packed-toggle. */
+  updatedAt: number;
+  /** Soft-delete tombstone (ms). Set instead of removing the item so a delete
+   *  survives a cross-device merge. UI treats `deletedAt != null` as gone. */
+  deletedAt?: number;
+  /** When `packed` last became true, cleared when unpacked — mirrors grocery
+   *  `checkedAt`. */
+  packedAt?: number;
+  /** The packed-flag's OWN merge clock (mirrors grocery `checkedUpdatedAt`).
+   *  Stamped whenever `packed` changes, INSTEAD of `updatedAt`, so a partner's
+   *  concurrent content edit can't revert a pack/unpack when the copies merge.
+   *  Absent on legacy records → merge falls back to `packedAt`/`addedAt`. */
+  packedUpdatedAt?: number;
 }
 
 export interface Trip {
   id: string;
   name: string;
+  /** When the *name* was last set by a person (rename, or creation). The name
+   *  merges by its own clock, NOT the whole-trip `updatedAt` — so editing an
+   *  item never lets a stale name win, and a freshly-joined device (which has
+   *  no name of its own, nameUpdatedAt:0) can't rename the other side's trip.
+   *  Legacy trips (persisted before this field) default to `createdAt`. */
+  nameUpdatedAt: number;
   /** Days, integer. MIN_DURATION_DAYS <= duration <= MAX_DURATION_DAYS. */
   duration: number;
   typeIds: TripTypeId[];
   packers: Packer[];
   items: TripItem[];
+  /** Present once the trip is shared; the join key for the sync channel. */
+  shareIdentity?: ShareIdentity;
   /**
    * Whether the user can do laundry mid-trip. Optional for backward compat:
    * trips persisted before this field default to false via tripOpts().
@@ -223,6 +262,137 @@ export function clampLaundryInterval(n: number): number {
     MAX_LAUNDRY_INTERVAL,
     Math.max(MIN_LAUNDRY_INTERVAL, Math.round(n))
   );
+}
+
+// ============================================================================
+// Shared-sync data hygiene (CRDT-ready) — mirror grocery data/list.ts
+// ============================================================================
+
+/** THE name-identity rule for the merge's duplicate collapse (and any layer
+ *  that answers "are these the same item?"). Packing legitimately allows the
+ *  same name in two categories, so the merge keys on name AND category — this
+ *  is just the name half of that key. */
+export function normalizeItemName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+/** Items the user can see — tombstoned ones are gone. */
+export function visibleItems(trip: Pick<Trip, 'items'>): TripItem[] {
+  return trip.items.filter((it) => it.deletedAt == null);
+}
+
+/** How long a tombstone keeps carrying its dead item in the payload, and how
+ *  many we keep at most. Tombstones exist so a delete beats a paired device's
+ *  stale live copy; a device offline longer than the horizon may resurrect
+ *  what it never saw deleted (accepted tradeoff — without pruning the
+ *  published payload grows without bound until public relays reject it and
+ *  sync silently dies, which is far worse). */
+export const TOMBSTONE_HORIZON_MS = 21 * 24 * 3600 * 1000;
+/** High enough that a couple of heavy back-to-back trips never evict a
+ *  tombstone younger than the horizon; still bounds a pathological flood. */
+export const MAX_TOMBSTONES = 150;
+/** Tombstones keep their payload (notably the NAME) this long: the merge folds
+ *  a late pack made on a collapsed duplicate into the surviving same-name row,
+ *  and that fold needs the dead row's name. After a week the trip has long
+ *  converged; only id + clocks are worth carrying. */
+export const STRIP_AFTER_MS = 7 * 24 * 3600 * 1000;
+
+/**
+ * Bound the trip's dead weight: drop tombstones older than the horizon or
+ * beyond the count cap (oldest first), and strip payload fields off the
+ * remaining ones once they're old enough that no same-name fold can still need
+ * them. Returns the same trip object when nothing changed, so callers can
+ * cheaply detect a no-op. PURE of merge — depends on wall time, so run it at
+ * hydrate / after a delete, never inside the merge.
+ */
+export function pruneTombstones(trip: Trip, now: number): Trip {
+  const dead = trip.items.filter((it) => it.deletedAt != null);
+  if (dead.length === 0) return trip;
+
+  const keepIds = new Set(
+    dead
+      .filter((it) => now - (it.deletedAt ?? 0) < TOMBSTONE_HORIZON_MS)
+      .sort((a, b) => (b.deletedAt ?? 0) - (a.deletedAt ?? 0))
+      .slice(0, MAX_TOMBSTONES)
+      .map((it) => it.id)
+  );
+
+  let changed = false;
+  const items: TripItem[] = [];
+  for (const it of trip.items) {
+    if (it.deletedAt == null) {
+      items.push(it);
+      continue;
+    }
+    if (!keepIds.has(it.id)) {
+      changed = true;
+      continue;
+    }
+    const oldEnoughToStrip = now - (it.deletedAt ?? 0) >= STRIP_AFTER_MS;
+    if (!oldEnoughToStrip || it.name === '') {
+      items.push(it);
+      continue;
+    }
+    changed = true;
+    items.push({
+      id: it.id,
+      name: '',
+      category: it.category,
+      quantity: 1,
+      assigneeId: SHARED_ASSIGNEE,
+      packed: false,
+      source: it.source,
+      addedAt: it.addedAt,
+      updatedAt: it.updatedAt,
+      packedUpdatedAt: it.packedUpdatedAt,
+      packedAt: it.packedAt,
+      deletedAt: it.deletedAt,
+    });
+  }
+  return changed ? { ...trip, items } : trip;
+}
+
+/**
+ * Clamp every merge-participating stamp to `cap` (wall time + the clock's max
+ * skew). Heals data poisoned by a device with a fast wall clock minting
+ * far-future stamps: those stamps otherwise beat every fresh edit until real
+ * time catches up. Returns the same object when nothing changed.
+ */
+export function healFutureStamps(trip: Trip, cap: number): Trip {
+  const clampTs = (t: number): number => (t > cap ? cap : t);
+  let changed =
+    trip.updatedAt > cap ||
+    (trip.nameUpdatedAt ?? 0) > cap ||
+    trip.createdAt > cap;
+  const items = trip.items.map((it) => {
+    if (
+      it.updatedAt <= cap &&
+      it.addedAt <= cap &&
+      (it.packedUpdatedAt ?? 0) <= cap &&
+      (it.packedAt ?? 0) <= cap &&
+      (it.deletedAt ?? 0) <= cap
+    ) {
+      return it;
+    }
+    changed = true;
+    return {
+      ...it,
+      updatedAt: clampTs(it.updatedAt),
+      addedAt: clampTs(it.addedAt),
+      packedUpdatedAt:
+        it.packedUpdatedAt != null ? clampTs(it.packedUpdatedAt) : undefined,
+      packedAt: it.packedAt != null ? clampTs(it.packedAt) : undefined,
+      deletedAt: it.deletedAt != null ? clampTs(it.deletedAt) : undefined,
+    };
+  });
+  if (!changed) return trip;
+  return {
+    ...trip,
+    updatedAt: clampTs(trip.updatedAt),
+    nameUpdatedAt: clampTs(trip.nameUpdatedAt ?? trip.createdAt),
+    createdAt: clampTs(trip.createdAt),
+    items,
+  };
 }
 
 // ============================================================================
@@ -649,6 +819,7 @@ export function composeItems(
         );
         if (rule.shared) existing.assigneeId = SHARED_ASSIGNEE;
       } else {
+        const at = clockNow();
         generated.set(key, {
           id: `gen-${key}`,
           name: rule.name,
@@ -659,6 +830,8 @@ export function composeItems(
           source: 'generated',
           fromTypeIds: [typeId],
           originName: key,
+          addedAt: at,
+          updatedAt: at,
         });
       }
     }
@@ -700,6 +873,13 @@ export function composeItems(
         id: item.id,
         packed: item.packed,
         assigneeId: item.assigneeId,
+        // Carry the existing item's merge clocks so a recompose that changes
+        // nothing doesn't churn stamps; the store's updateTrip diff bumps
+        // updatedAt only when content actually changed.
+        addedAt: item.addedAt ?? fresh.addedAt,
+        updatedAt: item.updatedAt ?? fresh.updatedAt,
+        packedAt: item.packedAt,
+        packedUpdatedAt: item.packedUpdatedAt,
       });
       consumed.add(key);
     }
@@ -790,10 +970,13 @@ export function applyTripInfo(
   };
 }
 
-/** Group items by category in CATEGORY_ORDER. Empty categories are omitted. */
+/** Group items by category in CATEGORY_ORDER. Empty categories are omitted.
+ *  Tombstoned items (`deletedAt != null`) are filtered out — they exist only
+ *  so a delete survives a cross-device merge, never for display. */
 export function groupByCategory(items: TripItem[]): Array<{ category: Category; items: TripItem[] }> {
   const buckets = new Map<Category, TripItem[]>();
   for (const item of items) {
+    if (item.deletedAt != null) continue;
     const arr = buckets.get(item.category) ?? [];
     arr.push(item);
     buckets.set(item.category, arr);
