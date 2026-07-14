@@ -37,7 +37,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, Plus, ChevronLeft, ChevronRight, ChevronDown, GripVertical } from 'lucide-react-native';
+import { Check, Plus, ChevronLeft, ChevronRight, ChevronDown, GripVertical, Share2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import {
   NestedReorderableList,
@@ -52,6 +52,7 @@ import {
   SHARED_ASSIGNEE,
   groupByCategory,
   tripOpts,
+  visibleItems,
   type Category,
   type TripItem,
   type Packer,
@@ -63,6 +64,7 @@ import { useDonationModal } from '../store/donationModal';
 import { TIP_JAR_ENABLED } from '../lib/links';
 import { inferCategory } from '../data/categoryInference';
 import { makeId } from '../lib/id';
+import { now as clockNow } from '../sync/clock';
 import { t as tr, pickLocale, getLocale, CANONICAL_LOCALES } from '../i18n';
 import { useLocalePreference } from '../i18n/localePreference';
 import { boundedContent } from '../theme';
@@ -417,17 +419,44 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     updateTrip(tripId, (t) => {
-      // Dedup-by-name (case-insensitive): bump existing instead of duplicating.
       const lower = name.toLowerCase();
-      const existing = t.items.findIndex((it) => it.name.toLowerCase() === lower);
-      if (existing >= 0) {
+      // Dedup-by-name against VISIBLE items (case-insensitive): bump instead of
+      // duplicating. Tombstones are skipped so a re-add never silently bumps a
+      // dead row.
+      const visIdx = t.items.findIndex(
+        (it) => it.deletedAt == null && it.name.toLowerCase() === lower
+      );
+      if (visIdx >= 0) {
         return {
           ...t,
           items: t.items.map((it, i) =>
-            i === existing ? { ...it, quantity: it.quantity + 1, userModified: true } : it
+            i === visIdx ? { ...it, quantity: it.quantity + 1, userModified: true } : it
           ),
         };
       }
+      // A tombstoned match (previously removed) is revived instead of stacking a
+      // second row — the store's diff clears its tombstone and stamps it fresh.
+      const deadIdx = t.items.findIndex(
+        (it) => it.deletedAt != null && it.name.toLowerCase() === lower
+      );
+      if (deadIdx >= 0) {
+        return {
+          ...t,
+          items: t.items.map((it, i) =>
+            i === deadIdx
+              ? {
+                  ...it,
+                  deletedAt: undefined,
+                  quantity: 1,
+                  packed: false,
+                  category: draftCategory,
+                  userModified: true,
+                }
+              : it
+          ),
+        };
+      }
+      const at = clockNow();
       const newItem: TripItem = {
         id: makeId('c'),
         name,
@@ -436,6 +465,8 @@ export default function TripDetailScreen({ route, navigation }: Props) {
         assigneeId: SHARED_ASSIGNEE,
         packed: false,
         source: 'custom',
+        addedAt: at,
+        updatedAt: at,
       };
       return { ...t, items: [...t.items, newItem] };
     });
@@ -471,8 +502,11 @@ export default function TripDetailScreen({ route, navigation }: Props) {
   }
 
   const itemsHeading = trip.typeIds.length === 0 ? tr('detail.yourList') : tr('detail.suggestedItems');
-  const packedCount = trip.items.filter((i) => i.packed).length;
-  const totalCount = trip.items.length;
+  // Tombstoned items (deletedAt != null) exist only so a delete survives a
+  // cross-device merge — never count or render them.
+  const visible = visibleItems(trip);
+  const packedCount = visible.filter((i) => i.packed).length;
+  const totalCount = visible.length;
   const isSoloPacker = trip.packers.length === 1;
 
   // One-line summary for the condensed header: duration · types · how
@@ -515,7 +549,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
-        {/* In-screen header (back button) */}
+        {/* In-screen header (back button + share) */}
         <View style={s.headerBar}>
           <Pressable
             onPress={handleBack}
@@ -525,6 +559,15 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             accessibilityLabel={tr('detail.backToTrips')}
           >
             <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
+          </Pressable>
+          <Pressable
+            onPress={() => navigation.navigate('Share', { tripId })}
+            hitSlop={12}
+            style={({ pressed }) => [s.backBtn, pressed && s.backBtnPressed]}
+            accessibilityRole="button"
+            accessibilityLabel={tr('share.shareA11y')}
+          >
+            <Share2 size={22} color={c.fg} strokeWidth={1.5} />
           </Pressable>
         </View>
 
@@ -746,6 +789,7 @@ function makeStyles(c: Colors) {
       paddingBottom: space.s2,
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
     },
     backBtn: {
       width: target.min,

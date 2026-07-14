@@ -3,6 +3,7 @@
     "name": "Packing List",
     "slug": "packing-list",
     "version": "1.0.3",
+    "scheme": "packinglist",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -38,7 +39,13 @@
       "expo-sqlite",
       "expo-iap",
       "./plugins/withGradleJvmArgs",
-      "expo-mail-composer"
+      "expo-mail-composer",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Packing List to scan a share QR code to join a shared list."
+        }
+      ]
     ],
     "extra": {
       "eas": {

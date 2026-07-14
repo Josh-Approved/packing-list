@@ -1,3 +1,8 @@
+// Must load before anything that touches crypto: polyfills
+// crypto.getRandomValues so tweetnacl's PRNG works on React Native (shared-sync
+// pairing secrets + message sealing).
+import 'react-native-get-random-values';
+
 // react-native-gesture-handler requires being imported at the very top of the
 // entry file, before anything else. Required by react-native-reorderable-list
 // (drag-reorder for items) and other gesture-based libs.

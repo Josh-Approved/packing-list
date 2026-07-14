@@ -18,6 +18,7 @@ import {
   type TripTypeId,
   type Packer,
   type Thoroughness,
+  type ShareIdentity,
 } from '../data/trip';
 
 const DB_NAME = 'packing-list.db';
@@ -43,10 +44,16 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       canDoLaundry        INTEGER NOT NULL DEFAULT 0,
       laundryIntervalDays INTEGER NOT NULL DEFAULT 4,
       thoroughness        TEXT NOT NULL DEFAULT 'normal',
+      nameUpdatedAt       INTEGER NOT NULL DEFAULT 0,
+      shareIdentity       TEXT,
       createdAt           INTEGER NOT NULL,
       updatedAt           INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS app_settings (
+      k TEXT PRIMARY KEY NOT NULL,
+      v TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sync_meta (
       k TEXT PRIMARY KEY NOT NULL,
       v TEXT NOT NULL
     );
@@ -82,6 +89,17 @@ async function migrateTripColumns(db: SQLite.SQLiteDatabase): Promise<void> {
       `ALTER TABLE trips ADD COLUMN thoroughness TEXT NOT NULL DEFAULT 'normal'`
     );
   }
+  // Shared-sync columns (added when the feature landed). nameUpdatedAt defaults
+  // to 0 → rowToTrip falls back to createdAt for legacy rows; shareIdentity is
+  // nullable (absent until a trip is shared).
+  if (!have.has('nameUpdatedAt')) {
+    adds.push(
+      `ALTER TABLE trips ADD COLUMN nameUpdatedAt INTEGER NOT NULL DEFAULT 0`
+    );
+  }
+  if (!have.has('shareIdentity')) {
+    adds.push(`ALTER TABLE trips ADD COLUMN shareIdentity TEXT`);
+  }
   for (const sql of adds) await db.execAsync(sql);
 }
 
@@ -95,14 +113,27 @@ interface TripRow {
   canDoLaundry: number;
   laundryIntervalDays: number;
   thoroughness: string;
+  nameUpdatedAt: number | null;
+  shareIdentity: string | null;
   createdAt: number;
   updatedAt: number;
 }
 
 function rowToTrip(row: TripRow): Trip {
+  let shareIdentity: ShareIdentity | undefined;
+  if (row.shareIdentity) {
+    try {
+      shareIdentity = JSON.parse(row.shareIdentity) as ShareIdentity;
+    } catch {
+      shareIdentity = undefined;
+    }
+  }
   return {
     id: row.id,
     name: row.name,
+    // Legacy rows persisted before the name clock existed read back 0 → fall
+    // back to createdAt (the name was set at creation).
+    nameUpdatedAt: row.nameUpdatedAt || row.createdAt,
     duration: row.duration,
     typeIds: JSON.parse(row.typeIds) as TripTypeId[],
     packers: JSON.parse(row.packers) as Packer[],
@@ -110,6 +141,7 @@ function rowToTrip(row: TripRow): Trip {
     canDoLaundry: row.canDoLaundry === 1,
     laundryIntervalDays: row.laundryIntervalDays || LAUNDRY_DEFAULT_INTERVAL,
     thoroughness: (row.thoroughness as Thoroughness) || THOROUGHNESS_DEFAULT,
+    shareIdentity,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -129,8 +161,9 @@ export async function saveTrip(trip: Trip): Promise<void> {
     `INSERT OR REPLACE INTO trips
        (id, name, duration, typeIds, packers, items,
         canDoLaundry, laundryIntervalDays, thoroughness,
+        nameUpdatedAt, shareIdentity,
         createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       trip.id,
       trip.name,
@@ -141,6 +174,8 @@ export async function saveTrip(trip: Trip): Promise<void> {
       trip.canDoLaundry ? 1 : 0,
       trip.laundryIntervalDays ?? LAUNDRY_DEFAULT_INTERVAL,
       trip.thoroughness ?? THOROUGHNESS_DEFAULT,
+      trip.nameUpdatedAt ?? trip.createdAt,
+      trip.shareIdentity ? JSON.stringify(trip.shareIdentity) : null,
       trip.createdAt,
       trip.updatedAt,
     ]

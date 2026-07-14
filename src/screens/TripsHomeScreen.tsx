@@ -34,7 +34,7 @@ import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
 import { APP_STORE_ID, ANDROID_PACKAGE, TIP_JAR_ENABLED } from '../lib/links';
 import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
-import { getTripTypeIcon, TRIP_TYPES, type Trip } from '../data/trip';
+import { getTripTypeIcon, TRIP_TYPES, visibleItems, type Trip } from '../data/trip';
 import { t as tr } from '../i18n';
 import { useTheme, typography, space, target, radius } from '../theme';
 import type { Colors } from '../theme';
@@ -265,8 +265,10 @@ function TripCard({
   c: Colors;
 }) {
   const s = makeStyles(c);
-  const totalCount = trip.items.length;
-  const packedCount = trip.items.filter((i) => i.packed).length;
+  // Exclude tombstoned items (they exist only for cross-device delete merges).
+  const vis = visibleItems(trip);
+  const totalCount = vis.length;
+  const packedCount = vis.filter((i) => i.packed).length;
   const progress = totalCount > 0 ? packedCount / totalCount : 0;
 
   // Render up to 4 type icons; "+N" if more.

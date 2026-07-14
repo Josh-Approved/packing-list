@@ -48,6 +48,13 @@ jest.mock('../db', () => ({
   getAppSetting: jest.fn(async () => null),
   setAppSetting: jest.fn(async () => {}),
 }));
+// The store now imports the shared-sync clock persistence (storage/kv), which
+// pulls in expo-sqlite (→ expo-asset, unresolvable in the jest env). The fuzzer
+// never hydrates/flushes, so stub it out — same hermetic-store move as ../db.
+jest.mock('../../storage/kv', () => ({
+  getSyncMeta: jest.fn(async () => null),
+  setSyncMeta: jest.fn(async () => {}),
+}));
 jest.mock('../../qa/qaMode', () => ({ QA_MODE: false }));
 jest.mock('../../qa/fixtures', () => ({ qaTrips: () => [] }));
 
@@ -75,6 +82,11 @@ const TYPE_IDS: TripTypeId[] = TRIP_TYPES.map((t) => t.id);
 const CUSTOM_NAMES = ['Socks', 'Passport', 'Charger cable', 'Snacks', 'Book', 'Journal', 'Kite', 'Fishing rod'];
 
 const norm = (s: string) => s.trim().toLowerCase();
+
+// Shared-sync stores deletes as tombstones (deletedAt != null) that ride in the
+// trip for cross-device merge but are never shown or counted. Every oracle
+// reasons over VISIBLE items, exactly like the UI.
+const visible = (t: Trip): TripItem[] => t.items.filter((it) => it.deletedAt == null);
 
 /**
  * Key-order-insensitive structural serialization. "Import restores exactly what
@@ -128,10 +140,11 @@ function resync(m: Model, r: Real): void {
   m.tripIds = r.store.getState().trips.map((t) => t.id);
 }
 
-/** I-NODUP: no two items share a case-insensitive name. */
+/** I-NODUP: no two VISIBLE items share a case-insensitive name. (Tombstones may
+ *  legitimately share a name with a live re-add — they're invisible.) */
 function assertNoDupNames(t: Trip, ctx: string): void {
   const seen = new Set<string>();
-  for (const it of t.items) {
+  for (const it of visible(t)) {
     const k = norm(it.name);
     intent(`${ctx}: two items named "${it.name}" — kit composition/add must dedupe`, !seen.has(k));
     seen.add(k);
@@ -141,7 +154,7 @@ function assertNoDupNames(t: Trip, ctx: string): void {
 /** name -> packed, for the before/after "checked survives" comparison. */
 function packedByName(t: Trip): Map<string, boolean> {
   const m = new Map<string, boolean>();
-  for (const it of t.items) m.set(norm(it.name), it.packed);
+  for (const it of visible(t)) m.set(norm(it.name), it.packed);
   return m;
 }
 
@@ -162,8 +175,8 @@ function assertRecomposePreserved(before: Trip, after: Trip, ctx: string): void 
       );
     }
   }
-  const afterNames = new Set(after.items.map((it) => norm(it.name)));
-  for (const it of before.items) {
+  const afterNames = new Set(visible(after).map((it) => norm(it.name)));
+  for (const it of visible(before)) {
     if (it.source === 'custom' || it.userModified) {
       intent(
         `${ctx}: user-modified/custom item "${it.name}" was dropped by a trip edit`,
@@ -243,8 +256,10 @@ class TogglePacked implements fc.Command<Model, Real> {
   check = (m: Model) => m.tripIds.length > 0;
   run(m: Model, r: Real): void {
     const t = tripAt(m, r, this.pick);
-    if (!t || t.items.length === 0) return;
-    const item = t.items[this.itemPick % t.items.length];
+    if (!t) return;
+    const vis = visible(t);
+    if (vis.length === 0) return;
+    const item = vis[this.itemPick % vis.length];
     const want = !item.packed;
     r.store.getState().updateTrip(t.id, (tr) => ({
       ...tr,
@@ -265,15 +280,30 @@ class AddCustomItem implements fc.Command<Model, Real> {
     if (!t) return;
     const id = t.id;
     const name = this.name.trim();
-    // Mirror handleAddItem: dedupe-by-name (bump existing), else append custom.
+    // Mirror handleAddItem: dedupe/revive against VISIBLE items, else append.
     r.store.getState().updateTrip(id, (tr) => {
       const lower = norm(name);
-      const existing = tr.items.findIndex((it) => norm(it.name) === lower);
-      if (existing >= 0) {
+      const visIdx = tr.items.findIndex(
+        (it) => it.deletedAt == null && norm(it.name) === lower
+      );
+      if (visIdx >= 0) {
         return {
           ...tr,
           items: tr.items.map((it, i) =>
-            i === existing ? { ...it, quantity: it.quantity + 1, userModified: true } : it
+            i === visIdx ? { ...it, quantity: it.quantity + 1, userModified: true } : it
+          ),
+        };
+      }
+      const deadIdx = tr.items.findIndex(
+        (it) => it.deletedAt != null && norm(it.name) === lower
+      );
+      if (deadIdx >= 0) {
+        return {
+          ...tr,
+          items: tr.items.map((it, i) =>
+            i === deadIdx
+              ? { ...it, deletedAt: undefined, quantity: 1, packed: false, userModified: true }
+              : it
           ),
         };
       }
@@ -285,6 +315,8 @@ class AddCustomItem implements fc.Command<Model, Real> {
         assigneeId: SHARED_ASSIGNEE,
         packed: false,
         source: 'custom',
+        addedAt: 0,
+        updatedAt: 0,
       };
       return { ...tr, items: [...tr.items, newItem] };
     });
@@ -292,7 +324,7 @@ class AddCustomItem implements fc.Command<Model, Real> {
     assertNoDupNames(after, 'add-item');
     intent(
       `added item "${name}" is present after add`,
-      after.items.some((it) => norm(it.name) === norm(name))
+      visible(after).some((it) => norm(it.name) === norm(name))
     );
     resync(m, r);
   }
@@ -304,8 +336,10 @@ class EditQuantity implements fc.Command<Model, Real> {
   check = (m: Model) => m.tripIds.length > 0;
   run(m: Model, r: Real): void {
     const t = tripAt(m, r, this.pick);
-    if (!t || t.items.length === 0) return;
-    const item = t.items[this.itemPick % t.items.length];
+    if (!t) return;
+    const vis = visible(t);
+    if (vis.length === 0) return;
+    const item = vis[this.itemPick % vis.length];
     r.store.getState().updateTrip(t.id, (tr) => ({
       ...tr,
       items: tr.items.map((it) => (it.id === item.id ? { ...it, quantity: this.qty, userModified: true } : it)),
@@ -322,15 +356,17 @@ class RenameItem implements fc.Command<Model, Real> {
   check = (m: Model) => m.tripIds.length > 0;
   run(m: Model, r: Real): void {
     const t = tripAt(m, r, this.pick);
-    if (!t || t.items.length === 0) return;
-    const item = t.items[this.itemPick % t.items.length];
+    if (!t) return;
+    const vis = visible(t);
+    if (vis.length === 0) return;
+    const item = vis[this.itemPick % vis.length];
     const trimmed = this.name.trim();
     if (!trimmed) return;
-    // Renaming to a name another item already holds is a rare, unguarded UI
-    // action (the store does not dedupe on rename); skip it so I-NODUP stays a
-    // true global invariant of the compose/add trust core rather than a claim
-    // the rename path never made.
-    const collides = t.items.some((it) => it.id !== item.id && norm(it.name) === norm(trimmed));
+    // Renaming to a name another VISIBLE item already holds is a rare, unguarded
+    // UI action (the store does not dedupe on rename); skip it so I-NODUP stays
+    // a true invariant of the compose/add trust core rather than a claim the
+    // rename path never made.
+    const collides = vis.some((it) => it.id !== item.id && norm(it.name) === norm(trimmed));
     if (collides) return;
     r.store.getState().updateTrip(t.id, (tr) => ({
       ...tr,
@@ -352,15 +388,22 @@ class DeleteItem implements fc.Command<Model, Real> {
   check = (m: Model) => m.tripIds.length > 0;
   run(m: Model, r: Real): void {
     const t = tripAt(m, r, this.pick);
-    if (!t || t.items.length === 0) return;
-    const item = t.items[this.itemPick % t.items.length];
+    if (!t) return;
+    const vis = visible(t);
+    if (vis.length === 0) return;
+    const item = vis[this.itemPick % vis.length];
     const deadId = item.id;
     r.store.getState().updateTrip(t.id, (tr) => ({
       ...tr,
       items: tr.items.filter((it) => it.id !== deadId),
     }));
     const after = r.store.getState().getTrip(t.id)!;
-    intent(`deleted item ${deadId} ("${item.name}") must not remain`, !after.items.some((it) => it.id === deadId));
+    // The delete becomes a tombstone (invisible), so it must be gone from the
+    // VISIBLE set — not necessarily absent from the raw items array.
+    intent(
+      `deleted item ${deadId} ("${item.name}") must not remain visible`,
+      !visible(after).some((it) => it.id === deadId)
+    );
     resync(m, r);
   }
   toString = () => `deleteItem(#${this.pick}, item#${this.itemPick})`;

@@ -12,6 +12,20 @@ export const APP_STRINGS = {
     day: 'day',
     days: 'days',
     remove: 'Remove',
+    close: 'Close',
+  },
+  // Shared-trip pairing (Share screen). Mirrors grocery-list's share.* keys.
+  share: {
+    shareThis: 'Share this list',
+    scanCode: 'Scan a list code',
+    scanHint: "Point at the other phone's QR code.",
+    leadBefore: 'Anyone with this can see and edit',
+    thisList: 'this list',
+    leadAfter: '. No account needed. You only do this once.',
+    sendLink: 'Send link',
+    scanInsteadA11y: 'Scan a list code instead',
+    scanInstead: 'Scan a code instead',
+    shareA11y: 'Share this list with another device',
   },
   home: {
     title: 'Packing list',

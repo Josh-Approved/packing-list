@@ -205,6 +205,7 @@ describe('composeItems — preserving the user’s edits (the data-loss core)', 
     const custom: TripItem = {
       id: 'c-1', name: 'Snowboard wax', category: 'Misc', quantity: 1,
       assigneeId: SHARED_ASSIGNEE, packed: false, source: 'custom',
+      addedAt: 1, updatedAt: 1,
     };
     const after = composeItems(['beach'], 4, [custom]);
     expect(byName(after, 'Snowboard wax')).toBeDefined();
