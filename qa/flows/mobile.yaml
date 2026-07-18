@@ -19,17 +19,27 @@ appId: com.joshapproved.packinglist
     timeout: 30000
 - assertVisible: { text: "Greece.*" }
 - takeScreenshot: qa/captures/${STORE}/list
-- tapOn: { text: "Greece.*" }
+- tapOn:
+    text: "Greece.*"
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible: { text: "Packers" }
     timeout: 10000
 - assertVisible: { text: ".*Sam.*" }
 - takeScreenshot: qa/captures/${STORE}/packers
-- tapOn: { text: "Back to trips" }
-- tapOn: { text: "New trip" }
+- tapOn:
+    text: "Back to trips"
+    retryTapIfNoChange: true
+- tapOn:
+    text: "New trip"
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible: { text: "Trip information" }
     timeout: 10000
-- tapOn: { text: "Trip information" }
-- tapOn: { text: "Beach" }
+- tapOn:
+    text: "Trip information"
+    retryTapIfNoChange: true
+- tapOn:
+    text: "Beach"
+    retryTapIfNoChange: true
 - takeScreenshot: qa/captures/${STORE}/types

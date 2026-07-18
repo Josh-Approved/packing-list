@@ -14,12 +14,16 @@ appId: com.joshapproved.packinglist
 - extendedWaitUntil:
     visible: { text: "Greece.*" }
     timeout: 30000
-- tapOn: { text: "Greece.*" }
+- tapOn:
+    text: "Greece.*"
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible: { text: "Packers" }
     timeout: 10000
 - assertNotVisible: { text: ".*Compass.*" }
-- tapOn: { text: "New item name" }
+- tapOn:
+    text: "New item name"
+    retryTapIfNoChange: true
 - inputText: "Compass"
 - pressKey: Enter
 - assertVisible: { text: ".*Compass.*" }
@@ -42,7 +46,9 @@ appId: com.joshapproved.packinglist
 - extendedWaitUntil:
     visible: { text: "Greece.*" }
     timeout: 30000
-- tapOn: { text: "Greece.*" }
+- tapOn:
+    text: "Greece.*"
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible: { text: "Packers" }
     timeout: 10000
