@@ -44,7 +44,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#pressable-121",
@@ -53,7 +54,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#pressable-128",
@@ -62,7 +64,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#pressable-142",
@@ -71,7 +74,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#pressable-224",
@@ -80,7 +84,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#pressable-230",
@@ -89,7 +94,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#textinput-237",
@@ -98,7 +104,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#pressable-250",
@@ -107,7 +114,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/Dialogs#pressable-258",
@@ -116,7 +124,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "components/DonationModal#donate.supporta11y",
@@ -368,7 +377,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-520",
@@ -377,7 +387,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-541",
@@ -386,7 +397,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-580",
@@ -395,7 +407,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-648",
@@ -404,7 +417,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-661",
@@ -413,7 +427,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#textinput-670",
@@ -422,7 +437,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-682",
@@ -431,7 +447,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-710",
@@ -440,7 +457,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-1111",
@@ -449,7 +467,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onLongPress · dynamic/child-text label"
+      "note": "Pressable · onLongPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-1121",
@@ -458,7 +477,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#textinput-1138",
@@ -467,7 +487,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-1157",
@@ -476,7 +497,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripInfoScreen#pressable-195",
@@ -557,7 +579,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripsHomeScreen#alert-alert-action",
@@ -567,6 +590,285 @@
         "kind": "none"
       },
       "note": "Alert.alert · button"
+    },
+    {
+      "id": "components/Dialogs#common.closemenu",
+      "label": "common.closeMenu",
+      "where": "src/components/Dialogs.tsx:110",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Dialogs#pressable-116",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:116",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#pressable-123",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:123",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#common.cancel",
+      "label": "common.cancel",
+      "where": "src/components/Dialogs.tsx:135",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Dialogs#common.cancel-2",
+      "label": "common.cancel",
+      "where": "src/components/Dialogs.tsx:212",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Dialogs#pressable-218",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:218",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#textinput-223",
+      "label": "TextInput (dynamic label)",
+      "where": "src/components/Dialogs.tsx:223",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#common.cancel-3",
+      "label": "common.cancel",
+      "where": "src/components/Dialogs.tsx:238",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Dialogs#pressable-246",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:246",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#common.cancel-4",
+      "label": "common.cancel",
+      "where": "src/components/Dialogs.tsx:311",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Dialogs#pressable-317",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:317",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/Dialogs#common.cancel-5",
+      "label": "common.cancel",
+      "where": "src/components/Dialogs.tsx:323",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/Dialogs#pressable-331",
+      "label": "Pressable (dynamic label)",
+      "where": "src/components/Dialogs.tsx:331",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/ShareScreen#common.close",
+      "label": "common.close",
+      "where": "src/screens/ShareScreen.tsx:84",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/ShareScreen#share.sendlink",
+      "label": "share.sendLink",
+      "where": "src/screens/ShareScreen.tsx:117",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/ShareScreen#share.scaninsteada11y",
+      "label": "share.scanInsteadA11y",
+      "where": "src/screens/ShareScreen.tsx:126",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-493",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:493",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-554",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:554",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-563",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:563",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-584",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:584",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-623",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:623",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-691",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:691",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-704",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:704",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#textinput-713",
+      "label": "TextInput (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:713",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-725",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:725",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-753",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:753",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-1155",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1155",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onLongPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-1165",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1165",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#textinput-1182",
+      "label": "TextInput (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1182",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "TextInput · onSubmitEditing · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-1201",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:1201",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-279",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:279",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
     }
   ]
 }
