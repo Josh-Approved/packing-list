@@ -43,3 +43,31 @@ appId: com.joshapproved.packinglist
     text: "Beach"
     retryTapIfNoChange: true
 - takeScreenshot: qa/captures/${STORE}/types
+- tapOn:
+    text: "Back to trips"
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: { text: "Greece.*" }
+    timeout: 10000
+- tapOn:
+    text: "Greece.*"
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: { text: "Packers" }
+    timeout: 10000
+- assertNotVisible: { text: "Anyone with this can see and edit.*" }
+- tapOn:
+    text: "Share this list with another device"
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: { text: "Anyone with this can see and edit.*" }
+    timeout: 10000
+- assertVisible: { text: "Send link" }
+- assertVisible: { text: "Scan a list code instead" }
+- tapOn:
+    text: "Close"
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: { text: "Packers" }
+    timeout: 10000
+- assertNotVisible: { text: "Anyone with this can see and edit.*" }

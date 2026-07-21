@@ -1,5 +1,5 @@
 {
-  "$comment": "packing-list screenshot traversal, copy-free. Generates qa/flows/mobile.yaml (run scripts/qa/compile-flow.mjs). Screenshot names match qa/screenshots.config.json sources (list, packers, types). Mirrors the proven hand-written flow, but deterministic: the seeded trip already carries packers, so no live add-packer typing (RN <Modal> content isn't in the iOS a11y tree anyway).",
+  "$comment": "packing-list screenshot traversal, copy-free. Generates qa/flows/mobile.yaml (run scripts/qa/compile-flow.mjs). Screenshot names match qa/screenshots.config.json sources (list, packers, types). Mirrors the proven hand-written flow, but deterministic: the seeded trip already carries packers, so no live add-packer typing (RN <Modal> content isn't in the iOS a11y tree anyway). The share waypoints (Tier-2 outcome coverage for the 1.0.4 shared-trip flow) ride LAST, so the share identity minted when the Share screen mounts can't disturb earlier waypoints — mirrors grocery-list's share leg. The share buttons are asserted, never tapped: Send opens the OS share sheet and Scan requests camera permission, both flaky to drive cross-platform.",
   "appId": "com.joshapproved.packinglist",
   "clearState": true,
   "diagnosticLaunchShot": true,
@@ -19,7 +19,20 @@
     { "waitFor": "@trip-info-title", "timeout": 10000 },
     { "tap": "@trip-info-title" },
     { "tap": "@type-beach" },
-    { "screenshot": "types" }
+    { "screenshot": "types" },
+
+    { "tap": "@back" },
+    { "waitFor": "@first-trip", "timeout": 10000 },
+    { "tap": "@first-trip" },
+    { "waitFor": "@packers-heading", "timeout": 10000 },
+    { "assertNot": "@share-lead" },
+    { "tap": "@share-open" },
+    { "waitFor": "@share-lead", "timeout": 10000 },
+    { "assert": "@share-send" },
+    { "assert": "@share-scan" },
+    { "tap": "@share-close" },
+    { "waitFor": "@packers-heading", "timeout": 10000 },
+    { "assertNot": "@share-lead" }
   ],
   "survival": {
     "$comment": "T4 chaos net — state-survival subflow (compiles to qa/flows/state-survival.yaml; full profile + nightly, NOT per-PR). Core mutating action = add a packing item to the seeded trip (it auto-saves to disk). Then REAL process death (killApp on Android / stopApp on iOS), then relaunch keeping state and re-open the trip. Intent oracle: the item added before the kill is still on the list after it. The leading assertNot proves 'Compass' wasn't already there.",
