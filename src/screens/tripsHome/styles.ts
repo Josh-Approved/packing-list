@@ -125,7 +125,7 @@ export function makeStyles(c: Colors) {
       fontFamily: typography.body,
       fontSize: 14,
       lineHeight: 20,
-      color: c.fgSubtle,
+      color: c.fgMuted,
     },
     cardIconRow: {
       flexDirection: 'row',

@@ -177,7 +177,7 @@ export function makeStyles(c: Colors) {
       color: c.fg,
     },
     itemNamePacked: {
-      color: c.fgSubtle,
+      color: c.fgMuted,
       textDecorationLine: 'line-through',
     },
     itemNameEditing: {
