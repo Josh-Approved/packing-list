@@ -99,6 +99,7 @@ const ja = {
     itemRenameA11y: '{name}、タップで名前を変更',
     quantityOf: '{name}の数量',
     assigneeA11y: '{name}に割り当て済み、タップで変更',
+    sync: { connected: '接続済み', offline: 'オフライン', syncing: '同期中…', trouble: '同期できません', a11y: '共有旅行の同期：{status}。タップして今すぐ同期。' },
   },
   gender: {
     female: '女性',

@@ -98,6 +98,7 @@ const de = {
     itemRenameA11y: '{name}, tippen zum Umbenennen',
     quantityOf: 'Menge von {name}',
     assigneeA11y: '{name} zugewiesen, tippen zum Ändern',
+    sync: { connected: 'Verbunden', offline: 'Offline', syncing: 'Wird synchronisiert…', trouble: 'Keine Synchronisierung', a11y: 'Synchronisierung der geteilten Reise: {status}. Zum Synchronisieren tippen.' },
   },
   gender: {
     female: 'Weiblich',

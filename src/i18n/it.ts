@@ -98,6 +98,7 @@ const it = {
     itemRenameA11y: '{name}, tocca per rinominare',
     quantityOf: 'Quantità di {name}',
     assigneeA11y: 'Assegnato a {name}, tocca per cambiare',
+    sync: { connected: 'Connesso', offline: 'Offline', syncing: 'Sincronizzazione…', trouble: 'Non sincronizza', a11y: 'Sincronizzazione viaggio condiviso: {status}. Tocca per sincronizzare ora.' },
   },
   gender: {
     female: 'Donna',

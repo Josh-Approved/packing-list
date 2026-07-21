@@ -99,6 +99,7 @@ const pt_BR = {
     itemRenameA11y: '{name}, toque para renomear',
     quantityOf: 'Quantidade de {name}',
     assigneeA11y: 'Atribuído a {name}, toque para mudar',
+    sync: { connected: 'Conectado', offline: 'Sem conexão', syncing: 'Sincronizando…', trouble: 'Sem sincronizar', a11y: 'Sincronização da viagem compartilhada: {status}. Toque para sincronizar agora.' },
   },
   gender: {
     female: 'Feminino',

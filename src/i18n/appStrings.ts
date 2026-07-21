@@ -102,6 +102,13 @@ export const APP_STRINGS = {
     itemRenameA11y: '{name}, tap to rename',
     quantityOf: 'Quantity of {name}',
     assigneeA11y: 'Assigned to {name}, tap to change',
+    sync: {
+      connected: 'Connected',
+      offline: 'Offline',
+      syncing: 'Syncing…',
+      trouble: 'Not syncing',
+      a11y: 'Shared trip sync: {status}. Tap to sync now.',
+    },
   },
   gender: {
     female: 'Female',

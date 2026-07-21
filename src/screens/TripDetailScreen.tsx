@@ -54,6 +54,7 @@ import { t as tr, pickLocale, getLocale, CANONICAL_LOCALES } from '../i18n';
 import { useLocalePreference } from '../i18n/localePreference';
 import { useTheme, space, target } from '../theme';
 import { Pill } from '../components/Pill';
+import { SyncStatusBar } from '../components/SyncStatusBar';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
 import type { RootStackParamList } from '../../App';
 import { makeStyles } from './tripDetail/styles';
@@ -203,6 +204,11 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             <Share2 size={22} color={c.fg} strokeWidth={1.5} />
           </Pressable>
         </View>
+
+        {/* Honest live-sync indicator + tap-to-resync — shared trips only. */}
+        {trip.shareIdentity && (
+          <SyncStatusBar secret={trip.shareIdentity.secret} />
+        )}
 
         <ScrollViewContainer
           ref={scrollRef}
