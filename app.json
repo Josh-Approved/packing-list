@@ -43,7 +43,9 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Packing List to scan a share QR code to join a shared list."
+          "cameraPermission": "Allow Packing List to scan a share QR code to join a shared list.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ]
     ],
