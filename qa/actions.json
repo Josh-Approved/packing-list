@@ -283,7 +283,7 @@
     {
       "id": "components/ScreenHeader#common.back",
       "label": "common.back",
-      "where": "src/components/ScreenHeader.tsx:35",
+      "where": "src/components/ScreenHeader.tsx:38",
       "proof": {
         "kind": "none"
       },
@@ -371,221 +371,9 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-462",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:462",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-520",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:520",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-541",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:541",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-580",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:580",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-648",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:648",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-661",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:661",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#textinput-670",
-      "label": "TextInput (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:670",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "TextInput · onSubmitEditing · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-682",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:682",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-710",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:710",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-1111",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1111",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onLongPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-1121",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1121",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#textinput-1138",
-      "label": "TextInput (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1138",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "TextInput · onSubmitEditing · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripDetailScreen#pressable-1157",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1157",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
-      "id": "screens/TripInfoScreen#pressable-195",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripInfoScreen.tsx:195",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripInfoScreen#pressable-210",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripInfoScreen.tsx:210",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripInfoScreen#pressable-266",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripInfoScreen.tsx:266",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripInfoScreen#pressable-327",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripInfoScreen.tsx:327",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripInfoScreen#pressable-355",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripInfoScreen.tsx:355",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripsHomeScreen#pressable-144",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripsHomeScreen.tsx:144",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripsHomeScreen#pressable-159",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripsHomeScreen.tsx:159",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripsHomeScreen#pressable-206",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripsHomeScreen.tsx:206",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label"
-    },
-    {
-      "id": "screens/TripsHomeScreen#pressable-277",
-      "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripsHomeScreen.tsx:277",
-      "proof": {
-        "kind": "none"
-      },
-      "note": "Pressable · onPress · dynamic/child-text label",
-      "stale": true
-    },
-    {
       "id": "screens/TripsHomeScreen#alert-alert-action",
       "label": "alert-action",
-      "where": "src/screens/TripsHomeScreen.tsx:114",
+      "where": "src/screens/TripsHomeScreen.tsx:113",
       "proof": {
         "kind": "none"
       },
@@ -736,135 +524,207 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-493",
+      "id": "screens/TripDetailScreen#pressable-126",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:493",
+      "where": "src/screens/TripDetailScreen.tsx:126",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-554",
+      "id": "screens/TripDetailScreen#pressable-187",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:554",
+      "where": "src/screens/TripDetailScreen.tsx:187",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-563",
+      "id": "screens/TripDetailScreen#pressable-196",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:563",
+      "where": "src/screens/TripDetailScreen.tsx:196",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-584",
+      "id": "screens/TripDetailScreen#pressable-217",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:584",
+      "where": "src/screens/TripDetailScreen.tsx:217",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-623",
+      "id": "screens/TripDetailScreen#pressable-256",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:623",
+      "where": "src/screens/TripDetailScreen.tsx:256",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-691",
+      "id": "screens/TripInfoScreen#pressable-193",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:691",
+      "where": "src/screens/TripInfoScreen.tsx:193",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-704",
+      "id": "screens/TripInfoScreen#pressable-208",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:704",
+      "where": "src/screens/TripInfoScreen.tsx:208",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#textinput-713",
+      "id": "screens/TripInfoScreen#pressable-264",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:264",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-325",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:325",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-353",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:353",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-143",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:143",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-158",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:158",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripsHomeScreen#pressable-205",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripsHomeScreen.tsx:205",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/tripDetail/AddItemBar#pressable-158",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/tripDetail/AddItemBar.tsx:158",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/tripDetail/AddItemBar#textinput-167",
       "label": "TextInput (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:713",
+      "where": "src/screens/tripDetail/AddItemBar.tsx:167",
       "proof": {
         "kind": "none"
       },
       "note": "TextInput · onSubmitEditing · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-725",
+      "id": "screens/tripDetail/AddItemBar#pressable-179",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:725",
+      "where": "src/screens/tripDetail/AddItemBar.tsx:179",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-753",
+      "id": "screens/tripDetail/DoneFab#pressable-39",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:753",
+      "where": "src/screens/tripDetail/DoneFab.tsx:39",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-1155",
+      "id": "screens/tripDetail/ItemRow#pressable-84",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1155",
+      "where": "src/screens/tripDetail/ItemRow.tsx:84",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onLongPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-1165",
+      "id": "screens/tripDetail/ItemRow#pressable-94",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1165",
+      "where": "src/screens/tripDetail/ItemRow.tsx:94",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#textinput-1182",
+      "id": "screens/tripDetail/ItemRow#textinput-111",
       "label": "TextInput (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1182",
+      "where": "src/screens/tripDetail/ItemRow.tsx:111",
       "proof": {
         "kind": "none"
       },
       "note": "TextInput · onSubmitEditing · dynamic/child-text label"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-1201",
+      "id": "screens/tripDetail/ItemRow#pressable-130",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripDetailScreen.tsx:1201",
+      "where": "src/screens/tripDetail/ItemRow.tsx:130",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripsHomeScreen#pressable-279",
+      "id": "screens/tripDetail/UndoBar#pressable-26",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/TripsHomeScreen.tsx:279",
+      "where": "src/screens/tripDetail/UndoBar.tsx:26",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/tripsHome/TripCard#pressable-37",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/tripsHome/TripCard.tsx:37",
       "proof": {
         "kind": "none"
       },
