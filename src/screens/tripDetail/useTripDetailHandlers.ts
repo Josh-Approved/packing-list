@@ -1,6 +1,6 @@
 /**
  * useTripDetailHandlers — navigation, item-mutation, packer and inline-rename
- * handlers for TripDetailScreen, plus the review-prompt trigger and the
+ * handlers for TripDetailScreen, plus the donation-prompt trigger and the
  * inline-rename keyboard fix. Extracted verbatim from TripDetailScreen.tsx
  * (soft size ceiling decomposition).
  */
@@ -18,8 +18,7 @@ import {
   type Packer,
 } from '../../data/trip';
 import { useTripsStore } from '../../store/trips';
-import { recordTripBuildIfEligible } from '../../lib/reviewTrigger';
-import { useReviewModal } from '../../store/reviewModal';
+import { recordTripBuildIfEligible } from '../../lib/donationTrigger';
 import { useDonationModal } from '../../store/donationModal';
 import { TIP_JAR_ENABLED } from '../../lib/links';
 import { makeId } from '../../lib/id';
@@ -64,25 +63,26 @@ export function useTripDetailHandlers(
     );
   }, []);
 
-  // Review prompt. The "satisfying success" for a packing app is finishing
+  // Donation prompt. The "satisfying success" for a packing app is finishing
   // the build of a trip's list — so we fire as the user *leaves* Trip Detail
   // with a non-empty list (beforeRemove covers the back chevron, the Done
   // FAB, and the swipe-back gesture). The skip-first + per-trip-dedupe policy
   // and the canonical threshold live in recordTripBuildIfEligible(); the
-  // modal itself is mounted on Trips Home (this screen is unmounting).
-  const showReviewModal = useReviewModal((s) => s.show);
+  // sheet itself is mounted on Trips Home (this screen is unmounting).
+  //
+  // The review prompt is NOT triggered here — it is session-based and owned
+  // entirely by the app shell (canon § Review prompt).
   const showDonationModal = useDonationModal((s) => s.show);
   useEffect(() => {
     const unsub = navigation.addListener('beforeRemove', () => {
       const t = useTripsStore.getState().trips.find((x) => x.id === tripId);
       if (!t || t.items.length === 0) return;
-      recordTripBuildIfEligible(tripId).then(({ review, donation }) => {
-        if (review) showReviewModal();
-        else if (TIP_JAR_ENABLED && donation) showDonationModal();
+      recordTripBuildIfEligible(tripId).then((donation) => {
+        if (TIP_JAR_ENABLED && donation) showDonationModal();
       });
     });
     return unsub;
-  }, [navigation, tripId, showReviewModal, showDonationModal]);
+  }, [navigation, tripId, showDonationModal]);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 

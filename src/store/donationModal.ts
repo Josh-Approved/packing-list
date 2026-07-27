@@ -1,11 +1,11 @@
 /**
  * Cross-screen visibility flag for the donation modal.
  *
- * Mirror of reviewModal.ts: the completion is detected as the user *leaves*
- * Trip Detail, so the modal can't live on that screen (it's unmounting). It's
- * mounted on Trips Home instead and driven by this tiny store. Review takes
- * precedence on the same completion (see src/lib/reviewTrigger.ts), so at most
- * one of the two prompts ever shows per completion.
+ * The completion is detected as the user *leaves* Trip Detail, so the modal
+ * can't live on that screen (it's unmounting). It's mounted on Trips Home
+ * instead and driven by this tiny store. The trigger policy lives in
+ * src/lib/donationTrigger.ts. (The review prompt is unrelated — it is
+ * session-based and owned by the app shell.)
  *
  * Not persisted — a missed prompt (app killed between trigger and Home render)
  * is harmless; the canonical counter only advances on user action.

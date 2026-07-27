@@ -42,6 +42,7 @@ import ShareScreen from './src/screens/ShareScreen';
 import Credits from './src/components/Credits';
 import { startSyncEngine, stopSyncEngine, flushSyncEngine } from './src/sync';
 import { parseShareLink } from './src/sync/share';
+import { APP_STORE_ID, ANDROID_PACKAGE } from './src/lib/links';
 import { QA_MODE } from './src/qa/qaMode';
 
 // Hold the native launch screen until the JS splash is mounted to take over, so
@@ -65,6 +66,17 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+// Store identity for the canonical review prompt. The shell owns the whole
+// trigger — it counts each cold start, applies the studio-wide schedule and
+// per-install cap, and mounts the modal itself. This app carries no trigger
+// code. Declared at module scope because the shell's effect depends on the
+// prop identity.
+const REVIEW = {
+  appName: 'Packing List',
+  iosAppStoreId: APP_STORE_ID,
+  androidPackageName: ANDROID_PACKAGE,
+};
 
 export default function App() {
   const [fontsLoaded] = useAppFonts();
@@ -127,7 +139,7 @@ export default function App() {
   const ready = fontsLoaded && hydrated && settingsHydrated;
 
   return (
-    <AppShell ready={ready} navigationRef={navigationRef}>
+    <AppShell ready={ready} navigationRef={navigationRef} review={REVIEW}>
       <Stack.Navigator
         initialRouteName="TripsHome"
         screenOptions={{ headerShown: false, animation: QA_MODE ? 'none' : undefined }}

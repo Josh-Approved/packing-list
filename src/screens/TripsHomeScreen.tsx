@@ -22,16 +22,14 @@ import { Plus, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTripsStore } from '../store/trips';
-import ReviewModal from '../components/ReviewModal';
 import TipJarSheet from '../components/TipJarSheet';
 import GenderPrompt from '../components/GenderPrompt';
 import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { FundingFooter } from '../components/FundingFooter';
 import { usePullRevealFooter } from '../components/usePullRevealFooter';
-import { useReviewModal } from '../store/reviewModal';
 import { useDonationModal } from '../store/donationModal';
-import { APP_STORE_ID, ANDROID_PACKAGE, TIP_JAR_ENABLED } from '../lib/links';
+import { TIP_JAR_ENABLED } from '../lib/links';
 import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
 import { type Trip } from '../data/trip';
 import { t as tr } from '../i18n';
@@ -51,10 +49,6 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const updateTrip = useTripsStore((st) => st.updateTrip);
   const deleteTrip = useTripsStore((st) => st.deleteTrip);
 
-  // Review modal lives here (not Trip Detail): the completion is detected as
-  // the user leaves Trip Detail, so the prompt surfaces once they're back.
-  const reviewVisible = useReviewModal((st) => st.visible);
-  const hideReview = useReviewModal((st) => st.hide);
   // The twice-only soft prompt — surfaced from Trip Detail via this store —
   // now opens the IAP tip jar instead of the BMAC link-out.
   const donationVisible = useDonationModal((st) => st.visible);
@@ -215,14 +209,6 @@ export default function TripsHomeScreen({ navigation }: Props) {
           <Plus size={24} color={c.inkButtonText} strokeWidth={1.5} />
         </Pressable>
       )}
-
-      <ReviewModal
-        visible={reviewVisible}
-        onDismiss={hideReview}
-        appName="Packing List - Josh Approved"
-        iosAppStoreId={APP_STORE_ID}
-        androidPackageName={ANDROID_PACKAGE}
-      />
 
       {TIP_JAR_ENABLED && donationVisible && (
         <TipJarSheet
