@@ -23,17 +23,35 @@ import {
 
 const DB_NAME = 'packing-list.db';
 
-let _db: SQLite.SQLiteDatabase | null = null;
+let _db: Promise<SQLite.SQLiteDatabase> | null = null;
 
-async function getDb(): Promise<SQLite.SQLiteDatabase> {
-  if (_db) return _db;
-  _db = await SQLite.openDatabaseAsync(DB_NAME);
+/**
+ * Memoizes the OPEN PROMISE, not the opened handle. Hydration, settings and
+ * the sync engine all call this at startup, so caching only the resolved
+ * handle let several callers run the open + migrate sequence concurrently:
+ * each read PRAGMA table_info before any of them had ALTERed, so all of them
+ * queued the same ADD COLUMN and the losers threw "duplicate column name",
+ * failing the whole hydration ("failed to load trips from disk" = an empty
+ * trip list on an upgrade install).
+ */
+function getDb(): Promise<SQLite.SQLiteDatabase> {
+  if (!_db) {
+    _db = openAndMigrate().catch((err) => {
+      _db = null; // a failed open must not be cached
+      throw err;
+    });
+  }
+  return _db;
+}
+
+async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
+  const db = await SQLite.openDatabaseAsync(DB_NAME);
   // Fresh installs get the full shape. The three trip-info columns carry
   // legacy-safe DEFAULTs so the migration below can ADD them to an existing
   // table without rewriting any row: an old trip reads back as
   // canDoLaundry=0 / laundryIntervalDays=4 / thoroughness='normal', which is
   // exactly the pre-laundry, normal-thoroughness behavior.
-  await _db.execAsync(`
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS trips (
       id                  TEXT PRIMARY KEY NOT NULL,
       name                TEXT NOT NULL,
@@ -58,8 +76,8 @@ async function getDb(): Promise<SQLite.SQLiteDatabase> {
       v TEXT NOT NULL
     );
   `);
-  await migrateTripColumns(_db);
-  return _db;
+  await migrateTripColumns(db);
+  return db;
 }
 
 /**
@@ -100,7 +118,16 @@ async function migrateTripColumns(db: SQLite.SQLiteDatabase): Promise<void> {
   if (!have.has('shareIdentity')) {
     adds.push(`ALTER TABLE trips ADD COLUMN shareIdentity TEXT`);
   }
-  for (const sql of adds) await db.execAsync(sql);
+  for (const sql of adds) {
+    try {
+      await db.execAsync(sql);
+    } catch (err) {
+      // Another connection (a second app instance, a restored background task)
+      // may have added the same column between the PRAGMA and here. Losing that
+      // race is fine — the column exists either way. Anything else is real.
+      if (!/duplicate column name/i.test(String(err))) throw err;
+    }
+  }
 }
 
 interface TripRow {

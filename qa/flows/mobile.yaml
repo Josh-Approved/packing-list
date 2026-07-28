@@ -19,6 +19,8 @@ appId: com.joshapproved.packinglist
     timeout: 30000
 - assertVisible: { text: "Greece.*" }
 - takeScreenshot: qa/captures/${STORE}/list
+- waitForAnimationToEnd:
+    timeout: 2000
 - tapOn:
     text: "Greece.*"
     retryTapIfNoChange: true
@@ -27,9 +29,14 @@ appId: com.joshapproved.packinglist
     timeout: 10000
 - assertVisible: { text: ".*Sam.*" }
 - takeScreenshot: qa/captures/${STORE}/packers
+- waitForAnimationToEnd:
+    timeout: 2000
 - tapOn:
     text: "Back to trips"
     retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: { text: "New trip" }
+    timeout: 10000
 - tapOn:
     text: "New trip"
     retryTapIfNoChange: true
@@ -43,6 +50,8 @@ appId: com.joshapproved.packinglist
     text: "Beach"
     retryTapIfNoChange: true
 - takeScreenshot: qa/captures/${STORE}/types
+- waitForAnimationToEnd:
+    timeout: 2000
 - tapOn:
     text: "Back to trips"
     retryTapIfNoChange: true
