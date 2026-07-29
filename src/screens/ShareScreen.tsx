@@ -6,7 +6,7 @@
  * stay synced forever (the link is just the introduction).
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -49,7 +49,20 @@ export default function ShareScreen({ route, navigation }: Props) {
   const [scanning, setScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
 
-  const secret = trip ? shareTrip(tripId) : null;
+  // Mint (or fetch) the share secret in an effect, never during render —
+  // shareTrip() routes through the trips store's updateTrip(), and mutating a
+  // store while rendering triggers React's "cannot update a component while
+  // rendering a different component" warning. shareTrip is idempotent (returns
+  // the existing secret once minted), so re-runs are safe and don't loop.
+  const hasTrip = !!trip;
+  const [secret, setSecret] = useState<string | null>(null);
+  useEffect(() => {
+    if (!hasTrip) {
+      setSecret(null);
+      return;
+    }
+    setSecret(shareTrip(tripId));
+  }, [tripId, hasTrip, shareTrip]);
   const link = secret ? buildShareLink(secret) : '';
 
   const onSend = useCallback(() => {
