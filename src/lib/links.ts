@@ -9,22 +9,11 @@
 import { Linking, Platform } from 'react-native';
 import * as Application from 'expo-application';
 
-export const BMAC_URL = 'https://buymeacoffee.com/jtysonwilliams';
-
 /**
- * Gates every Buy Me a Coffee surface — the tertiary FundingFooter, the
- * Settings/About support row, and the soft donation prompt. Set false
- * 2026-06-16: Apple rejects external donation links for a for-profit app
- * (App Store guideline 3.1.1 — must be In-App Purchase). It stays false —
- * the BMAC link-out is the rejected surface; the IAP tip jar replaces it.
- */
-export const DONATIONS_ENABLED: boolean = false;
-
-/**
- * Gates the IAP tip jar — the sanctioned 3.1.1 replacement. It powers the same
- * three placements the donation surfaces used (the home-screen support link,
- * the Settings/About support row, and the twice-only soft prompt), each now
- * opening the canonical TipJarSheet instead of a browser link.
+ * Gates the IAP tip jar — the only support surface (Apple 3.1.1 requires
+ * In-App Purchase; external donation link-outs are rejected and were removed
+ * studio-wide). It powers the home-screen support link and the Settings/About
+ * support row, both opening the canonical TipJarSheet.
  */
 export const TIP_JAR_ENABLED: boolean = true;
 
@@ -63,10 +52,6 @@ const open = (url: string) => {
 /** Canonical name used by synced shell components (FundingFooter). */
 export function openUrl(url: string): void {
   open(url);
-}
-
-export function openBmac(): void {
-  open(BMAC_URL);
 }
 
 export function openFeedback(): void {

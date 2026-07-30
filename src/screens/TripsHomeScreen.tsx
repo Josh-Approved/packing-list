@@ -28,7 +28,6 @@ import { useActionMenu, usePrompt } from '../components/Dialogs';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { FundingFooter } from '../components/FundingFooter';
 import { usePullRevealFooter } from '../components/usePullRevealFooter';
-import { useDonationModal } from '../store/donationModal';
 import { TIP_JAR_ENABLED } from '../lib/links';
 import { TIP_PRODUCT_IDS } from '../constants/tipProducts';
 import { type Trip } from '../data/trip';
@@ -49,12 +48,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
   const updateTrip = useTripsStore((st) => st.updateTrip);
   const deleteTrip = useTripsStore((st) => st.deleteTrip);
 
-  // The twice-only soft prompt — surfaced from Trip Detail via this store —
-  // now opens the IAP tip jar instead of the BMAC link-out.
-  const donationVisible = useDonationModal((st) => st.visible);
-  const hideDonation = useDonationModal((st) => st.hide);
-
-  // The quiet tertiary "Support this app" footer link opens the same sheet.
+  // The quiet tertiary "Support this app" footer link opens the tip jar.
   const [tipVisible, setTipVisible] = useState(false);
 
   const menu = useActionMenu();
@@ -208,14 +202,6 @@ export default function TripsHomeScreen({ navigation }: Props) {
         >
           <Plus size={24} color={c.inkButtonText} strokeWidth={1.5} />
         </Pressable>
-      )}
-
-      {TIP_JAR_ENABLED && donationVisible && (
-        <TipJarSheet
-          visible
-          onDismiss={hideDonation}
-          productIds={TIP_PRODUCT_IDS}
-        />
       )}
 
       {TIP_JAR_ENABLED && tipVisible && (

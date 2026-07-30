@@ -35,4 +35,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Feedback
 
-Email [feedback@joshapproved.com](mailto:feedback@joshapproved.com). If the app saved you a repacked bag, you can [buy me a coffee](https://buymeacoffee.com/jtysonwilliams).
+Email [feedback@joshapproved.com](mailto:feedback@joshapproved.com). If the app saved you a repacked bag, there's an optional tip jar in the app.
