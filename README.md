@@ -4,7 +4,7 @@ A packing checklist that builds itself from the kind of trip you're taking.
 
 ## What it is
 
-Pick how long you're going and what kind of trip it is — beach, business, hiking, cold weather, kids along — and Packing List composes a checklist with sensible quantities (one pair of socks a day, one passport, two swimsuits). Adjust anything, add your own items, split the list across the people you're packing for, and check things off as you go.
+Pick how long you're going and what kind of trip it is: beach, business, hiking, cold weather, kids along. Packing List composes a checklist with sensible quantities (one pair of socks a day, one passport, two swimsuits). Adjust anything, add your own items, split the list across the people you're packing for, and check things off as you go.
 
 ## Who it's for
 
@@ -27,11 +27,11 @@ Requires Node, the Expo tooling, and Xcode for the iOS simulator.
 
 ## Privacy
 
-Your data stays with you — no accounts, no tracking, no analytics, and none of it is collected. See [PRIVACY.md](PRIVACY.md).
+Your data stays with you: no accounts, no tracking, no analytics, and none of it is collected. See [PRIVACY.md](PRIVACY.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
 
 ## Feedback
 
