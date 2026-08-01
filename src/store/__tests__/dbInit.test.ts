@@ -36,6 +36,19 @@ let openCount = 0;
 /** Yields to the microtask/timer queue so concurrent callers interleave. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
+/**
+ * Every step of the fake database is a real `setTimeout(0)` (that interleaving
+ * IS the race under test), so these tests are timer-scheduling bound rather
+ * than work bound. Alone they run in well under a second; inside the full
+ * parallel suite on a loaded machine the timer queue gets starved and they blew
+ * through Jest's 5s default. A timeout here is not a slow test — it is a
+ * starved one, and the failure mode was ugly: the first test timing out left
+ * its `isolateModulesAsync` block open, so the next two died with
+ * "isolateModulesAsync cannot be nested" and one contention hiccup read as
+ * three broken trust-core tests. Held the 2026-08-07 train (learning L23).
+ */
+const TIMER_BOUND_TIMEOUT_MS = 30_000;
+
 const fakeDb = {
   async execAsync(sql: string) {
     await tick();
@@ -100,7 +113,7 @@ describe('db init', () => {
       expect(columns.filter((c) => c === 'nameUpdatedAt')).toHaveLength(1);
       expect(columns).toContain('shareIdentity');
     });
-  });
+  }, TIMER_BOUND_TIMEOUT_MS);
 
   it('adds the shared-sync columns to a legacy table', async () => {
     await jest.isolateModulesAsync(async () => {
@@ -109,7 +122,7 @@ describe('db init', () => {
       expect(columns).toContain('nameUpdatedAt');
       expect(columns).toContain('shareIdentity');
     });
-  });
+  }, TIMER_BOUND_TIMEOUT_MS);
 
   it('survives another connection winning the same ADD COLUMN', async () => {
     await jest.isolateModulesAsync(async () => {
@@ -127,5 +140,5 @@ describe('db init', () => {
         fakeDb.getAllAsync = realGetAll;
       }
     });
-  });
+  }, TIMER_BOUND_TIMEOUT_MS);
 });
