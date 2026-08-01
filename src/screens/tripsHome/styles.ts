@@ -85,9 +85,13 @@ export function makeStyles(c: Colors) {
     scrollContent: {
       ...boundedContent,
       paddingHorizontal: space.s5,
-      // Extra bottom room so the funding footer scrolls clear of the
-      // floating "+" FAB rather than tucking under it at the list end.
-      paddingBottom: space.s9,
+      // The funding footer is pinned to the bottom of this content (footerHolder
+      // marginTop:auto) and the FAB lifts itself above it by footerHeight, so
+      // this padding is only the footer's breathing room off the screen edge.
+      // It must stay SMALL: every extra pixel here raises the footer without
+      // raising the FAB, and at space.s9 the FAB sat 52px into the footer and
+      // covered the "Send feedback" button on small screens.
+      paddingBottom: space.s5,
       gap: space.s4,
     },
     footerHolder: { marginTop: 'auto' },
