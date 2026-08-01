@@ -115,6 +115,38 @@ describe('db init', () => {
     });
   }, TIMER_BOUND_TIMEOUT_MS);
 
+  /**
+   * The whole APP opens the database exactly once — the domain module and the
+   * shell's storage/kv.ts must share one connection, not one each.
+   *
+   * Two openDatabaseAsync call sites on the same file are harmless once the
+   * SQLite directory exists, which is why this hid for so long: it only bites
+   * on the FIRST launch after an install, when both races expo-sqlite's
+   * ensureDatabasePathExists and the loser rejects with "Couldn't create
+   * directory … Path already points to a non-normal file". hydrate() catches
+   * that and fails open, so the user's first launch renders "No trips yet".
+   * Reproduced at ~2 in 15 cold launches on an emulator 2026-08-01, and it
+   * failed one device-matrix cell per run, holding the release train twice.
+   *
+   * The test above only ever exercised store/db.ts, so it counted 1 open while
+   * the app really made 2. This one drives BOTH modules in the same tick.
+   */
+  it('opens once across the whole app — domain and shell share one connection', async () => {
+    await jest.isolateModulesAsync(async () => {
+      const db = require('../db');
+      const kv = require('../../storage/kv');
+
+      // Cold start: hydration (domain) and a shell settings read land together.
+      await Promise.all([
+        db.loadAllTrips(),
+        kv.getAppSetting('theme'),
+        db.getAppSetting('gender'),
+      ]);
+
+      expect(openCount).toBe(1);
+    });
+  }, TIMER_BOUND_TIMEOUT_MS);
+
   it('adds the shared-sync columns to a legacy table', async () => {
     await jest.isolateModulesAsync(async () => {
       const db = require('../db');

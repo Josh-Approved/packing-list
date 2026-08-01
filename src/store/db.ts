@@ -10,6 +10,7 @@
  */
 
 import * as SQLite from 'expo-sqlite';
+import { getDb as getSharedDb } from '../storage/kv';
 import {
   LAUNDRY_DEFAULT_INTERVAL,
   THOROUGHNESS_DEFAULT,
@@ -20,8 +21,6 @@ import {
   type Thoroughness,
   type ShareIdentity,
 } from '../data/trip';
-
-const DB_NAME = 'packing-list.db';
 
 let _db: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -44,8 +43,18 @@ function getDb(): Promise<SQLite.SQLiteDatabase> {
   return _db;
 }
 
+/**
+ * The connection comes from the shell's storage/kv.ts — the app's ONE database
+ * connection — never from a second openDatabaseAsync here. Two call sites open
+ * the same file, and on the first launch after an install the SQLite directory
+ * does not exist yet, so both race expo-sqlite's ensureDatabasePathExists: the
+ * loser rejects with "Couldn't create directory … Path already points to a
+ * non-normal file" and hydration falls into its fail-open catch, rendering an
+ * empty trip list. Reproduced at ~2 in 15 cold launches on 2026-08-01; it held
+ * the release train by failing a device-matrix cell a run.
+ */
 async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
-  const db = await SQLite.openDatabaseAsync(DB_NAME);
+  const db = await getSharedDb();
   // Fresh installs get the full shape. The three trip-info columns carry
   // legacy-safe DEFAULTs so the migration below can ADD them to an existing
   // table without rewriting any row: an old trip reads back as
