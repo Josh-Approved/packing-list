@@ -53,3 +53,7 @@ reports/
 
 # Stryker incremental cache (local mutation-testing artifact)
 stryker-incremental.json
+
+# Monkey chaos-run logs (per-run artifacts; the tracked fixtures in
+# qa/regressions/ are the minimized *.json repros, never these logs)
+qa/regressions/*.log

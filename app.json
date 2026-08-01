@@ -2,7 +2,7 @@
   "expo": {
     "name": "Packing List",
     "slug": "packing-list",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "scheme": "packinglist",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
