@@ -49,6 +49,7 @@ import {
 import { getSyncMeta, setSyncMeta } from '../storage/kv';
 import { useSettingsStore } from './settings';
 import { loadAllTrips, saveTrip, deleteTripFromDb } from './db';
+import { logEvent, logError } from '../feedback/log';
 import { QA_MODE } from '../qa/qaMode';
 import { qaTrips } from '../qa/fixtures';
 
@@ -243,9 +244,12 @@ interface TripsState {
 const DEFAULT_PACKERS = [{ id: 'me', name: 'Me' }];
 
 function persist(trip: Trip): void {
-  saveTrip(trip).catch((err) =>
-    console.warn('packing-list: failed to persist trip', err)
-  );
+  saveTrip(trip).catch((err) => {
+    // "My change didn't stick" is almost always a failed write. Counts only,
+    // never the packing list's contents.
+    logError('trips', err, { during: 'persist', items: trip.items.length });
+    console.warn('packing-list: failed to persist trip', err);
+  });
 }
 
 export const useTripsStore = create<TripsState>()((set, get) => ({
@@ -293,6 +297,12 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
         return;
       }
       const { trips, changed } = repairIds(healed);
+      // The counts that answer "I opened it and my trips were gone".
+      logEvent('trips', 'hydrated', {
+        trips: trips.length,
+        shared: trips.filter((t) => !!t.shareIdentity).length,
+        repaired: changed.length,
+      });
       set({ trips, hydrated: true });
       // Persist any trip whose data hygiene or id-repair changed on load.
       const dirty = new Set<string>();
@@ -302,7 +312,9 @@ export const useTripsStore = create<TripsState>()((set, get) => ({
       for (const t of changed) dirty.add(t.id);
       for (const t of trips) if (dirty.has(t.id)) persist(t);
     } catch (err) {
-      // Fail open: mark hydrated so UI unblocks; trips just stay empty.
+      // Fail open: mark hydrated so UI unblocks; trips just stay empty. The
+      // user is now staring at an empty home screen with their data on disk.
+      logError('trips', err, { during: 'hydrate' });
       console.warn('packing-list: failed to load trips from disk', err);
       initClock(Date.now(), persistClock);
       set({ hydrated: true });
