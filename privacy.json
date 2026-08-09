@@ -1,0 +1,11 @@
+{
+  "_comment": "Per-app override deep-merged onto josh-approved-factory/templates/privacy/privacy-declarations.json by push-privacy-forms.mjs. packing-list turns OFF three accessibility claims the studio default asserts, because they are not true here yet — the reasons and evidence are the 'Not claimed' block in STORE_LISTING.md § Accessibility Nutrition Labels (verified 2026-07-20, defects open in defects/packing-list.jsonl). Claiming them on the App Store product page would be a false accessibility claim, which is worse than claiming nothing. Flip each back to true in the SAME change that fixes and re-verifies it.",
+  "apple": {
+    "accessibility": {
+      "_comment": "supportsVoiceControl: several accessibilityLabels are descriptive sentences that diverge from the visible text, so speaking a control's visible name does not reliably match it. supportsLargerText: text scales, but ~37 fixed numeric lineHeights do not, so lines clip at AX5. supportsSufficientContrast: the fgSubtle token fails AA as text in both palettes (light ~2.7:1, dark ~4.0:1) and carries packed item names, placeholders and icons.",
+      "supportsVoiceControl": false,
+      "supportsLargerText": false,
+      "supportsSufficientContrast": false
+    }
+  }
+}
