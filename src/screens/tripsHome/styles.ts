@@ -4,7 +4,7 @@
  */
 
 import { StyleSheet } from 'react-native';
-import { typography, space, target, radius } from '../../theme';
+import { typography, space, target, radius, type as ty, scaledLineHeight } from '../../theme';
 import type { Colors } from '../../theme';
 import { boundedContent } from '../../theme';
 
@@ -24,7 +24,7 @@ export function makeStyles(c: Colors) {
     title: {
       fontFamily: typography.heading,
       fontSize: 28,
-      lineHeight: 36,
+      lineHeight: scaledLineHeight(36),
       color: c.fg,
     },
     menuBtn: {
@@ -50,13 +50,13 @@ export function makeStyles(c: Colors) {
     emptyTitle: {
       fontFamily: typography.heading,
       fontSize: 22,
-      lineHeight: 28,
+      lineHeight: scaledLineHeight(28),
       color: c.fg,
     },
     emptyHint: {
       fontFamily: typography.body,
       fontSize: 15,
-      lineHeight: 22,
+      lineHeight: scaledLineHeight(22),
       color: c.fgMuted,
       textAlign: 'center',
       marginBottom: space.s4,
@@ -111,7 +111,7 @@ export function makeStyles(c: Colors) {
     cardName: {
       fontFamily: typography.heading,
       fontSize: 18,
-      lineHeight: 24,
+      lineHeight: scaledLineHeight(24),
       color: c.fg,
     },
     cardMetaRow: {
@@ -121,14 +121,12 @@ export function makeStyles(c: Colors) {
     },
     cardMeta: {
       fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: c.fgMuted,
     },
     cardMetaDot: {
       fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: c.fgMuted,
     },
     cardIconRow: {

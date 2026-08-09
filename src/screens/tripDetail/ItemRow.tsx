@@ -85,10 +85,11 @@ export function ItemRow({
         onLongPress={drag}
         delayLongPress={250}
         style={s.dragHandle}
+        accessibilityRole="button"
         accessibilityLabel={tr('detail.reorderA11y', { name: item.name })}
         hitSlop={6}
       >
-        <GripVertical size={16} color={c.fgSubtle} strokeWidth={1.5} />
+        <GripVertical size={16} color={c.fgMuted} strokeWidth={1.5} />
       </Pressable>
 
       <Pressable
@@ -156,7 +157,7 @@ export function ItemRow({
           label={assigneeLabel}
           active={item.assigneeId !== SHARED_ASSIGNEE}
           onPress={onAssigneeCycle}
-          accessibilityLabel={tr('detail.assigneeA11y', { name: assigneeLabel })}
+          accessibilityHint={tr('detail.assigneeHint')}
         />
       )}
     </View>

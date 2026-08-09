@@ -5,7 +5,7 @@
  */
 
 import { StyleSheet } from 'react-native';
-import { typography, space, target, radius } from '../../theme';
+import { typography, space, target, radius, type as ty, scaledLineHeight } from '../../theme';
 import type { Colors } from '../../theme';
 import { boundedContent } from '../../theme';
 
@@ -75,19 +75,18 @@ export function makeStyles(c: Colors) {
       flex: 1,
       fontFamily: typography.heading,
       fontSize: 20,
-      lineHeight: 26,
+      lineHeight: scaledLineHeight(26),
       color: c.fg,
     },
     tripInfoMeta: {
       fontFamily: typography.body,
       fontSize: 13,
-      lineHeight: 19,
+      lineHeight: scaledLineHeight(19),
       color: c.fgMuted,
     },
     progressText: {
       fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: c.fgMuted,
       paddingTop: space.s4,
       paddingBottom: space.s1,
@@ -100,8 +99,7 @@ export function makeStyles(c: Colors) {
     },
     sectionLabel: {
       fontFamily: typography.bodyEmphasis,
-      fontSize: 12,
-      lineHeight: 16,
+      ...ty.xs,
       letterSpacing: 0.5,
       color: c.fgMuted,
     },
@@ -139,7 +137,7 @@ export function makeStyles(c: Colors) {
     categoryHeading: {
       fontFamily: typography.bodyEmphasis,
       fontSize: 16,
-      lineHeight: 24,
+      lineHeight: scaledLineHeight(24),
       color: c.fg,
       // Was wrapped in categoryBlock (paddingTop s3) before the single-list
       // refactor; carry that separation here so categories still breathe.
@@ -172,8 +170,7 @@ export function makeStyles(c: Colors) {
     itemNameWrap: { flex: 1, minWidth: 0 },
     itemName: {
       fontFamily: typography.body,
-      fontSize: 16,
-      lineHeight: 22,
+      ...ty.base,
       color: c.fg,
     },
     itemNamePacked: {
@@ -182,8 +179,7 @@ export function makeStyles(c: Colors) {
     },
     itemNameEditing: {
       fontFamily: typography.body,
-      fontSize: 16,
-      lineHeight: 22,
+      ...ty.base,
       color: c.fg,
       paddingVertical: 0,
       borderBottomWidth: 1,
@@ -274,8 +270,7 @@ export function makeStyles(c: Colors) {
     undoBarText: {
       flex: 1,
       fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: c.inkButtonText,
     },
     undoBarBtn: {

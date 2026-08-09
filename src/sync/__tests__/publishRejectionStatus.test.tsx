@@ -291,4 +291,16 @@ describe('sync status honesty: rejection reads "Not syncing", never "Connected"'
     expect(screen.getByText('Connected')).toBeTruthy();
     expect(screen.queryByText('Not syncing')).toBeNull();
   });
+
+  test('Voice Control: the bar is named by the status word a user can see', async () => {
+    onStatus!(2);
+    await render(<SyncStatusBar secret={SECRET} />);
+
+    // Someone using Voice Control says the words on screen. The label used to
+    // be "Shared trip sync: Connected. Tap to sync now." — in Japanese that put
+    // the visible word mid-sentence, so speaking it matched nothing. The
+    // context now lives in the hint, which Voice Control ignores.
+    const bar = screen.getByRole('button', { name: 'Connected' });
+    expect(bar.props.accessibilityHint).toBe('Shared trip sync. Tap to sync now.');
+  });
 });

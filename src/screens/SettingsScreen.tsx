@@ -36,7 +36,16 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useTheme, typography, space, target, radius, AppearanceToggle } from '../theme';
+import {
+  useTheme,
+  typography,
+  space,
+  target,
+  radius,
+  AppearanceToggle,
+  type as ty,
+  scaledLineHeight,
+} from '../theme';
 import type { Colors } from '../theme';
 import { boundedContent } from '../theme';
 import { t } from '../i18n';
@@ -168,7 +177,7 @@ export default function SettingsScreen({ navigation }: Props) {
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
-        <Text style={s.sectionLabel}>{t('gender.section')}</Text>
+        <Text style={s.sectionLabel} accessibilityRole="header">{t('gender.section')}</Text>
         <View
           style={s.segmented}
           accessibilityRole="radiogroup"
@@ -200,17 +209,17 @@ export default function SettingsScreen({ navigation }: Props) {
         <Text style={s.caption}>{t('gender.caption')}</Text>
 
         <View style={s.section}>
-          <Text style={s.sectionLabel}>{t('settings.appearance')}</Text>
+          <Text style={s.sectionLabel} accessibilityRole="header">{t('settings.appearance')}</Text>
           <AppearanceToggle />
         </View>
 
         <View style={s.section}>
-          <Text style={s.sectionLabel}>{t('settings.language')}</Text>
+          <Text style={s.sectionLabel} accessibilityRole="header">{t('settings.language')}</Text>
           <LanguageSetting />
         </View>
 
         <View style={s.section}>
-          <Text style={s.sectionLabel}>{t('settings.yourData')}</Text>
+          <Text style={s.sectionLabel} accessibilityRole="header">{t('settings.yourData')}</Text>
           <View style={s.block}>
             {trips.length > 0 && (
               <AboutRow icon={Upload} label={t('settings.exportAll')} onPress={handleExport} />
@@ -221,7 +230,7 @@ export default function SettingsScreen({ navigation }: Props) {
         </View>
 
         <View style={s.section}>
-          <Text style={s.sectionLabel}>{t('settings.about')}</Text>
+          <Text style={s.sectionLabel} accessibilityRole="header">{t('settings.about')}</Text>
           <View style={s.block}>
             {TIP_JAR_ENABLED && <AboutRow icon={HandHeart} label={t('about.support')} onPress={() => setTipVisible(true)} />}
             <AboutRow icon={Mail} label={t('about.feedback')} onPress={() => openFeedback()} />
@@ -244,8 +253,8 @@ export default function SettingsScreen({ navigation }: Props) {
             onPress={openStudio}
             hitSlop={8}
             accessibilityRole="link"
-            accessibilityLabel={t('about.learnMoreA11y')}
-            accessibilityHint={t('about.learnMoreHint')}
+            accessibilityLabel={t('about.learnMore')}
+            accessibilityHint={t('about.learnMoreA11y')}
             style={({ pressed }) => pressed && s.backBtnPressed}
           >
             <Text style={s.stampLink}>{t('about.learnMore')}</Text>
@@ -285,8 +294,7 @@ function makeStyles(c: Colors) {
     backBtnPressed: { opacity: 0.6 },
     title: {
       fontFamily: typography.heading,
-      fontSize: 20,
-      lineHeight: 28,
+      ...ty.md,
       color: c.fg,
     },
     scroll: { flex: 1 },
@@ -300,8 +308,7 @@ function makeStyles(c: Colors) {
     },
     sectionLabel: {
       fontFamily: typography.bodyEmphasis,
-      fontSize: 12,
-      lineHeight: 16,
+      ...ty.xs,
       letterSpacing: 0.3,
       color: c.fgMuted,
       paddingHorizontal: space.s5,
@@ -337,8 +344,7 @@ function makeStyles(c: Colors) {
     segmentPressed: { backgroundColor: c.bgSubtle },
     segmentText: {
       fontFamily: typography.bodyEmphasis,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: c.fg,
       textAlign: 'center',
     },
@@ -347,7 +353,7 @@ function makeStyles(c: Colors) {
     caption: {
       fontFamily: typography.body,
       fontSize: 13,
-      lineHeight: 18,
+      lineHeight: scaledLineHeight(18),
       color: c.fgMuted,
       paddingHorizontal: space.s5,
       paddingTop: space.s3,
@@ -355,7 +361,7 @@ function makeStyles(c: Colors) {
     version: {
       fontFamily: typography.body,
       fontSize: 13,
-      lineHeight: 18,
+      lineHeight: scaledLineHeight(18),
       color: c.fgMuted,
       paddingHorizontal: space.s5,
       paddingTop: space.s5,
@@ -370,15 +376,13 @@ function makeStyles(c: Colors) {
     },
     stampText: {
       fontFamily: typography.body,
-      fontSize: 12,
-      lineHeight: 16,
+      ...ty.xs,
       color: c.fgMuted,
       textAlign: 'center',
     },
     stampLink: {
       fontFamily: typography.bodyEmphasis,
-      fontSize: 12,
-      lineHeight: 16,
+      ...ty.xs,
       color: c.fg,
       textDecorationLine: 'underline',
       textDecorationColor: c.hairlineStrong,

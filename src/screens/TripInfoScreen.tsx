@@ -190,7 +190,13 @@ export default function TripInfoScreen({ route, navigation }: Props) {
     return (
       <SafeAreaView style={s.safe} edges={['top']}>
         <View style={s.headerBar}>
-          <Pressable onPress={handleBack} hitSlop={12} style={s.backBtn} accessibilityLabel={tr('common.back')}>
+          <Pressable
+            onPress={handleBack}
+            hitSlop={12}
+            style={s.backBtn}
+            accessibilityRole="button"
+            accessibilityLabel={tr('common.back')}
+          >
             <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
           </Pressable>
         </View>
@@ -230,13 +236,13 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
           {/* Trip name */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>{tr('trip.name')}</Text>
+            <Text style={s.sectionLabel} accessibilityRole="header">{tr('trip.name')}</Text>
             <TextInput
               ref={nameInputRef}
               value={draft.name}
               onChangeText={(t) => set('name', t)}
               placeholder={tr('trip.namePlaceholder')}
-              placeholderTextColor={c.fgSubtle}
+              placeholderTextColor={c.fgMuted}
               style={s.nameInput}
               returnKeyType="done"
               accessibilityLabel={tr('trip.nameA11y')}
@@ -245,7 +251,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
           {/* Duration */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>{tr('trip.duration')}</Text>
+            <Text style={s.sectionLabel} accessibilityRole="header">{tr('trip.duration')}</Text>
             <View style={s.row}>
               <Stepper
                 value={draft.duration}
@@ -260,7 +266,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
           {/* Laundry */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>{tr('trip.laundry')}</Text>
+            <Text style={s.sectionLabel} accessibilityRole="header">{tr('trip.laundry')}</Text>
             <Pressable
               onPress={handleToggleLaundry}
               style={({ pressed }) => [s.checkRow, pressed && s.pressedDim]}
@@ -301,7 +307,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
           {/* Trip types */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>{tr('trip.types')}</Text>
+            <Text style={s.sectionLabel} accessibilityRole="header">{tr('trip.types')}</Text>
             <View style={s.chipGrid}>
               {TRIP_TYPES.map((t) => (
                 <Chip
@@ -317,7 +323,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
 
           {/* Thoroughness */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>{tr('trip.thoroughnessLabel')}</Text>
+            <Text style={s.sectionLabel} accessibilityRole="header">{tr('trip.thoroughnessLabel')}</Text>
             <View style={s.segmented}>
               {THOROUGHNESS_OPTIONS.map((o, i) => {
                 const active = draft.thoroughness === o.value;
@@ -354,7 +360,8 @@ export default function TripInfoScreen({ route, navigation }: Props) {
               onPress={handleSubmit}
               style={({ pressed }) => [s.cta, pressed && s.ctaPressed]}
               accessibilityRole="button"
-              accessibilityLabel={isEdit ? tr('trip.saveA11y') : tr('trip.continueA11y')}
+              accessibilityLabel={isEdit ? tr('common.save') : tr('trip.continue')}
+              accessibilityHint={isEdit ? tr('trip.saveA11y') : tr('trip.continueA11y')}
             >
               <Text style={s.ctaLabel}>{isEdit ? tr('common.save') : tr('trip.continue')}</Text>
             </Pressable>

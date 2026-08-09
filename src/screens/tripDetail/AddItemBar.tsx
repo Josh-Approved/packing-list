@@ -159,7 +159,8 @@ export function AddItemBar({
         onPress={handleCategoryPick}
         style={({ pressed }) => [s.categoryPill, pressed && s.categoryPillPressed]}
         accessibilityRole="button"
-        accessibilityLabel={tr('detail.categoryA11y', { category: draftCategory })}
+        accessibilityLabel={draftCategory}
+        accessibilityHint={tr('detail.categoryHint')}
       >
         <Text style={s.categoryPillLabel}>{draftCategory}</Text>
         <ChevronDown size={14} color={c.fgMuted} strokeWidth={1.5} />
@@ -171,7 +172,7 @@ export function AddItemBar({
         onSubmitEditing={handleAddItem}
         blurOnSubmit={false}
         placeholder={tr('detail.addItemPlaceholder')}
-        placeholderTextColor={c.fgSubtle}
+        placeholderTextColor={c.fgMuted}
         returnKeyType="done"
         style={s.addItemInput}
         accessibilityLabel={tr('detail.newItemA11y')}

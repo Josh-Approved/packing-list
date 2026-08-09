@@ -72,7 +72,7 @@ appId: com.joshapproved.packinglist
     visible: { text: "Anyone with this can see and edit.*" }
     timeout: 10000
 - assertVisible: { text: "Send link" }
-- assertVisible: { text: "Scan a list code instead" }
+- assertVisible: { text: "Scan a code instead" }
 - tapOn:
     text: "Close"
     retryTapIfNoChange: true

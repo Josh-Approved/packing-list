@@ -124,7 +124,13 @@ export default function TripDetailScreen({ route, navigation }: Props) {
     return (
       <SafeAreaView style={s.safe} edges={['top']}>
         <View style={s.headerBar}>
-          <Pressable onPress={handleBack} hitSlop={12} style={s.backBtn} accessibilityLabel={tr('common.back')}>
+          <Pressable
+            onPress={handleBack}
+            hitSlop={12}
+            style={s.backBtn}
+            accessibilityRole="button"
+            accessibilityLabel={tr('common.back')}
+          >
             <ChevronLeft size={24} color={c.fg} strokeWidth={1.5} />
           </Pressable>
         </View>
@@ -227,7 +233,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
             accessibilityLabel={tr('detail.tripInfoA11y', { name: trip.name, meta: tripMeta })}
           >
             <View style={s.tripInfoTop}>
-              <Text style={s.tripInfoName} numberOfLines={1}>
+              <Text style={s.tripInfoName} numberOfLines={2}>
                 {trip.name}
               </Text>
               <ChevronRight size={20} color={c.fgMuted} strokeWidth={1.5} />
@@ -245,7 +251,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
 
           {/* Packers */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>{tr('detail.packers')}</Text>
+            <Text style={s.sectionLabel} accessibilityRole="header">{tr('detail.packers')}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -256,7 +262,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
                   key={p.id}
                   label={p.name}
                   onLongPress={() => handlePackerLongPress(p)}
-                  accessibilityLabel={tr('detail.packerA11y', { name: p.name })}
+                  accessibilityHint={tr('detail.packerHint')}
                 />
               ))}
               <Pressable
@@ -272,7 +278,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
 
           {/* Items */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>{itemsHeading}</Text>
+            <Text style={s.sectionLabel} accessibilityRole="header">{itemsHeading}</Text>
             {flatRows.length === 0 ? (
               <Text style={s.empty}>
                 {tr('detail.itemsEmpty')}
@@ -287,7 +293,7 @@ export default function TripDetailScreen({ route, navigation }: Props) {
                 onReorder={handleReorder}
                 renderItem={({ item: row }) =>
                   row.kind === 'header' ? (
-                    <Text style={s.categoryHeading}>{row.category}</Text>
+                    <Text style={s.categoryHeading} accessibilityRole="header">{row.category}</Text>
                   ) : (
                     <ItemRow
                       item={row.item}

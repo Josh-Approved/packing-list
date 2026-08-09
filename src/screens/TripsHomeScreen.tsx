@@ -141,7 +141,7 @@ export default function TripsHomeScreen({ navigation }: Props) {
 
       {isEmpty ? (
         <View style={s.emptyWrap}>
-          <Text style={s.emptyTitle}>{tr('home.emptyTitle')}</Text>
+          <Text style={s.emptyTitle} accessibilityRole="header">{tr('home.emptyTitle')}</Text>
           <Text style={s.emptyHint}>{tr('home.emptyHint')}</Text>
           <Pressable
             onPress={handleNewTrip}

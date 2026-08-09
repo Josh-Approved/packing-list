@@ -20,14 +20,15 @@ export function UndoBar({
 }) {
   return (
     <View style={s.undoBar} accessibilityLiveRegion="polite">
-      <Text style={s.undoBarText} numberOfLines={1}>
+      <Text style={s.undoBarText} numberOfLines={2}>
         {tr('detail.removed', { name: itemName })}
       </Text>
       <Pressable
         onPress={onUndo}
         style={({ pressed }) => [s.undoBarBtn, pressed && s.undoBarBtnPressed]}
         accessibilityRole="button"
-        accessibilityLabel={tr('detail.undoA11y', { name: itemName })}
+        accessibilityLabel={tr('detail.undo')}
+        accessibilityHint={tr('detail.undoA11y', { name: itemName })}
       >
         <Text style={s.undoBarBtnLabel}>{tr('detail.undo')}</Text>
       </Pressable>

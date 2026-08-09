@@ -46,7 +46,7 @@ export function TripCard({
         total: totalCount,
       })}
     >
-      <Text style={s.cardName} numberOfLines={1}>{trip.name}</Text>
+      <Text style={s.cardName} numberOfLines={2}>{trip.name}</Text>
 
       <View style={s.cardMetaRow}>
         <Text style={s.cardMeta}>

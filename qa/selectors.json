@@ -13,7 +13,7 @@
     "share-open":      { "text": "Share this list with another device", "note": "the TripDetail header share button (a11y share.shareA11y, src/i18n/appStrings.ts). a11y label, not the icon — the Share2 glyph has no text of its own." },
     "share-lead":      { "text": "Anyone with this can see and edit.*", "note": "the Share screen lead line (share.leadBefore + trip name + share.leadAfter merge into one text node). Unique to the Share screen, so waiting on it proves the navigation landed — mirrors grocery-list's share-lead anchor." },
     "share-send":      { "text": "Send link", "note": "the Share screen primary CTA (share.sendLink; visible text and a11y label are the same string). Asserted, never tapped — tapping opens the OS share sheet, which Maestro can't reliably dismiss cross-platform." },
-    "share-scan":      { "text": "Scan a list code instead", "note": "the Share screen ghost button's a11y label (share.scanInsteadA11y). The a11y label, not the visible 'Scan a code instead' — on iOS the Pressable's accessibilityLabel replaces the child text in the a11y tree. Asserted, never tapped (tapping requests camera permission)." },
+    "share-scan":      { "text": "Scan a code instead", "note": "the Share screen ghost button. Its a11y label is now the visible words (share.scanInstead) so Voice Control can speak it; on iOS the Pressable's accessibilityLabel replaces the child text in the a11y tree, and both now read the same. Asserted, never tapped (tapping requests camera permission)." },
     "share-close":     { "text": "Close", "note": "the Share screen header X (a11y common.close). Full-match 'Close' is unique while the Share screen is up; tapping returns to TripDetail (goBack)." }
   }
 }

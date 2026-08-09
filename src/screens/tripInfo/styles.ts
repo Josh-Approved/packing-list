@@ -4,7 +4,7 @@
  */
 
 import { StyleSheet } from 'react-native';
-import { typography, space, target, radius } from '../../theme';
+import { typography, space, target, radius, type as ty, scaledLineHeight } from '../../theme';
 import type { Colors } from '../../theme';
 import { boundedContent } from '../../theme';
 
@@ -50,14 +50,13 @@ export function makeStyles(c: Colors) {
     title: {
       fontFamily: typography.heading,
       fontSize: 28,
-      lineHeight: 36,
+      lineHeight: scaledLineHeight(36),
       color: c.fg,
       paddingTop: space.s3,
     },
     subtitle: {
       fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: c.fgMuted,
       paddingTop: space.s2,
     },
@@ -68,15 +67,14 @@ export function makeStyles(c: Colors) {
     },
     sectionLabel: {
       fontFamily: typography.bodyEmphasis,
-      fontSize: 12,
-      lineHeight: 16,
+      ...ty.xs,
       letterSpacing: 0.5,
       color: c.fgMuted,
     },
     helper: {
       fontFamily: typography.body,
       fontSize: 13,
-      lineHeight: 19,
+      lineHeight: scaledLineHeight(19),
       color: c.fgMuted,
     },
 
@@ -137,8 +135,7 @@ export function makeStyles(c: Colors) {
     },
     segmentLabel: {
       fontFamily: typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: c.fgMuted,
     },
     segmentLabelActive: {
@@ -169,8 +166,7 @@ export function makeStyles(c: Colors) {
     checkLabel: {
       flex: 1,
       fontFamily: typography.body,
-      fontSize: 16,
-      lineHeight: 22,
+      ...ty.base,
       color: c.fg,
     },
     laundryDetail: {

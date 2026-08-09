@@ -61,7 +61,8 @@ export function SyncStatusBar({ secret }: { secret: string }) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={t('detail.sync.a11y', { status: label })}
+      accessibilityLabel={label}
+      accessibilityHint={t('detail.sync.hint')}
       style={({ pressed }) => [s.row, pressed && s.pressed]}
     >
       <View
@@ -70,7 +71,7 @@ export function SyncStatusBar({ secret }: { secret: string }) {
         importantForAccessibility="no"
       />
       <Text style={s.label}>{label}</Text>
-      <RefreshCw size={16} color={c.fgSubtle} strokeWidth={1.5} />
+      <RefreshCw size={16} color={c.fgMuted} strokeWidth={1.5} />
     </Pressable>
   );
 }

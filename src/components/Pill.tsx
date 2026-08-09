@@ -12,7 +12,7 @@
 import React, { useCallback } from 'react';
 import { Text, Pressable, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useTheme, typography, radius, target, space } from '../theme';
+import { useTheme, typography, radius, target, space, type as ty } from '../theme';
 import type { Colors } from '../theme';
 
 type Props = {
@@ -22,9 +22,22 @@ type Props = {
   onLongPress?: () => void;
   /** Override accessibilityLabel; defaults to `label`. */
   accessibilityLabel?: string;
+  /**
+   * What the control does, for VoiceOver. Keep the extra words HERE, not in
+   * the label: Voice Control matches the label against what the user can see,
+   * so "Assigned to Sam, tap to change" makes a pill reading "Sam" unspeakable.
+   */
+  accessibilityHint?: string;
 };
 
-export function Pill({ label, active = false, onPress, onLongPress, accessibilityLabel }: Props) {
+export function Pill({
+  label,
+  active = false,
+  onPress,
+  onLongPress,
+  accessibilityLabel,
+  accessibilityHint,
+}: Props) {
   const { c } = useTheme();
   const s = makeStyles(c, active);
 
@@ -46,9 +59,14 @@ export function Pill({ label, active = false, onPress, onLongPress, accessibilit
       onLongPress={onLongPress ? handleLongPress : undefined}
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityHint={accessibilityHint}
+      // `active` is drawn as accent fill + accent border + a heavier label.
+      // Colour alone would be invisible to a colour-blind user and to
+      // VoiceOver; the weight covers the first, this covers the second.
+      accessibilityState={onPress ? { selected: active } : undefined}
       style={({ pressed }) => [s.container, pressed && onPress && s.pressed]}
     >
-      <Text style={s.label} numberOfLines={1}>
+      <Text style={s.label} numberOfLines={2}>
         {label}
       </Text>
     </Pressable>
@@ -73,8 +91,7 @@ function makeStyles(c: Colors, active: boolean) {
     },
     label: {
       fontFamily: active ? typography.bodyEmphasis : typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: active ? c.fg : c.fgMuted,
     },
   });

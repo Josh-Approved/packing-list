@@ -24,7 +24,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Minus, Plus } from 'lucide-react-native';
 import { t } from '../i18n';
-import { useTheme, typography, radius, target } from '../theme';
+import { useTheme, typography, radius, target, scaledLineHeight } from '../theme';
 import type { Colors } from '../theme';
 
 type Props = {
@@ -165,16 +165,19 @@ function makeStyles(c: Colors, prominent: boolean) {
     btnDisabled: {
       backgroundColor: c.bgSubtle,
     },
+    // min, not fixed: the quantity is the one Text in here, and at large
+    // Dynamic Type its glyphs outgrow a 44pt box and get clipped. Identical
+    // at the default text size — one or two digits never fill the minimum.
     numberWrap: {
-      width: numberW,
-      height: btnSize,
+      minWidth: numberW,
+      minHeight: btnSize,
       alignItems: 'center',
       justifyContent: 'center',
     },
     number: {
       fontFamily: typography.monoEmphasis,
       fontSize: numberFontSize,
-      lineHeight: numberFontSize + 4,
+      lineHeight: scaledLineHeight(numberFontSize + 4),
       color: c.fg,
       fontVariant: ['tabular-nums'],
     },

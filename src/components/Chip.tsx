@@ -12,7 +12,7 @@ import React, { useCallback } from 'react';
 import { Text, Pressable, StyleSheet, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { LucideIcon } from 'lucide-react-native';
-import { useTheme, typography, radius, target, space } from '../theme';
+import { useTheme, typography, radius, target, space, type as ty } from '../theme';
 import type { Colors } from '../theme';
 
 type Props = {
@@ -45,7 +45,7 @@ export function Chip({ icon: Icon, label, selected, onPress }: Props) {
           color={selected ? c.fg : c.fgMuted}
           strokeWidth={1.5}
         />
-        <Text style={s.label} numberOfLines={1}>
+        <Text style={s.label} numberOfLines={2}>
           {label}
         </Text>
       </View>
@@ -75,8 +75,7 @@ function makeStyles(c: Colors, selected: boolean) {
     },
     label: {
       fontFamily: selected ? typography.bodyEmphasis : typography.body,
-      fontSize: 14,
-      lineHeight: 20,
+      ...ty.sm,
       color: selected ? c.fg : c.fgMuted,
     },
   });

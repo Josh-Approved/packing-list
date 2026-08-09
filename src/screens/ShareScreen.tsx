@@ -91,7 +91,7 @@ export default function ShareScreen({ route, navigation }: Props) {
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <View style={s.header}>
-        <Text style={s.title}>
+        <Text style={s.title} accessibilityRole="header">
           {scanning ? t('share.scanCode') : t('share.shareThis')}
         </Text>
         <Pressable
@@ -139,7 +139,7 @@ export default function ShareScreen({ route, navigation }: Props) {
           <Pressable
             onPress={startScan}
             accessibilityRole="button"
-            accessibilityLabel={t('share.scanInsteadA11y')}
+            accessibilityLabel={t('share.scanInstead')}
             style={({ pressed }) => [s.ghostBtn, pressed && s.pressed]}
           >
             <ScanLine size={18} color={c.fg} strokeWidth={1.5} />
