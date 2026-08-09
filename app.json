@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.joshapproved.packinglist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "CFBundleName": "Packing List"
+        "CFBundleName": "Packing List",
+        "CFBundleLocalizations": ["en", "es", "de", "fr", "it", "pt-BR", "ja"]
       }
     },
     "android": {
@@ -50,7 +51,8 @@
           "backgroundColor": "#FAFAF7"
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      "./plugins/withAndroidLocaleConfig"
     ],
     "extra": {
       "eas": {
