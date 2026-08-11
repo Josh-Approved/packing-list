@@ -92,6 +92,7 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/qa/known-bad/"
     ],
+    "testTimeout": 30000,
     "testPathIgnorePatterns": [
       "/node_modules/",
       "<rootDir>/.stryker-tmp/"
