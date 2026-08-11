@@ -14,12 +14,20 @@
  * Menu-option handlers are deferred ~260ms past the sheet dismissal (so native
  * presentations aren't rejected by iOS mid-animation) — those assertions go
  * through waitFor, never a bare expect right after the press.
+ *
+ * These tests wait on real animation wall-clock, so jest's 5s default is too
+ * tight on a 2-core CI runner (they pass in ~1s locally and time out there).
+ * The generous per-file timeout below is deliberate — do not "fix" it by
+ * shortening the deferral, which exists to keep iOS from rejecting a native
+ * presentation mid-animation.
  */
 
 import React from 'react';
 import { render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { View, Text, Pressable } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+jest.setTimeout(30_000);
 
 const METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
