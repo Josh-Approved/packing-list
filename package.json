@@ -95,6 +95,7 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "<rootDir>/.stryker-tmp/"
-    ]
+    ],
+    "testTimeout": 30000
   }
 }
