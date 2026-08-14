@@ -202,16 +202,21 @@ jobs:
         id: sim
         # Runtime + device type are RESOLVED, not hard-pinned: which iOS
         # runtimes and device types exist moves with the runner image and the
-        # selected Xcode, and a stale pin fails the whole job at boot. Prefer
-        # iPhone 16 Pro Max (what the flows were authored against) and fall back
-        # to the newest available Pro Max, then any iPhone.
+        # selected Xcode, and a stale pin fails the whole job at boot. The
+        # runtime preferred is the one matching the selected Xcode's simulator
+        # SDK (so the sim always pairs with the toolchain that built the .app),
+        # falling back to the newest available; the device is iPhone 16 Pro Max
+        # when present — what the flows were authored against — then the newest
+        # Pro Max, then any iPhone.
         run: |
-          RUNTIME=$(xcrun simctl list runtimes --json | node -e '
+          SDKVER=$(xcrun --sdk iphonesimulator --show-sdk-version 2>/dev/null || echo "")
+          RUNTIME=$(xcrun simctl list runtimes --json | SDKVER="$SDKVER" node -e '
             let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
               const rs=JSON.parse(s).runtimes.filter(r=>r.isAvailable&&r.platform==="iOS");
               rs.sort((a,b)=>a.version.localeCompare(b.version,undefined,{numeric:true}));
               if(!rs.length){console.error("no iOS runtimes");process.exit(1)}
-              console.log(rs[rs.length-1].identifier);
+              const pick=rs.find(r=>r.version===process.env.SDKVER)||rs[rs.length-1];
+              console.log(pick.identifier);
             })')
           DEVICE=$(xcrun simctl list devicetypes --json | node -e '
             let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
