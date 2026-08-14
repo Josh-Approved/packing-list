@@ -59,6 +59,8 @@ jobs:
       is-rn: ${{ steps.check.outputs.is-rn }}
       is-extension: ${{ steps.check.outputs.is-extension }}
       has-flow: ${{ steps.check.outputs.has-flow }}
+      macos-runner: ${{ steps.check.outputs.macos-runner }}
+      xcode: ${{ steps.check.outputs.xcode }}
     steps:
       - uses: actions/checkout@v6
       - id: check
@@ -71,6 +73,26 @@ jobs:
           # flow is GENERATED from journey.json at CI time, so journey.json
           # presence counts even though qa/flows/mobile.yaml isn't committed.
           if [ -f qa/journey.json ] || [ -f qa/flows/mobile.yaml ]; then echo "has-flow=true" >> "$GITHUB_OUTPUT"; else echo "has-flow=false" >> "$GITHUB_OUTPUT"; fi
+          # The iOS toolchain is DERIVED from the app's Expo SDK, not pinned in
+          # the workflow. eas.json's `image` field is ignored for --local
+          # builds, so the runner image and the Xcode on it are ours to choose,
+          # and the right choice is SDK-bound: Expo SDK 57 ships an
+          # expo-modules-jsi that Xcode 26.2 CANNOT compile (the ExpoModulesJSI
+          # xcframework phase dies type-checking JavaScriptCodable+Date.swift —
+          # that is what held packing-list's nightly red from 2026-07-28), and
+          # the Xcode 26.6 that does compile it exists only on the macos-26
+          # image. Apps below SDK 57 stay on the proven macos-15 / Xcode 26.2
+          # pair. Deriving it here means one template serves a fleet mid-upgrade
+          # instead of every app carrying a hand-edited pin.
+          SDK=$(node -p "try{((require('./package.json').dependencies||{}).expo||'').replace(/[^0-9.]/g,'').split('.')[0]||0}catch(e){0}")
+          echo "Expo SDK major: ${SDK:-0}"
+          if [ "${SDK:-0}" -ge 57 ]; then
+            echo "macos-runner=macos-26" >> "$GITHUB_OUTPUT"
+            echo "xcode=26.6.0" >> "$GITHUB_OUTPUT"
+          else
+            echo "macos-runner=macos-15" >> "$GITHUB_OUTPUT"
+            echo "xcode=26.2.0" >> "$GITHUB_OUTPUT"
+          fi
 
   unit:
     # Tier 1 — fast, headless logic tests (jest-expo). Runs once (platform-
@@ -97,15 +119,16 @@ jobs:
   ios:
     needs: [detect, unit]
     if: needs.detect.outputs.is-rn == 'true' && needs.detect.outputs.has-flow == 'true'
-    # macos-26, not macos-15: see the Xcode pin note in the setup-xcode step.
-    runs-on: macos-26
+    # Image + Xcode are derived from the app's Expo SDK in `detect` — see the
+    # SDK-bound toolchain note there. Keep the two outputs used together.
+    runs-on: ${{ needs.detect.outputs.macos-runner }}
     timeout-minutes: 60
     env:
       # EXPO_PUBLIC_* env is inlined into the JS bundle by Metro at bundle
       # time. eas build --local invokes Metro through the standard Expo
       # pipeline, which honours runner-shell env. No eas.json change needed.
       EXPO_PUBLIC_QA_MODE: '1'
-      # Maestro's XCTest driver occasionally takes >2 min to start on macos-15
+      # Maestro's XCTest driver occasionally takes >2 min to start on macOS
       # (the runner's first XCTest launch warms multiple subsystems). The
       # default startup timeout fails the run on those cold starts; bump to
       # 5 min so the driver gets a fair shot before we declare the run dead.
@@ -122,22 +145,14 @@ jobs:
           echo "$HOME/.maestro/bin" >> $GITHUB_PATH
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          # macOS runners are Apple Silicon (arm64). Pinning Xcode is on us —
-          # eas.json's `image` field is IGNORED for --local builds — and the pin
-          # must match a simulator runtime pre-installed on the image.
-          #
-          # This app is on Expo SDK 57, and Xcode 26.2 CANNOT compile
-          # expo-modules-jsi 57.0.4: the ExpoModulesJSI xcframework build phase
-          # dies type-checking JavaScriptCodable+Date.swift. Xcode 26.6 (17F113)
-          # is the toolchain that built the shipped 1.0.8 binary locally, and it
-          # exists only on the macos-26 image (macos-15 tops out at 26.3) — so
-          # `runs-on` moves with this pin. Keep the two in step.
-          #
-          # If the image changes:
+          # macOS runners are Apple Silicon (arm64). Which Xcode to select is
+          # ours to decide — eas.json's `image` field is IGNORED for --local
+          # builds — and it is derived per-app from the Expo SDK in `detect`.
+          # If a runner image changes:
           # - re-check via setup-xcode failure output (lists installed Xcodes)
           # - cross-check with `xcrun simctl list runtimes` (installed runtimes)
-          # - update runs-on, both pins, and nightly.yml together.
-          xcode-version: '26.6.0'
+          # - update the SDK-bound table in `detect`, not this line.
+          xcode-version: ${{ needs.detect.outputs.xcode }}
       - name: npm ci
         run: npm ci
       - name: Setup Expo + EAS CLI
