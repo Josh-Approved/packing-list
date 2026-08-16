@@ -101,6 +101,66 @@
       "assertNot": "@share-lead"
     }
   ],
+  "upgrade": {
+    "$comment": "T5 upgrade harness \u2014 cross-version subflow (compiles to qa/flows/upgrade-write.yaml + upgrade-assert.yaml; run by scripts/qa/upgrade-test.mjs against qa/released/<platform>, full profile + nightly, NOT per-PR). The bug class: install a HEAD build over months-old data and silently lose it. 'write' runs on the LAST-RELEASED binary (QA seed + add an item named Legacy Ferry Ticket, a name absent from every itemRules list so it can only come from this write); the harness then installs HEAD OVER it (never uninstall) and runs 'assert', which proves BOTH seeded data (the Greece trip and its packer Sam) AND the written item survived. If HEAD reads the persisted trip store differently than the released build wrote it, Legacy Ferry Ticket is gone and the assert fails. Neither flow may clear state \u2014 persistence across the install is the whole point (upgradeJourneys forces clearState:false). The add rides the sticky add-item TextInput + return key, the same mutating action the T4 survival flow uses, because it is the one write that auto-saves to disk with no extra confirm step.",
+    "write": {
+      "steps": [
+        {
+          "waitFor": "@first-trip",
+          "timeout": 30000
+        },
+        {
+          "tap": "@first-trip"
+        },
+        {
+          "waitFor": "@packers-heading",
+          "timeout": 10000
+        },
+        {
+          "assertNot": "@upgrade-item"
+        },
+        {
+          "tap": "@add-item-input"
+        },
+        {
+          "type": "Legacy Ferry Ticket"
+        },
+        {
+          "pressKey": "Enter"
+        },
+        {
+          "assert": "@upgrade-item"
+        },
+        {
+          "wait": 2000
+        }
+      ]
+    },
+    "assert": {
+      "steps": [
+        {
+          "waitFor": "@first-trip",
+          "timeout": 30000
+        },
+        {
+          "assert": "@first-trip"
+        },
+        {
+          "tap": "@first-trip"
+        },
+        {
+          "waitFor": "@packers-heading",
+          "timeout": 10000
+        },
+        {
+          "assert": "@packer-sam"
+        },
+        {
+          "assert": "@upgrade-item"
+        }
+      ]
+    }
+  },
   "survival": {
     "$comment": "T4 chaos net \u2014 state-survival subflow (compiles to qa/flows/state-survival.yaml; full profile + nightly, NOT per-PR). Core mutating action = add a packing item to the seeded trip (it auto-saves to disk). Then REAL process death (killApp on Android / stopApp on iOS), then relaunch keeping state and re-open the trip. Intent oracle: the item added before the kill is still on the list after it. The leading assertNot proves 'Compass' wasn't already there.",
     "steps": [
