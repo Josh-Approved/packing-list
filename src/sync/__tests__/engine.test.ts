@@ -48,6 +48,7 @@ jest.mock('../../storage/kv', () => ({
 }));
 
 import { useTripsStore } from '../../store/trips';
+import { clear as clearLog, serializeCurrent } from '../../feedback/log';
 import { channelId, newSecret, seal, open } from '../crypto';
 import { useSyncStatusStore } from '../status';
 import {
@@ -143,6 +144,7 @@ beforeEach(() => {
   });
   useTripsStore.setState({ trips: [], hydrated: true });
   useSyncStatusStore.setState({ bySecret: {} });
+  clearLog();
 });
 
 afterEach(() => {
@@ -152,6 +154,17 @@ afterEach(() => {
   useSyncStatusStore.setState({ bySecret: {} });
   jest.useRealTimers();
 });
+
+/** The lines of the diagnostic report the Send-feedback flow would attach. */
+function logLines(): string[] {
+  return serializeCurrent().split('\n');
+}
+/** The one report line mentioning `needle`, or undefined. */
+function logLine(needle: string): string | undefined {
+  return logLines().find((l) => l.includes(needle));
+}
+/** The short channel handle the engine tags every sync log line with. */
+const CH_TAG = channelId(SECRET).slice(0, 8);
 
 /** Just the peer-visible messages of one kind, decrypted. A state message is a
  *  bare Trip (it has `shareIdentity` and no `_sync`); a hello is the control
@@ -605,6 +618,70 @@ describe('connection status the bar reads', () => {
 
     created[0].onPublishResult!(true, '');
     expect(useSyncStatusStore.getState().bySecret[SECRET].publishRejected).toBe(false);
+  });
+});
+
+describe('the diagnostic log a bug report carries', () => {
+  // "Both phones say connected but only one ever received" is the hardest
+  // shared-trip report to answer, and the log is the only thing that can. These
+  // pin what a real report must contain — and what it must never contain.
+
+  test('a relay coming up and dropping is recorded, tagged so two phones line up', () => {
+    useTripsStore.setState({ trips: [sharedTrip()], hydrated: true });
+    startSyncEngine();
+
+    created[0].onStatus(1);
+    created[0].onStatus(0);
+
+    const up = logLine('sync: connected');
+    const down = logLine('sync: offline');
+    expect(up).toBeDefined();
+    expect(down).toBeDefined();
+    expect(up).toContain(`ch=${CH_TAG}`);
+    expect(up).toContain('relays=1');
+    expect(down).toContain(`ch=${CH_TAG}`);
+    expect(down).toContain('relays=0');
+
+    // The handle is a SHORT prefix of the (already public) channel id: enough to
+    // correlate two paired devices' reports, and never the key or the whole
+    // channel id, since the user mails this file to us themselves.
+    const report = serializeCurrent();
+    expect(CH_TAG).toHaveLength(8);
+    expect(report).not.toContain(SECRET);
+    expect(report).not.toContain(channelId(SECRET));
+  });
+
+  test('a frame we cannot decrypt is recorded, not silently dropped', () => {
+    useTripsStore.setState({ trips: [sharedTrip([item('socks')])], hydrated: true });
+    startSyncEngine();
+
+    // A partner on a different build, or a corrupt frame. Indistinguishable
+    // from "nothing ever arrived" unless it says so.
+    created[0].onMessage('!!! not even base64 !!!');
+
+    const warned = logLine('sync: could not decrypt a message');
+    expect(warned).toBeDefined();
+    expect(warned).toContain('WARN');
+    expect(warned).toContain(`ch=${CH_TAG}`);
+  });
+
+  test('a peer copy is recorded with how much of the trip arrived', () => {
+    useTripsStore.setState({ trips: [sharedTrip([item('socks')])], hydrated: true });
+    startSyncEngine();
+
+    const remote = sharedTrip([item('socks'), item('passport', AT + 5000)]);
+    remote.id = 'peer-trip-id';
+    created[0].deliver(JSON.stringify(remote));
+
+    const line = logLine('sync: received trip state');
+    expect(line).toBeDefined();
+    expect(line).toContain(`ch=${CH_TAG}`);
+    expect(line).toContain('items=2');
+    // Never the trip's contents: the user mails this file to us themselves.
+    const report = serializeCurrent();
+    expect(report).not.toContain(SECRET);
+    expect(report).not.toContain('socks');
+    expect(report).not.toContain('Greece');
   });
 });
 
