@@ -791,6 +791,10 @@ export function computeQuantity(
  *   "Euros" won't respawn "Local currency" when another type is toggled on.
  * - Existing source='custom' items are always preserved.
  * - Generated items no longer produced by any selected type are dropped.
+ * - A REMOVED item is a tombstone in `existingItems` (the store soft-deletes so
+ *   removals survive a cross-device merge). A custom one stays removed; a
+ *   generated one whose rule is still in scope is re-suggested as a live row,
+ *   which is what makes toggling a type off and back on restore its items.
  */
 export function composeItems(
   typeIds: TripTypeId[],

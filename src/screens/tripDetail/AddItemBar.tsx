@@ -18,16 +18,10 @@ import { View, Text, Pressable, TextInput, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, ChevronDown } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import {
-  CATEGORY_ORDER,
-  SHARED_ASSIGNEE,
-  type Category,
-  type TripItem,
-} from '../../data/trip';
+import { CATEGORY_ORDER, type Category } from '../../data/trip';
 import { useTripsStore } from '../../store/trips';
 import { inferCategory } from '../../data/categoryInference';
-import { makeId } from '../../lib/id';
-import { now as clockNow } from '../../sync/clock';
+import { addItemToTrip } from './addItem';
 import { t as tr } from '../../i18n';
 import { space } from '../../theme';
 import type { Colors } from '../../theme';
@@ -95,58 +89,9 @@ export function AddItemBar({
       return;
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    updateTrip(tripId, (t) => {
-      const lower = name.toLowerCase();
-      // Dedup-by-name against VISIBLE items (case-insensitive): bump instead of
-      // duplicating. Tombstones are skipped so a re-add never silently bumps a
-      // dead row.
-      const visIdx = t.items.findIndex(
-        (it) => it.deletedAt == null && it.name.toLowerCase() === lower
-      );
-      if (visIdx >= 0) {
-        return {
-          ...t,
-          items: t.items.map((it, i) =>
-            i === visIdx ? { ...it, quantity: it.quantity + 1, userModified: true } : it
-          ),
-        };
-      }
-      // A tombstoned match (previously removed) is revived instead of stacking a
-      // second row — the store's diff clears its tombstone and stamps it fresh.
-      const deadIdx = t.items.findIndex(
-        (it) => it.deletedAt != null && it.name.toLowerCase() === lower
-      );
-      if (deadIdx >= 0) {
-        return {
-          ...t,
-          items: t.items.map((it, i) =>
-            i === deadIdx
-              ? {
-                  ...it,
-                  deletedAt: undefined,
-                  quantity: 1,
-                  packed: false,
-                  category: draftCategory,
-                  userModified: true,
-                }
-              : it
-          ),
-        };
-      }
-      const at = clockNow();
-      const newItem: TripItem = {
-        id: makeId('c'),
-        name,
-        category: draftCategory,
-        quantity: 1,
-        assigneeId: SHARED_ASSIGNEE,
-        packed: false,
-        source: 'custom',
-        addedAt: at,
-        updatedAt: at,
-      };
-      return { ...t, items: [...t.items, newItem] };
-    });
+    // The dedupe/revive/append policy lives in ./addItem so the shared-trip
+    // intent fuzzer drives the real thing rather than a copy.
+    updateTrip(tripId, (t) => addItemToTrip(t, name, draftCategory));
     setDraftName('');
     setUserPickedCategory(false); // reset for the next item
     // Keep focus so the next item can be typed straight away.

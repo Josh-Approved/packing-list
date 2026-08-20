@@ -16,6 +16,7 @@ import {
   applyDurationChange,
   applyTripInfo,
   groupByCategory,
+  visibleItems,
   clampLaundryInterval,
   tripOpts,
   CATEGORY_ORDER,
@@ -199,6 +200,31 @@ describe('composeItems — preserving the user’s edits (the data-loss core)', 
     const pass2 = composeItems(['international', 'beach'], 5, pass1);
     expect(byName(pass2, 'Euros')).toBeDefined();
     expect(byName(pass2, 'Local currency')).toBeUndefined();
+  });
+
+  it('a removed CUSTOM item stays removed across a recompose; a removed seed item is re-suggested', () => {
+    // Removals are tombstones (the store soft-deletes so they survive a
+    // cross-device merge), and a recompose walks that same array. The two kinds
+    // part ways here, and the split is what makes "turn a type off, turn it back
+    // on" restore its items: a seed rule that is still in scope re-suggests its
+    // row, while a typed-in item you removed is yours and stays gone.
+    const custom: TripItem = {
+      id: 'c-1', name: 'Snowboard wax', category: 'Misc', quantity: 1,
+      assigneeId: SHARED_ASSIGNEE, packed: false, source: 'custom',
+      addedAt: 1, updatedAt: 500, deletedAt: 500,
+    };
+    const generated = composeItems(['essentials'], 4);
+    const brush = byName(generated, 'Toothbrush')!;
+    const removed = [
+      custom,
+      ...generated.map((i) => (i.id === brush.id ? { ...i, deletedAt: 500, updatedAt: 500 } : i)),
+    ];
+
+    const after = composeItems(['essentials'], 7, removed);
+    expect(after.find((i) => i.id === 'c-1')?.deletedAt).toBe(500);
+    expect(visibleItems({ items: after }).some((i) => i.name === 'Snowboard wax')).toBe(false);
+    expect(visibleItems({ items: after }).some((i) => i.name === 'Toothbrush')).toBe(true);
+    expect(after.filter((i) => i.name === 'Toothbrush')).toHaveLength(1);
   });
 
   it('preserves a fully custom (typed-in) item across recomposition', () => {

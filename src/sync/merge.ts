@@ -44,16 +44,43 @@ function nameClock(t: Trip): number {
   return t.nameUpdatedAt ?? t.createdAt;
 }
 
-/** The packed state's clock: the newest of `packedUpdatedAt` and `packedAt`,
- *  falling back to `addedAt` (unpacked since creation). `packedAt` must
- *  participate even when `packedUpdatedAt` exists: an OLD-version device packs
- *  an item by writing only `packedAt`, and a stale `packedUpdatedAt` minted
- *  earlier by a new-version device must not mask that fresher action. NEVER
- *  falls back to `updatedAt` — the content clock rises with every edit, so
- *  using it would re-create the revert-a-pack defect. */
+/** When a person last packed/unpacked this copy: the newest of
+ *  `packedUpdatedAt` and `packedAt`, or 0 when nobody ever touched it.
+ *  `packedAt` must participate even when `packedUpdatedAt` exists: an
+ *  OLD-version device packs an item by writing only `packedAt`, and a stale
+ *  `packedUpdatedAt` minted earlier by a new-version device must not mask that
+ *  fresher action. NEVER falls back to `updatedAt` — the content clock rises
+ *  with every edit, so using it would re-create the revert-a-pack defect. */
+function packActionClock(it: TripItem): number {
+  return Math.max(it.packedUpdatedAt ?? 0, it.packedAt ?? 0);
+}
+
+/** The packed state's clock, falling back to `addedAt` (unpacked since
+ *  creation) for a copy nobody ever touched. */
 function packedClock(it: TripItem): number {
-  const explicit = Math.max(it.packedUpdatedAt ?? 0, it.packedAt ?? 0);
+  const explicit = packActionClock(it);
   return explicit > 0 ? explicit : it.addedAt;
+}
+
+/**
+ * Order two copies of a row by how recent their packed state is. `> 0` means
+ * `a` carries the fresher decision.
+ *
+ * A real pack ACTION always outranks a copy that was merely BORN later. This is
+ * about two copies of ONE row (same id), which in packing means a generated one:
+ * seed rows carry a deterministic `gen-<rule>` id, so two devices that each turn
+ * a trip type on while apart mint the same row independently with their own
+ * creation stamps, and letting an untouched later birth beat the other person's
+ * tap would quietly unpack what they had ticked off
+ * (./__tests__/mergePackedClock.test.ts). Two DIFFERENT rows that happen to
+ * share a name are the opposite case — see collapseDuplicateNames.
+ */
+function comparePackRecency(a: TripItem, b: TripItem): number {
+  const aAction = packActionClock(a);
+  const bAction = packActionClock(b);
+  if (aAction > 0 && bAction === 0) return 1;
+  if (bAction > 0 && aAction === 0) return -1;
+  return packedClock(a) - packedClock(b);
 }
 
 /** Fold the loser's packed state into the record winner when it is newer. Runs
@@ -62,7 +89,7 @@ function packedClock(it: TripItem): number {
  *  late pack made on a collapsed copy onto the surviving row). Preserves the
  *  winner's own liveness. */
 function combineItems(win: TripItem, lose: TripItem): TripItem {
-  if (packedClock(lose) <= packedClock(win)) return win;
+  if (comparePackRecency(lose, win) <= 0) return win;
   return {
     ...win,
     packed: lose.packed,
@@ -132,6 +159,11 @@ function collapseDuplicateNames(items: TripItem[]): TripItem[] {
     );
     const keeper = sorted[0];
     // Newest pack action anywhere in the name group binds.
+    // Plain `packedClock` here, NOT comparePackRecency: these are separate rows
+    // a person typed in, so a copy added later with no pack action of its own is
+    // a fresh need and rightly lands unpacked. (comparePackRecency exists for
+    // the same-id case, where a later birth stamp is the composer's, not a
+    // person's — see combineItems.)
     let packSource = keeper;
     for (const it of group) {
       if (it === keeper) continue;
