@@ -1,0 +1,30 @@
+# E2E two-device sync — ANDROID pass 7: iOS is KILLED (the runner terminated
+# it). Android writes while its partner is gone, so the next flow exercises the
+# cold-start hello backfill when iOS comes back.
+#
+# The count reaching 11 proves the add landed; the new row can sit above or
+# below the current viewport (list virtualisation keeps off-screen rows out of
+# the accessibility tree), so it is reached with a scroll rather than asserted
+# in place.
+appId: com.joshapproved.packinglist
+---
+- tapOn:
+    text: "New item name"
+- inputText: "Windsock"
+- waitForAnimationToEnd:
+    timeout: 800
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      text: "1 of 11 packed"
+    timeout: 8000
+- scrollUntilVisible:
+    element:
+      text: ".*Windsock.*"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      text: "Packers"
+    direction: UP
+    timeout: 15000

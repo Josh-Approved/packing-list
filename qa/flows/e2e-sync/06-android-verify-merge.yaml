@@ -1,0 +1,24 @@
+# E2E two-device sync — ANDROID pass 4 (back ONLINE): the first money
+# assertion. After reconnect, iOS's pack AND Android's blind write both
+# survive: the count reaches "1 of 10 packed" — 1 says the pack arrived, 10
+# says the blind add was not trampled by it.
+#
+# Pre-fix (packed merged on the whole-item clock), the later blind write
+# reverted the pack on both devices and this read "0 of 10 packed".
+appId: com.joshapproved.packinglist
+---
+- extendedWaitUntil:
+    visible:
+      text: "1 of 10 packed"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: ".*Ukulele.*"
+    direction: DOWN
+    timeout: 20000
+- takeScreenshot: qa/captures/e2e-sync/06-android-merged
+- scrollUntilVisible:
+    element:
+      text: "Packers"
+    direction: UP
+    timeout: 15000

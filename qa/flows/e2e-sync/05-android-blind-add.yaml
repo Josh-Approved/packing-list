@@ -1,0 +1,26 @@
+# E2E two-device sync — ANDROID pass 3 (still OFFLINE): a blind write into the
+# same window as iOS's pack. Android has NOT seen the pack — asserted first, so
+# a later green can't come from Android having quietly reconnected.
+#
+# The write is an add rather than an edit of the same row because it is the one
+# concurrent gesture whose outcome is fully readable on both platforms: the
+# progress line's totals move. (The Stepper's quantity would be the closer
+# analogue of grocery's ×2, but its number is accessibilityElementsHidden and
+# every row's stepper shares the label "Increase", so neither the tap nor the
+# assertion would be unambiguous.)
+appId: com.joshapproved.packinglist
+---
+# Offline: iOS's pack must NOT be here (proves the write is truly blind).
+- assertVisible:
+    text: "0 of 9 packed"
+- tapOn:
+    text: "New item name"
+- inputText: "Ukulele"
+- waitForAnimationToEnd:
+    timeout: 800
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      text: "0 of 10 packed"
+    timeout: 8000
+- takeScreenshot: qa/captures/e2e-sync/05-android-blind-offline

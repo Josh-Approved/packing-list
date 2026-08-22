@@ -1,0 +1,14 @@
+# E2E two-device sync — ANDROID pass 6 (back ONLINE): the D1 money assertion.
+#
+# Android's own copy of the Sunscreen row is younger than iOS's pack and
+# carries no pack action of its own, so a birth stamp must not be allowed to
+# stand in for a user action: the count must climb back to "1 of 10 packed".
+# Pre-fix this read "0 of 10 packed" — the item someone had ticked off came
+# back unpacked, on both devices at once (packing-list-20260820-1).
+appId: com.joshapproved.packinglist
+---
+- extendedWaitUntil:
+    visible:
+      text: "1 of 10 packed"
+    timeout: 30000
+- takeScreenshot: qa/captures/e2e-sync/09-android-pack-survived

@@ -1,0 +1,34 @@
+# E2E two-device sync — iOS pass 2: pack the Sunscreen while Android is
+# OFFLINE (the runner disabled its network). Android will then write blind into
+# the same window; after reconnect BOTH must survive.
+#
+# This is the pack half of the "my packed items came back unpacked" class the
+# `packedUpdatedAt` clock exists to prevent (src/sync/merge.ts § PACKED MERGES
+# ON ITS OWN CLOCK).
+#
+# The tap target is the row's checkbox, whose accessibilityLabel is
+# "<name> packed" (detail.itemPackedA11y) — its own a11y element on both
+# platforms, so this is not affected by the merged row label iOS produces for
+# the rest of the row. The Stepper's quantity is deliberately NOT asserted
+# anywhere in this suite: its number is accessibilityElementsHidden, so it is
+# invisible to Maestro by design, and the progress line carries the state we
+# actually need.
+appId: com.joshapproved.packinglist
+---
+- scrollUntilVisible:
+    element:
+      text: "Sunscreen packed"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    text: "Sunscreen packed"
+- scrollUntilVisible:
+    element:
+      text: "Packers"
+    direction: UP
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      text: "1 of 9 packed"
+    timeout: 8000
+- takeScreenshot: qa/captures/e2e-sync/04-ios-packed

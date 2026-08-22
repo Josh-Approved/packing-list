@@ -1,0 +1,15 @@
+# E2E chaos — INTENT ORACLE (Android), asserted after the fault schedule has
+# finished and the link is restored.
+#
+# The chaos run drives a shorter sequence than the baseline (01 → 02 → 03,
+# then the fault, then iOS's pack), so the trip holds the 8 seeded rows plus
+# the Kite: the pack made INTO the degraded link must converge to exactly
+# "1 of 9 packed" — 1 says it eventually landed, 9 says the fault produced no
+# duplicate row and resurrected nothing.
+appId: com.joshapproved.packinglist
+---
+- extendedWaitUntil:
+    visible:
+      text: "1 of 9 packed"
+    timeout: 60000
+- takeScreenshot: qa/captures/e2e-sync/chaos-converged

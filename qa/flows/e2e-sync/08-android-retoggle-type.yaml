@@ -1,0 +1,78 @@
+# E2E two-device sync — ANDROID pass 5 (OFFLINE again): set up defect
+# packing-list-20260820-1 on real devices.
+#
+# THE DEFECT. Trip-type seed rows are minted under a deterministic `gen-<rule>`
+# id, so two devices that each turn the same type on while apart create the
+# SAME row id independently, each with its OWN addedAt. src/sync/merge.ts
+# ordered the packed state by a clock that fell back to addedAt, so an
+# untouched copy that merely happened to be born LATER outranked the other
+# person's real pack — and an item one person had ticked off came back
+# unpacked on BOTH devices. Fixed by comparePackRecency: a real pack ACTION
+# always beats a copy that was only born later.
+#
+# HOW THIS REPRODUCES IT. Android turns Beach OFF (saving), then ON again
+# (saving), while offline. The second save re-mints all eight Greece seed rows
+# under their same `gen-` ids with a fresh, much later birth stamp than iOS's
+# pack — the exact shape of the defect. It must be TWO visits with a Save each:
+# toggling off and on inside one visit nets to no change in the draft and
+# re-mints nothing.
+#
+# The Trip Information screen is opened from the condensed trip card at the top
+# of TripDetail, whose accessibilityLabel ends "Edit trip information."
+# (detail.tripInfoA11y). Its own header text is tapped first for the same
+# reason the capture journey does it: the name field auto-raises the keyboard,
+# which hides the Save CTA, and there is no reliable cross-platform dismiss.
+appId: com.joshapproved.packinglist
+---
+# Offline: iOS's pack is here (it merged in at step 6), Ukulele too.
+- assertVisible:
+    text: "1 of 10 packed"
+
+# --- visit 1: turn Beach OFF ---
+- tapOn:
+    text: ".*Edit trip information.*"
+- extendedWaitUntil:
+    visible:
+      text: "Trip information"
+    timeout: 10000
+- tapOn:
+    text: "Trip information"
+- tapOn:
+    text: "Beach"
+- tapOn:
+    text: "Save"
+- extendedWaitUntil:
+    visible:
+      text: "Packers"
+    timeout: 10000
+# Beach was the trip's only type, so all eight seeded rows go; the two typed
+# items (Kite, Ukulele) are the user's own and stay.
+- extendedWaitUntil:
+    visible:
+      text: "0 of 2 packed"
+    timeout: 10000
+- takeScreenshot: qa/captures/e2e-sync/08-android-type-off
+
+# --- visit 2: turn Beach back ON → the seed rows are re-minted, born late ---
+- tapOn:
+    text: ".*Edit trip information.*"
+- extendedWaitUntil:
+    visible:
+      text: "Trip information"
+    timeout: 10000
+- tapOn:
+    text: "Trip information"
+- tapOn:
+    text: "Beach"
+- tapOn:
+    text: "Save"
+- extendedWaitUntil:
+    visible:
+      text: "Packers"
+    timeout: 10000
+# Locally the re-minted Sunscreen is unpacked and younger than iOS's pack.
+- extendedWaitUntil:
+    visible:
+      text: "0 of 10 packed"
+    timeout: 10000
+- takeScreenshot: qa/captures/e2e-sync/08-android-type-remimted

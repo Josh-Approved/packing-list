@@ -1,0 +1,40 @@
+# E2E two-device sync — iOS pass 1: fresh boot, open the shared fixture trip,
+# type in a "Kite". Android (already sitting on its copy) must receive it live.
+#
+# "Kite" is deliberately absent from every itemRules list in src/data/trip.ts,
+# and distinct from the T4 survival marker (Compass) and the T5 upgrade marker
+# (Legacy Ferry Ticket), so a failure names which harness wrote the datum.
+#
+# The add path is the sticky add-item TextInput on TripDetail + the return key
+# (onSubmitEditing) — the same one-gesture write the T4/T5 harnesses use,
+# because it is the only write that persists with no extra confirm step.
+appId: com.joshapproved.packinglist
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      text: "Greece.*"
+    timeout: 20000
+- tapOn:
+    text: "Greece.*"
+- extendedWaitUntil:
+    visible:
+      text: "Packers"
+    timeout: 10000
+- assertVisible:
+    text: "0 of 8 packed"
+# Let this device's relay connection open before publishing an edit.
+- waitForAnimationToEnd:
+    timeout: 2500
+- tapOn:
+    text: "New item name"
+- inputText: "Kite"
+- waitForAnimationToEnd:
+    timeout: 800
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      text: "0 of 9 packed"
+    timeout: 8000
+- takeScreenshot: qa/captures/e2e-sync/02-ios-added

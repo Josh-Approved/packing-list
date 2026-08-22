@@ -1,0 +1,24 @@
+# E2E two-device sync — ANDROID pass 2: attach to the running app (no
+# launchApp) and prove iOS's "Kite" arrived over the local relay.
+#
+# The count is asserted first because it lives at the top of the screen and is
+# never virtualised away; the row itself can sit below the fold in a 9-item
+# list, so it is reached with a scroll and the view is then returned to the top
+# for the next pass.
+appId: com.joshapproved.packinglist
+---
+- extendedWaitUntil:
+    visible:
+      text: "0 of 9 packed"
+    timeout: 25000
+- scrollUntilVisible:
+    element:
+      text: ".*Kite.*"
+    direction: DOWN
+    timeout: 20000
+- takeScreenshot: qa/captures/e2e-sync/03-android-received
+- scrollUntilVisible:
+    element:
+      text: "Packers"
+    direction: UP
+    timeout: 15000

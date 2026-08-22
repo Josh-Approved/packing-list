@@ -1,0 +1,37 @@
+# E2E two-device sync — ANDROID pass 1: fresh boot, open the shared fixture
+# trip, prove baseline (the 8 seeded Greece items present, nothing synced in
+# yet). The app is left SITTING on the trip, connected, to passively receive
+# what iOS writes next.
+#
+# Fresh state comes from the runner's reinstall + warm-up (NOT clearState:
+# pm clear races expo-sqlite's first launch and hydrate fails).
+#
+# The state oracle for this whole suite is the trip's progress line —
+# "<packed> of <total> packed" (detail.packedProgress) — a plain <Text> node
+# sitting above the packers row, NOT nested inside a Pressable, so unlike
+# grocery's header subtitle it is readable on BOTH platforms. Every assertion
+# below reads it rather than inspecting individual rows.
+#
+# Driven by scripts/e2e/run-two-device.sh (one Maestro driver at a time).
+appId: com.joshapproved.packinglist
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      text: "Greece.*"
+    timeout: 20000
+- tapOn:
+    text: "Greece.*"
+- extendedWaitUntil:
+    visible:
+      text: "Packers"
+    timeout: 10000
+- assertVisible:
+    text: "0 of 8 packed"
+# The trip really is shared: SyncStatusBar only renders when the trip carries a
+# shareIdentity, which the fixture only mints under EXPO_PUBLIC_QA_SHARE_SECRET.
+# So this line also proves the pairing env var reached the build.
+- assertVisible:
+    text: "Connected"
+- assertNotVisible:
+    text: ".*Kite.*"
