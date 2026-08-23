@@ -20,23 +20,10 @@
  * into each shared-sync consumer's scripts/e2e/. Do not fork per app.
  */
 
-// LOCAL FIX (packing-list, 2026-08-21) — belongs in the factory template
-// templates/e2e-two-device/mini-relay.mjs, which this file is overwrite-synced
-// from, so it will be clobbered on the next `sync.mjs e2e-two-device` until the
-// template carries the same change.
-//
-// The template did `import ws from 'ws'` and read `ws.WebSocketServer`. On
-// Node 26 + ws 8.21 the ESM/CJS interop hands the DEFAULT export back as the
-// bare WebSocket class with none of ws's statics attached, so that read is
-// `undefined` and the server construction dies with "WebSocketServer is not a
-// constructor" — the whole chaos layer, including `chaos-relay.mjs
-// --self-test`, could never start. The named export is present, so reading the
-// namespace first and falling back through the older shapes works on every
-// combination (named → default.WebSocketServer → the pre-8 `Server`).
-import * as wsNs from 'ws';
-const wsDefault = wsNs.default ?? wsNs;
-const WebSocketServer =
-  wsNs.WebSocketServer ?? wsDefault.WebSocketServer ?? wsDefault.Server;
+import ws from 'ws';
+// Older `ws` majors (the one RN's dep tree pins) export Server, not
+// WebSocketServer.
+const WebSocketServer = ws.WebSocketServer ?? ws.Server;
 
 const args = process.argv.slice(2);
 const flag = (name, dflt) => {
