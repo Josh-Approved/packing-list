@@ -37,4 +37,15 @@ appId: com.joshapproved.packinglist
     visible:
       text: "0 of 9 packed"
     timeout: 8000
+# Put the keyboard away before handing the device to the next pass. The add bar
+# is deliberately rapid-fire (AddItemBar `blurOnSubmit={false}` refocuses after
+# every add), so the keyboard is STILL UP here and covers the bottom half of the
+# item list. The next iOS pass taps a row checkbox, and a tap aimed at a row
+# sitting behind the keyboard lands on a key instead — the toggle silently never
+# happens and the pack assertion fails on a screen that looks fine. An empty
+# return is the app's own dismiss (AddItemBar calls Keyboard.dismiss() when the
+# submitted text is blank — canon rn/keyboard-dismiss-escape).
+- pressKey: Enter
+- waitForAnimationToEnd:
+    timeout: 1500
 - takeScreenshot: qa/captures/e2e-sync/02-ios-added
