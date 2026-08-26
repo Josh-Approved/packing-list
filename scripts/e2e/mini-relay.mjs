@@ -25,7 +25,9 @@ import * as ws from 'ws';
 // expose a NAMED `WebSocketServer` on the module namespace, older ones hang
 // `Server` off the default (CJS `module.exports`) object. A default-only lookup
 // throws "WebSocketServer is not a constructor" on ws >= 8.19, whose default
-// export is the WebSocket CLIENT class with no server statics attached.
+// export is the WebSocket CLIENT class with no server statics attached — which
+// meant this relay could not start at all, and with it the whole two-device
+// suite (found 2026-08-25 on packing-list's first real execution).
 const WebSocketServer =
   ws.WebSocketServer ?? ws.Server ?? ws.default?.WebSocketServer ?? ws.default?.Server;
 if (typeof WebSocketServer !== 'function') {
