@@ -1,0 +1,35 @@
+# E2E two-device sync — ANDROID pass 6 (back ONLINE): the D1 money assertion
+# (packing-list-20260820-1).
+#
+# Android's own copy of the `gen-hiking boots` row is YOUNGER than iOS's pack
+# and carries no pack action of its own, so a birth stamp must not be allowed
+# to stand in for a user action: the count must climb to "2 of 20 packed" —
+# the beach Sunscreen from step 4 plus the Hiking boots iOS ticked off in 08.
+#
+# Pre-fix this reads "1 of 20 packed": the item someone had ticked off comes
+# back unpacked, on both devices at once. The count is an exact oracle here
+# because exactly two pack gestures exist in the entire run (04 Sunscreen, 08
+# Hiking boots) and nothing in this suite ever unpacks — so 1 can only mean the
+# hiking pack was lost. DO NOT relax this to a range or to "at least 1": this
+# assertion is the app's only end-to-end proof of the defect, and a green that
+# tolerates 1 is a false green.
+#
+# The row itself is then scrolled to, so the count can never be satisfied by a
+# converged list that is somehow missing the row it is counting.
+appId: com.joshapproved.packinglist
+---
+- extendedWaitUntil:
+    visible:
+      text: "2 of 20 packed"
+    timeout: 40000
+- scrollUntilVisible:
+    element:
+      text: ".*Hiking boots.*"
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: qa/captures/e2e-sync/10-android-pack-survived
+- scrollUntilVisible:
+    element:
+      text: "Packers"
+    direction: UP
+    timeout: 20000

@@ -1,7 +1,8 @@
-# E2E two-device sync — iOS pass 5: relaunch after being killed (NO
+# E2E two-device sync — iOS pass 6: relaunch after being killed (NO
 # clearState) and prove the cold-start hello backfill pulls what Android wrote
 # while iOS was dead — plus that everything earlier persisted across the
-# process death (the pack, the blind add, the re-minted seed rows).
+# process death (both packs, the blind add, and the seed rows the Hiking type
+# added on both devices independently).
 appId: com.joshapproved.packinglist
 ---
 - launchApp
@@ -17,11 +18,11 @@ appId: com.joshapproved.packinglist
     timeout: 10000
 - extendedWaitUntil:
     visible:
-      text: "1 of 11 packed"
-    timeout: 30000
+      text: "2 of 21 packed"
+    timeout: 40000
 - scrollUntilVisible:
     element:
       text: ".*Windsock.*"
     direction: DOWN
-    timeout: 20000
-- takeScreenshot: qa/captures/e2e-sync/12-ios-backfilled
+    timeout: 30000
+- takeScreenshot: qa/captures/e2e-sync/13-ios-backfilled

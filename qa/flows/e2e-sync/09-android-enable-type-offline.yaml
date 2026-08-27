@@ -1,0 +1,63 @@
+# E2E two-device sync — ANDROID pass 5 (still OFFLINE): the second half of the
+# D1 setup (packing-list-20260820-1). See 08-ios-enable-type-and-pack.yaml for
+# the full statement of the defect and why this is an enable-a-NEW-type rather
+# than the old re-toggle.
+#
+# Android has never had the Hiking type and — crucially — has never seen iOS
+# enable it or pack "Hiking boots", because the runner cut its network before
+# pass 08. The leading assertion proves that blindness: the screen must still
+# read the pre-hiking "1 of 10 packed". A later green can then never come from
+# Android having quietly reconnected and simply received iOS's row.
+#
+# Enabling Hiking here mints Android's OWN `gen-hiking boots` — the same
+# deterministic id iOS minted, with a LATER addedAt and no pack action of its
+# own. That is the losing copy in the defect: younger, untouched, and pre-fix
+# it beat the other person's real pack.
+appId: com.joshapproved.packinglist
+---
+# Offline: iOS's hiking rows and its pack are NOT here (proves the blindness).
+- assertVisible:
+    text: "1 of 10 packed"
+- assertNotVisible:
+    text: ".*Hiking boots.*"
+
+# --- enable the same new type, later, in the dark ---
+- tapOn:
+    text: ".*Edit trip information.*"
+- extendedWaitUntil:
+    visible:
+      text: "Trip information"
+    timeout: 10000
+- tapOn:
+    text: "Trip information"
+- scrollUntilVisible:
+    element:
+      text: "Hiking"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    text: "Hiking"
+- tapOn:
+    text: "Save"
+- extendedWaitUntil:
+    visible:
+      text: "Packers"
+    timeout: 10000
+# Same 10 new rows as iOS composed, so the same total — but locally only the
+# beach Sunscreen from step 4 is packed. Android's own Hiking boots is UNPACKED
+# and younger than iOS's pack, which is the whole point.
+- extendedWaitUntil:
+    visible:
+      text: "1 of 20 packed"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      text: ".*Hiking boots.*"
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: qa/captures/e2e-sync/09-android-type-enabled-offline
+- scrollUntilVisible:
+    element:
+      text: "Packers"
+    direction: UP
+    timeout: 20000

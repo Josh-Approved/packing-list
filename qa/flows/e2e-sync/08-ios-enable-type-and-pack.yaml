@@ -1,0 +1,113 @@
+# E2E two-device sync — iOS pass 4 (Android is OFFLINE): the SETUP half of
+# defect packing-list-20260820-1.
+#
+# THE DEFECT. Trip-type seed rows are minted under a deterministic `gen-<rule>`
+# id, so two devices that each turn the SAME type on while apart create the
+# SAME row id independently, each with its OWN addedAt. src/sync/merge.ts
+# ordered the packed state by a clock that fell back to addedAt, so an
+# untouched copy that merely happened to be born LATER outranked the other
+# person's real pack — and an item one person had ticked off came back
+# unpacked on BOTH devices. Fixed by comparePackRecency: a real pack ACTION
+# always beats a copy that was only born later.
+#
+# HOW THIS REPRODUCES IT — and why it is NOT the old "turn Beach off and on".
+# Turning a type OFF only TOMBSTONES its generated rows; turning it back ON
+# takes composeItems' "generated AND still produced" branch (src/data/trip.ts),
+# which revives the row by carrying its EXISTING id, packed, addedAt, packedAt
+# and packedUpdatedAt forward. A device re-toggling a type it already has
+# therefore re-mints NOTHING younger and loses no pack — there is no ordering
+# of that gesture that reproduces the defect. The first real run of this suite
+# (2026-08-25) proved that on device: the re-toggle screen read "1 of 10
+# packed", not the "0 of 10" the flow asserted.
+#
+# The one gesture that mints a genuinely FRESH, younger copy of the same `gen-`
+# id is enabling a type the device has NEVER had. That is exactly the shape of
+# the green unit regression (src/sync/__tests__/reportedDefects.test.ts § D1 —
+# both devices enable "hiking", one packs a seeded row). So this suite does the
+# same thing on real runtimes, split across two passes inside ONE offline
+# window:
+#
+#   this flow (iOS, online)   enable Hiking, then pack a hiking-only row.
+#   09 (Android, offline)     enable Hiking afterwards — same `gen-` id, born
+#                             LATER, unpacked, and it never saw the pack.
+#   10 / 11                   reconnect: the pack must still stand on BOTH.
+#
+# WHY "Hiking boots". It is the only item name produced by the hiking rules and
+# by no other type in src/data/trip.ts (grepped: one hit, line 531), so the row
+# can only have been minted by this gesture — a shared name like Sunscreen or
+# Sun hat is already on the Greece trip from the beach rules and would be
+# MERGED into the existing row (composeItems keys on the lowercased name), not
+# freshly minted, which is the opposite of what this proves.
+#
+# THE ARITHMETIC. The Greece fixture is beach-only at thoroughness "normal", so
+# it seeds 8 rows; the suite has since added Kite (iOS) and Ukulele (Android),
+# giving 10. Hiking contributes 12 in-scope rules, two of which (Sunscreen, Sun
+# hat) already exist and merge, so 10 rows are added → 20. The progress line is
+# this suite's state oracle, and 20 is only reachable by the enable landing.
+#
+# The Trip Information screen is opened from the condensed trip card at the top
+# of TripDetail, whose accessibilityLabel ends "Edit trip information."
+# (detail.tripInfoA11y). Its own header text is tapped first for the same
+# reason the capture journey does it: it is a safe no-op tap that guarantees
+# the screen has focus before the chip grid is driven.
+appId: com.joshapproved.packinglist
+---
+# Online, still holding the pack it made in step 4 and Android's blind add.
+- assertVisible:
+    text: "1 of 10 packed"
+
+# --- enable a type this trip has NEVER had ---
+- tapOn:
+    text: ".*Edit trip information.*"
+- extendedWaitUntil:
+    visible:
+      text: "Trip information"
+    timeout: 10000
+- tapOn:
+    text: "Trip information"
+# The chip grid sits below name / duration / laundry; scrollUntilVisible is a
+# no-op when the chip is already on screen, so this is safe on both form
+# factors. "Hiking" is the Chip's accessibilityLabel and its visible label.
+- scrollUntilVisible:
+    element:
+      text: "Hiking"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    text: "Hiking"
+- tapOn:
+    text: "Save"
+- extendedWaitUntil:
+    visible:
+      text: "Packers"
+    timeout: 10000
+# 10 new hiking rows landed (Sunscreen + Sun hat merged into the beach ones),
+# and the earlier pack rode through the recompose untouched.
+- extendedWaitUntil:
+    visible:
+      text: "1 of 20 packed"
+    timeout: 15000
+- takeScreenshot: qa/captures/e2e-sync/08-ios-type-enabled
+
+# --- pack the hiking-only row ---
+# The tap target is the row's checkbox, whose accessibilityLabel is
+# "<name> packed" (detail.itemPackedA11y) — its own a11y element on both
+# platforms, so this is not affected by the merged row label iOS produces for
+# the rest of the row.
+- scrollUntilVisible:
+    element:
+      text: "Hiking boots packed"
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: "Hiking boots packed"
+- scrollUntilVisible:
+    element:
+      text: "Packers"
+    direction: UP
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      text: "2 of 20 packed"
+    timeout: 10000
+- takeScreenshot: qa/captures/e2e-sync/08-ios-hiking-packed

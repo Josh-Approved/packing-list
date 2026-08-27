@@ -10,12 +10,23 @@
 #   blind edit    — a pack made on iOS while Android is OFFLINE survives an
 #                   edit Android made in the same window without seeing it
 #                   (merge.ts § PACKED MERGES ON ITS OWN CLOCK).
-#   D1 birth-stamp — packing-list-20260820-1. Android re-mints the SAME
-#                   `gen-<rule>` seed rows (turn Beach off, save, on, save)
-#                   with a birth stamp LATER than iOS's pack. Pre-fix, the
-#                   untouched younger copy won and the item came back
-#                   unpacked on both devices. This is packing's own reported
-#                   defect, and the only place it can be proven end to end.
+#   D1 birth-stamp — packing-list-20260820-1. BOTH devices enable a trip type
+#                   the trip has never had (Hiking) inside one offline window;
+#                   each independently mints the SAME `gen-<rule>` seed rows.
+#                   iOS goes first and packs a hiking-only row; Android enables
+#                   it afterwards, so its untouched copy is born LATER. Pre-fix
+#                   that younger copy won and the item came back unpacked on
+#                   both devices. This is packing's own reported defect, and
+#                   the only place it can be proven end to end.
+#
+#                   It CANNOT be reproduced by re-toggling a type the device
+#                   already has: composeItems revives a tombstoned generated
+#                   row by carrying its existing id, packed state and addedAt
+#                   forward, so nothing younger is minted and no pack is lost.
+#                   The first real run of this suite (2026-08-25) failed on
+#                   exactly that — the re-toggle flow's own setup assertion —
+#                   which is why the D1 phase is authored this way and why its
+#                   assertions must never be relaxed to make it pass.
 #   cold-start    — iOS is killed, Android writes, iOS relaunches and the
 #                   hello backfill pulls what it missed.
 #
@@ -92,17 +103,22 @@ h_android_online
 h_droid 06-android-verify-merge.yaml
 h_ios 07-ios-verify-merge.yaml
 
-h_step "7/8 D1: Android re-mints the seed rows younger than the pack (offline)"
+# The offline window here spans BOTH seats, unlike step 4-5's: iOS makes the
+# winning gesture inside it too. Android must never see iOS enable the type or
+# make the pack, otherwise its copy of the seed row is a received one rather
+# than an independently minted younger one, and the defect is not set up.
+h_step "7/8 D1: both devices enable a NEW type apart; iOS packs one of its rows"
 h_android_offline
-h_droid 08-android-retoggle-type.yaml
+h_ios 08-ios-enable-type-and-pack.yaml
+h_droid 09-android-enable-type-offline.yaml
 h_android_online
-h_droid 09-android-verify-pack-survives.yaml
-h_ios 10-ios-verify-pack-survives.yaml
+h_droid 10-android-verify-pack-survives.yaml
+h_ios 11-ios-verify-pack-survives.yaml
 
 h_step "8/8 Kill iOS; Android writes; relaunch iOS → cold-start backfill"
 h_ios_terminate
-h_droid 11-android-add-while-ios-dead.yaml
-h_ios 12-ios-verify-backfill.yaml
+h_droid 12-android-add-while-ios-dead.yaml
+h_ios 13-ios-verify-backfill.yaml
 
 h_write_report baseline true two-device-baseline
 h_step "PASS — all two-device sync scenarios green"

@@ -2,10 +2,11 @@
 # it). Android writes while its partner is gone, so the next flow exercises the
 # cold-start hello backfill when iOS comes back.
 #
-# The count reaching 11 proves the add landed; the new row can sit above or
-# below the current viewport (list virtualisation keeps off-screen rows out of
-# the accessibility tree), so it is reached with a scroll rather than asserted
-# in place.
+# The trip carries 20 rows by now (8 seeded beach + Kite + Ukulele + the 10 the
+# Hiking type added in phase 7) and 2 packs, so the add lands at
+# "2 of 21 packed". The new row can sit above or below the current viewport
+# (list virtualisation keeps off-screen rows out of the accessibility tree), so
+# it is reached with a scroll rather than asserted in place.
 appId: com.joshapproved.packinglist
 ---
 - tapOn:
@@ -16,15 +17,15 @@ appId: com.joshapproved.packinglist
 - pressKey: Enter
 - extendedWaitUntil:
     visible:
-      text: "1 of 11 packed"
+      text: "2 of 21 packed"
     timeout: 8000
 - scrollUntilVisible:
     element:
       text: ".*Windsock.*"
     direction: DOWN
-    timeout: 20000
+    timeout: 30000
 - scrollUntilVisible:
     element:
       text: "Packers"
     direction: UP
-    timeout: 15000
+    timeout: 20000
