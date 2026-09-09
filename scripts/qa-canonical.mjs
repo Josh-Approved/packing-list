@@ -322,6 +322,104 @@ function detectRetiredVoicePhrases(text, appName = '') {
   return hits;
 }
 
+/**
+ * Pure core (self-tested). Returns the STRING LITERALS in one TS/JS source.
+ *
+ * The i18n modules are user-facing copy that happens to live in code, so the
+ * voice lint has to read them — but scanning raw source cries wolf on
+ * identifiers and comments (`freeformNote`, a `// runs locally` dev note). So
+ * only the literals are handed to the phrase detector: single, double and
+ * template quotes, with `${…}` interpolations and escapes flattened to a space
+ * so a phrase can never be stitched together across an expression boundary.
+ * Line and block comments are skipped. A regex literal containing a quote can
+ * confuse the scan — none of the i18n modules carry one, and the failure mode
+ * is a missed hit in a WARN-tier rule, never a false FAIL.
+ */
+function extractStringLiterals(source) {
+  const out = [];
+  let i = 0;
+  const n = source.length;
+  while (i < n) {
+    const ch = source[i];
+    if (ch === '/' && source[i + 1] === '/') {
+      while (i < n && source[i] !== '\n') i++;
+      continue;
+    }
+    if (ch === '/' && source[i + 1] === '*') {
+      i += 2;
+      while (i < n && !(source[i] === '*' && source[i + 1] === '/')) i++;
+      i += 2;
+      continue;
+    }
+    if (ch !== "'" && ch !== '"' && ch !== '`') {
+      i++;
+      continue;
+    }
+    const quote = ch;
+    i++;
+    let buf = '';
+    while (i < n && source[i] !== quote) {
+      if (source[i] === '\\') {
+        const next = source[i + 1];
+        buf += next === undefined || next === 'n' || next === 't' || next === 'r' ? ' ' : next;
+        i += 2;
+        continue;
+      }
+      if (quote === '`' && source[i] === '$' && source[i + 1] === '{') {
+        i += 2;
+        let depth = 1;
+        while (i < n && depth > 0) {
+          if (source[i] === '{') depth++;
+          else if (source[i] === '}') depth--;
+          i++;
+        }
+        buf += ' ';
+        continue;
+      }
+      buf += source[i];
+      i++;
+    }
+    i++;
+    if (buf.trim()) out.push(buf);
+  }
+  return out;
+}
+
+// The i18n string modules ARE user-facing copy — every one of these strings is
+// read by a person inside the app, in six languages. Scanning only
+// README/PRIVACY is why the retired cost claim "Free" survived in seven of
+// workout-timer's locale titles for 17 days after the store rename
+// (workout-timer-20260712-2): the English copy was corrected, the translations
+// were not, and no lint looked.
+//
+// Scope is the APP-OWNED copy. The shell's own strings are overwrite-synced
+// from templates/app-shell/i18n/, identical in every app and not an app's to
+// fix — reporting them here would hand all eight repos the same three
+// unfixable hits, which is exactly how a rule stops being read and how
+// `voice/enforce` never gets promoted to FAIL. Shell copy is a factory
+// finding, raised as a factory ticket against the template.
+const SHELL_OWNED_I18N = new Set([
+  'shellStrings.ts',
+  'shellLocales.ts',
+  'index.ts',
+  'localePreference.ts',
+]);
+
+const i18nCopyFiles = () => {
+  const dir = join(appDir, 'src', 'i18n');
+  if (!exists(dir)) return [];
+  let names = [];
+  try {
+    names = readdirSync(dir);
+  } catch {
+    return [];
+  }
+  return names
+    .filter((f) => /\.tsx?$/.test(f) && !/\.(test|spec)\./.test(f) && !SHELL_OWNED_I18N.has(f))
+    .sort()
+    .map((f) => `src/i18n/${f}`);
+};
+
 const ruleNoRetiredVoicePhrases = () => {
   const id = 'copy/retired-voice-phrases';
   const appName =
@@ -336,11 +434,16 @@ const ruleNoRetiredVoicePhrases = () => {
     looked = true;
     for (const h of detectRetiredVoicePhrases(readText(p) || '', appName)) hits.push(`${rel}: ${h}`);
   }
-  if (!looked) return skip(id, 'No README/PRIVACY to scan');
+  for (const rel of i18nCopyFiles()) {
+    looked = true;
+    const literals = extractStringLiterals(readText(join(appDir, rel)) || '');
+    for (const h of detectRetiredVoicePhrases(literals.join('\n'), appName)) hits.push(`${rel}: ${h}`);
+  }
+  if (!looked) return skip(id, 'No README/PRIVACY or i18n copy to scan');
   if (hits.length) {
     return voiceSev(id, 'Retired voice phrases in user-facing copy (canonical-voice.md § Retired phrases)', hits);
   }
-  return pass(id, 'No retired voice phrases in README/PRIVACY');
+  return pass(id, 'No retired voice phrases in README/PRIVACY or i18n copy');
 };
 
 // ---------- rules: commit history ----------
@@ -3114,7 +3217,58 @@ const ruleTipJarWired = () => {
   return pass(id, 'Tip jar is rendered and reachable (onSupport wired)');
 };
 
+/**
+ * Pure core (self-tested). Returns the nightly JS steps that inherit the
+ * device half's capture flag.
+ *
+ * The nightly's macOS job sets `EXPO_PUBLIC_QA_MODE: '1'` at JOB level so the
+ * simulator build boots deterministic fixtures — but job env is inherited by
+ * every step, and that job also runs the platform-agnostic JS suites. QA_MODE
+ * is a real branch in app code (src/qa/qaMode.ts; the shell, the stores and the
+ * reminder adapter all short-circuit under it), so the trust core ends up
+ * asserting against capture behaviour and the defect-reporter files the
+ * difference as a product defect every night. That is exactly what happened to
+ * home-maintenance's permission-ask contract (records 20260908-1 / -2): the
+ * tests were right, the code was right, only the environment was wrong, and it
+ * took a human reading the failure to notice — a phantom-defect generator is
+ * worse than no net, because it spends the queue on nothing.
+ *
+ * So: if a job pins the flag ON, every step in it that runs jest or stryker
+ * must pin it OFF for itself.
+ */
+function detectQaModeLeakIntoJsSteps(workflowText) {
+  const leaks = [];
+  // Job blocks start at 2-space indent; steps at 6. Split on the step marker so
+  // each block carries its own `env:` and `run:`.
+  for (const job of workflowText.split(/\n {2}(?=[a-zA-Z][\w-]*:\n)/)) {
+    if (!/^\s{4,6}EXPO_PUBLIC_QA_MODE:\s*['"]?1/m.test(job)) continue;
+    for (const step of job.split(/\n(?= {6}- name:)/).slice(1)) {
+      if (!/\b(?:npx |npm )?(?:jest|stryker)\b/.test(step)) continue;
+      if (/EXPO_PUBLIC_QA_MODE:\s*['"]?0/.test(step)) continue;
+      const name = (/- name:\s*(.+)/.exec(step)?.[1] || 'unnamed step').trim();
+      leaks.push(name);
+    }
+  }
+  return leaks;
+}
+
+const ruleNightlyQaModeNotLeaked = () => {
+  const id = 'test/nightly-qa-mode-not-leaked';
+  const wf = join(appDir, '.github', 'workflows', 'nightly.yml');
+  if (!exists(wf)) return skip(id, 'No .github/workflows/nightly.yml');
+  const leaks = detectQaModeLeakIntoJsSteps(readText(wf) || '');
+  if (leaks.length) {
+    return fail(
+      id,
+      'Nightly JS steps inherit the device half\'s EXPO_PUBLIC_QA_MODE=1, so the unit tests run in capture mode and file phantom defects',
+      leaks.map((n) => `${n}: add \`EXPO_PUBLIC_QA_MODE: '0'\` to this step's env`)
+    );
+  }
+  return pass(id, 'Nightly JS steps pin EXPO_PUBLIC_QA_MODE off (unit tests never run in capture mode)');
+};
+
 const CANONICAL_RULES = [
+  ruleNightlyQaModeNotLeaked,
   ruleLicense,
   rulePrivacy,
   ruleReadme,
@@ -3278,6 +3432,69 @@ function runSelfTest() {
     'retired-voice: third-party "free, public infrastructure" is not our cost claim');
   assert(detectRetiredVoicePhrases('No paywall. No ads. No tracking. No accounts. Your data stays with you.').length === 0,
     'retired-voice: the canonical wedge itself is clean');
+
+  // copy/retired-voice-phrases — the i18n string modules (workout-timer-20260712-2)
+  const i18nSrc = `
+// runs locally is fine in a dev comment
+/* and in a block comment: on-device */
+const freeformNote = 1;
+export const es = {
+  appTitle: 'Free Workout Timer',
+  tagline: "Temporizador",
+  greeting: \`Hola \${name}, on-device\`,
+};`;
+  assert(extractStringLiterals("const a = 'hello';").join() === 'hello',
+    'literals: a plain single-quoted string is extracted');
+  assert(extractStringLiterals('// runs locally\nconst a = "ok";').join() === 'ok',
+    'literals: a line comment is skipped, so a dev note never trips the voice lint');
+  assert(extractStringLiterals('/* on-device */ const a = "ok";').join() === 'ok',
+    'literals: a block comment is skipped');
+  assert(extractStringLiterals('const freeformNote = 1;').length === 0,
+    'literals: identifiers are not copy');
+  assert(extractStringLiterals('const a = `x ${runsLocally()} y`;').join() === 'x   y',
+    'literals: a ${…} interpolation flattens to a space (no phrase stitched across it)');
+  assert(extractStringLiterals("const a = 'it\\'s free to use';").join() === "it's free to use",
+    'literals: an escaped quote does not end the string');
+  assert(detectRetiredVoicePhrases(extractStringLiterals(i18nSrc).join('\n'), 'Workout Timer').length === 2,
+    'retired-voice(i18n): the "Free …" locale title + "on-device" in a template fire, comments do not');
+  assert(detectRetiredVoicePhrases(extractStringLiterals(i18nSrc).join('\n'), 'Free Workout Timer').length === 1,
+    'retired-voice(i18n): before the rename the title was the app\'s own name and was exempt');
+
+  // test/nightly-qa-mode-not-leaked
+  const leakyWf = `jobs:
+  ios-nightly:
+    runs-on: macos-15
+    env:
+      EXPO_PUBLIC_QA_MODE: '1'
+    steps:
+      - name: npm ci
+        run: npm ci
+      - name: Deep jest
+        env:
+          FUZZ_PROFILE: nightly
+        run: npx jest --ci
+      - name: Stryker incremental (mutation)
+        run: npx stryker run --incremental
+      - name: EAS local build (iOS simulator)
+        run: eas build --platform ios --local
+`;
+  assert(detectQaModeLeakIntoJsSteps(leakyWf).length === 2,
+    'nightly-qa-mode: both JS steps under a QA_MODE=1 job are flagged (the home-maintenance phantom-defect shape)');
+  assert(detectQaModeLeakIntoJsSteps(leakyWf).every((n) => !/EAS local build/.test(n)),
+    'nightly-qa-mode: the device step is NOT flagged — it is the one that legitimately wants capture mode');
+  assert(detectQaModeLeakIntoJsSteps(
+    leakyWf.replace("          FUZZ_PROFILE: nightly", "          EXPO_PUBLIC_QA_MODE: '0'\n          FUZZ_PROFILE: nightly")
+  ).length === 1, 'nightly-qa-mode: a step that pins the flag off for itself passes');
+  assert(detectQaModeLeakIntoJsSteps(leakyWf.replace("EXPO_PUBLIC_QA_MODE: '1'", "EXPO_PUBLIC_QA_MODE: '0'")).length === 0,
+    'nightly-qa-mode: a job that never turns capture mode on has nothing to leak');
+  assert(detectQaModeLeakIntoJsSteps(`jobs:
+  android-nightly:
+    env:
+      EXPO_PUBLIC_QA_MODE: '1'
+    steps:
+      - name: EAS local build (Android APK)
+        run: eas build --platform android --local
+`).length === 0, 'nightly-qa-mode: a device-only job (no jest/stryker step) is clean');
 
   // ux/touch-target-min
   assert(detectSmallTouchTargets(`<Pressable style={{ height: 32, width: 32 }} onPress={x}/>`).length === 1,
