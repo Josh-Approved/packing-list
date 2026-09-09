@@ -26,6 +26,9 @@ appId: com.joshapproved.packinglist
     retryTapIfNoChange: true
 - inputText: "Compass"
 - pressKey: Enter
+- scrollUntilVisible:
+    element: { text: ".*Compass.*" }
+    direction: DOWN
 - assertVisible: { text: ".*Compass.*" }
 - waitForAnimationToEnd:
     timeout: 1500
@@ -52,4 +55,7 @@ appId: com.joshapproved.packinglist
 - extendedWaitUntil:
     visible: { text: "Packers" }
     timeout: 10000
+- scrollUntilVisible:
+    element: { text: ".*Compass.*" }
+    direction: DOWN
 - assertVisible: { text: ".*Compass.*" }
