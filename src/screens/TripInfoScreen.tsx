@@ -166,7 +166,7 @@ export default function TripInfoScreen({ route, navigation }: Props) {
   const handleSubmit = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (isEdit && tripId) {
-      updateTrip(tripId, (t) => ({ ...t, ...applyTripInfo(draft, t.items, gender) }));
+      updateTrip(tripId, (t) => ({ ...t, ...applyTripInfo(draft, t.items, gender, t.typeIds) }));
       navigation.goBack();
     } else {
       const id = createTrip(draft);

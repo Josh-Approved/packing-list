@@ -792,9 +792,11 @@ export function computeQuantity(
  * - Existing source='custom' items are always preserved.
  * - Generated items no longer produced by any selected type are dropped.
  * - A REMOVED item is a tombstone in `existingItems` (the store soft-deletes so
- *   removals survive a cross-device merge). A custom one stays removed; a
- *   generated one whose rule is still in scope is re-suggested as a live row,
- *   which is what makes toggling a type off and back on restore its items.
+ *   removals survive a cross-device merge), and it STAYS removed — custom or
+ *   generated. A recompose is "the trip changed shape", never "undo my delete".
+ *   Toggling a type off and back on still restores its items — but that is
+ *   `reviveNewlyInScope`'s job (switching a kit on clears the tombstones only
+ *   that kit brings), not this function's. Recomposing never revives.
  */
 export function composeItems(
   typeIds: TripTypeId[],
@@ -871,6 +873,20 @@ export function composeItems(
       if (origin) claimedOrigins.add(origin);
       consumed.add(key);
     } else if (generated.has(key)) {
+      // A DELETED generated row stays deleted. Its rule is still in scope, so
+      // the overlay below would rebuild it as a live row and quietly undo the
+      // user's delete (defect packing-list-20260908-1) — and, when the user had
+      // renamed another row onto that name, leave two rows sharing it. Keep the
+      // tombstone verbatim (no re-stamping, so pruning can still retire it) and
+      // consume the key so step 3 doesn't respawn a fresh copy instead. Turning
+      // a type OFF and back ON still restores its items: the tombstone is
+      // dropped with everything else the type stops producing (case c), and the
+      // rule regenerates in step 3.
+      if (item.deletedAt != null) {
+        result.push(item);
+        consumed.add(key);
+        continue;
+      }
       const fresh = generated.get(key)!;
       result.push({
         ...fresh,
@@ -902,6 +918,61 @@ export function composeItems(
   return result;
 }
 
+/** The lowercased rule names a set of types actually produces under `opts` —
+ *  i.e. exactly the keys composeItems() would generate for them. */
+function producedKeys(typeIds: TripTypeId[], opts: CompositionOpts): Set<string> {
+  const keys = new Set<string>();
+  for (const typeId of typeIds) {
+    const typeDef = TRIP_TYPES.find((t) => t.id === typeId);
+    if (!typeDef) continue;
+    for (const rule of typeDef.itemRules) {
+      if (!ruleInScope(rule, opts.thoroughness)) continue;
+      if (rule.gender && rule.gender !== opts.gender) continue;
+      keys.add(rule.name.toLowerCase());
+    }
+  }
+  return keys;
+}
+
+/**
+ * Switching a kit ON means "add this kit to my trip", so it arrives whole.
+ *
+ * A seed row the incoming types bring that NO already-selected type produced
+ * was not part of this trip a moment ago — a tombstone sitting on it is how the
+ * row left when that kit was last switched off, not a delete the user is still
+ * asking for, so it's cleared and the row comes back. This is what makes "turn
+ * a type off, turn it back on" restore its items.
+ *
+ * A row that was ALREADY in scope keeps its tombstone: deleting it was a
+ * decision about the trip you have, and no later trip edit gets to undo it
+ * (defect packing-list-20260908-1). Same for anything you typed in or edited —
+ * that row is yours, and removing it is final.
+ *
+ * Removing types (or leaving them alone) never revives anything.
+ */
+function reviveNewlyInScope(
+  items: TripItem[],
+  prevTypeIds: TripTypeId[],
+  nextTypeIds: TripTypeId[],
+  opts: CompositionOpts
+): TripItem[] {
+  const added = nextTypeIds.filter((t) => !prevTypeIds.includes(t));
+  if (added.length === 0) return items;
+  const already = producedKeys(prevTypeIds, opts);
+  const incoming = producedKeys(added, opts);
+
+  let changed = false;
+  const next = items.map((it) => {
+    if (it.deletedAt == null) return it;
+    if (it.source === 'custom' || it.userModified) return it;
+    const key = it.name.toLowerCase();
+    if (!incoming.has(key) || already.has(key)) return it;
+    changed = true;
+    return { ...it, deletedAt: undefined };
+  });
+  return changed ? next : items;
+}
+
 type ComposableTrip = Pick<
   Trip,
   'typeIds' | 'duration' | 'items'
@@ -918,7 +989,9 @@ export function applyTypeToggle(
   const typeIds = isSelected
     ? trip.typeIds.filter((t) => t !== typeId)
     : [...trip.typeIds, typeId];
-  const items = composeItems(typeIds, trip.duration, trip.items, tripOpts(trip, gender));
+  const opts = tripOpts(trip, gender);
+  const seed = reviveNewlyInScope(trip.items, trip.typeIds, typeIds, opts);
+  const items = composeItems(typeIds, trip.duration, seed, opts);
   return { typeIds, items };
 }
 
@@ -946,11 +1019,17 @@ export interface TripInfo {
  * Apply a full trip-info edit at once and recompute the list, preserving the
  * user's manual edits / custom items (composeItems handles that). Used both
  * by the create flow (fresh items list) and the edit flow (existing trip).
+ *
+ * `prevTypeIds` is the trip's type selection BEFORE this edit. Pass it from the
+ * edit flow so switching a kit on here behaves exactly like switching it on
+ * from the trip screen (see reviveNewlyInScope); the create flow has no prior
+ * selection and omits it.
  */
 export function applyTripInfo(
   info: TripInfo,
   existingItems: TripItem[] = [],
-  gender: GenderPref = 'unspecified'
+  gender: GenderPref = 'unspecified',
+  prevTypeIds?: TripTypeId[]
 ): Pick<Trip, 'name' | 'duration' | 'typeIds' | 'canDoLaundry' | 'laundryIntervalDays' | 'thoroughness' | 'items'> {
   const duration = Math.min(
     MAX_DURATION_DAYS,
@@ -963,6 +1042,9 @@ export function applyTripInfo(
     thoroughness: info.thoroughness,
     gender,
   };
+  const seed = prevTypeIds
+    ? reviveNewlyInScope(existingItems, prevTypeIds, info.typeIds, opts)
+    : existingItems;
   return {
     name: info.name.trim() || 'Untitled trip',
     duration,
@@ -970,7 +1052,7 @@ export function applyTripInfo(
     canDoLaundry: info.canDoLaundry,
     laundryIntervalDays,
     thoroughness: info.thoroughness,
-    items: composeItems(info.typeIds, duration, existingItems, opts),
+    items: composeItems(info.typeIds, duration, seed, opts),
   };
 }
 

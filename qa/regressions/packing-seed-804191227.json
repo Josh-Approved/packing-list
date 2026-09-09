@@ -1,0 +1,10 @@
+{
+  "kind": "fuzz-seed",
+  "app": "packing-list",
+  "model": "packing",
+  "seed": 804191227,
+  "path": "86:5:3:3:3:3:3",
+  "story": "create([], 1d),deleteItem(#0, item#0),changeDuration(#0, 1d) /*replayPath=\"ADCR:K\"*/",
+  "message": "change-duration: deleted item gen-underwear (\"Underwear\") came back — a trip edit must never undo a delete",
+  "savedAt": "2026-09-09"
+}

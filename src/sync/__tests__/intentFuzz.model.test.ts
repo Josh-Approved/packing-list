@@ -21,12 +21,15 @@
  * separation window exists. This is a second way of reaching the same claims,
  * not a second set of claims.
  *
- * NOTE ON THE OTHER MODEL. packing-list also runs a single-device fuzzer over
- * the trips store (`src/store/__tests__/intentFuzz.test.ts`, model `packing`).
- * The kit enumerates every checked-in fixture from every call site, so once a
- * failure is crystallized for one model the OTHER file's `replayRegressions`
- * will say it doesn't know that model — register the missing builder there when
- * that happens.
+ * THIS FILE IS THE ONE REPLAY SITE FOR THE WHOLE APP. packing-list also runs a
+ * single-device fuzzer over the trips store (`src/store/__tests__/intentFuzz.
+ * test.ts`, model `packing`). The kit enumerates every checked-in fixture from
+ * every call site, so a second `replayRegressions` call would go red on any
+ * model it hadn't been handed — which is precisely what happened: a `packing`
+ * fixture crystallized 2026-09-06 and neither file replayed it, one because it
+ * didn't know the model and one because its own seed had gone stale. So the
+ * replay lives here alone and registers EVERY model. Add a model → add its
+ * builder to `MODELS` below; don't add a second call site.
  */
 
 // Hermetic: mock everything the trips + settings stores touch beyond pure JS.
@@ -46,7 +49,11 @@ jest.mock('../../qa/fixtures', () => ({ qaTrips: () => [] }));
 
 import fc from 'fast-check';
 import { runIntentFuzz } from '../../../qa/intent-fuzz/harness';
-import { replayRegressions } from '../../../qa/intent-fuzz/replay';
+import { replayCommandRegressions } from '../../../qa/intent-fuzz/replayCommands';
+import {
+  PACKING_MODEL,
+  buildPackingProperty,
+} from '../../../qa/intent-fuzz/models/packing.model';
 
 import { normalizeItemName, type Category, type Trip, type TripTypeId } from '../../data/trip';
 import {
@@ -99,7 +106,12 @@ const SEPARATION_MS = 5 * 60_000;
 const PAYLOAD_LIMIT = 32 * 1024;
 
 // One Date.now spy for the whole file; each story swaps its world in via setup
-// (mirrors the hand-rolled file — the shared clock + per-device skew).
+// (mirrors the hand-rolled file — the shared clock + per-device skew). With no
+// world in play it falls through to the REAL clock, because this file also
+// replays the single-device `packing` fixtures and those were recorded against
+// a real clock — freezing time under them would replay a different story than
+// the one that was crystallized.
+const realNow: () => number = Date.now.bind(Date);
 const worldRef: { current: SimWorld | null } = { current: null };
 let dateSpy: jest.SpyInstance<number, []>;
 beforeAll(() => {
@@ -108,7 +120,7 @@ beforeAll(() => {
     .mockImplementation(() =>
       worldRef.current
         ? worldRef.current.now + (worldRef.current.active?.skewMs ?? 0)
-        : 1_750_000_000_000
+        : realNow()
     );
 });
 afterAll(() => dateSpy.mockRestore());
@@ -522,8 +534,8 @@ function atQuiescence(s: { model: Model; real: Real }): void {
 /** The SAME property the live fuzzer runs — replayed against a checked-in
  *  fixture's exact seed+path by `replayRegressions`. Must mirror runIntentFuzz's
  *  internal build (same commands, same maxCommands, same setup + atQuiescence). */
-export function buildTripSyncProperty(): fc.IPropertyWithHooks<unknown> {
-  return fc.property(fc.commands(commands, { maxCommands: 40 }), (cmds) => {
+export function buildTripSyncProperty(replayPath?: string): fc.IPropertyWithHooks<unknown> {
+  return fc.property(fc.commands(commands, { maxCommands: 40, replayPath }), (cmds) => {
     const s = setup();
     fc.modelRun(() => ({ model: s.model, real: s.real }), cmds);
     atQuiescence(s);
@@ -543,4 +555,18 @@ describe('packing shared trip — intent fuzzer (fast-check model port)', () => 
   });
 });
 
-replayRegressions({ models: { [MODEL]: buildTripSyncProperty } });
+/** Every model this app fuzzes, so every crystallized fixture can replay here.
+ *  The `packing` model lives outside its test file for exactly this reason —
+ *  see `qa/intent-fuzz/models/packing.model.ts`. */
+const MODELS = {
+  [MODEL]: buildTripSyncProperty,
+  // Hand the packing model a clean clock: it is single-device and knows nothing
+  // about this file's simulated world, and a world left behind by a trip-sync
+  // story would freeze time under it.
+  [PACKING_MODEL]: (replayPath?: string) => {
+    worldRef.current = null;
+    return buildPackingProperty(replayPath);
+  },
+};
+
+replayCommandRegressions({ models: MODELS });

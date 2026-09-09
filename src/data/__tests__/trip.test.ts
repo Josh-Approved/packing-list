@@ -202,12 +202,14 @@ describe('composeItems — preserving the user’s edits (the data-loss core)', 
     expect(byName(pass2, 'Local currency')).toBeUndefined();
   });
 
-  it('a removed CUSTOM item stays removed across a recompose; a removed seed item is re-suggested', () => {
+  it('a removed item stays removed across a recompose — custom or seed', () => {
     // Removals are tombstones (the store soft-deletes so they survive a
-    // cross-device merge), and a recompose walks that same array. The two kinds
-    // part ways here, and the split is what makes "turn a type off, turn it back
-    // on" restore its items: a seed rule that is still in scope re-suggests its
-    // row, while a typed-in item you removed is yours and stays gone.
+    // cross-device merge), and a recompose walks that same array. Both kinds
+    // stay dead: a recompose means the trip changed shape, never "undo my
+    // delete" (defect packing-list-20260908-1 — a seed row used to be
+    // re-suggested here, so deleting anything the kit still produced didn't
+    // stick through a duration change). The "turn a type off and back on
+    // restores its items" story rides the next test, not this path.
     const custom: TripItem = {
       id: 'c-1', name: 'Snowboard wax', category: 'Misc', quantity: 1,
       assigneeId: SHARED_ASSIGNEE, packed: false, source: 'custom',
@@ -223,8 +225,27 @@ describe('composeItems — preserving the user’s edits (the data-loss core)', 
     const after = composeItems(['essentials'], 7, removed);
     expect(after.find((i) => i.id === 'c-1')?.deletedAt).toBe(500);
     expect(visibleItems({ items: after }).some((i) => i.name === 'Snowboard wax')).toBe(false);
-    expect(visibleItems({ items: after }).some((i) => i.name === 'Toothbrush')).toBe(true);
+    expect(visibleItems({ items: after }).some((i) => i.name === 'Toothbrush')).toBe(false);
+    // The tombstone is kept (it still has to beat a paired device), not doubled.
     expect(after.filter((i) => i.name === 'Toothbrush')).toHaveLength(1);
+    expect(after.find((i) => i.name === 'Toothbrush')?.deletedAt).toBe(500);
+  });
+
+  it('toggling a type off and back on restores its items, tombstone or not', () => {
+    // The counter-story to the test above: the restore comes from the rule
+    // being regenerated once it is back in scope, not from reviving a
+    // tombstone — so keeping deletes dead does not cost us this.
+    const withBeach = composeItems(['essentials', 'beach'], 4);
+    const towel = byName(withBeach, 'Beach towel')!;
+    expect(towel).toBeDefined();
+    // The user deletes it, then turns beach off and back on.
+    const removed = withBeach.map((i) =>
+      i.id === towel.id ? { ...i, deletedAt: 500, updatedAt: 500 } : i
+    );
+    const beachOff = composeItems(['essentials'], 4, removed);
+    expect(beachOff.some((i) => i.name === 'Beach towel')).toBe(false);
+    const beachOn = composeItems(['essentials', 'beach'], 4, beachOff);
+    expect(visibleItems({ items: beachOn }).some((i) => i.name === 'Beach towel')).toBe(true);
   });
 
   it('preserves a fully custom (typed-in) item across recomposition', () => {
