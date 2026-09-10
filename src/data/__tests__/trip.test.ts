@@ -165,7 +165,11 @@ describe('composeItems — preserving the user’s edits (the data-loss core)', 
     expect(keptSwim!.quantity).toBe(9); // user's value preserved
     expect(keptSwim!.source).toBe('custom'); // reclassified so it survives forever
     expect(keptSwim!.userModified).toBe(false); // flag reset after reclassification
-    expect(keptSwim!.id.startsWith('gen-')).toBe(false); // divorced from gen- id space
+    // The row KEEPS its id. Its id is what the cross-device merge matches on, so
+    // re-keying it here (which only the recomposing device does) would leave the
+    // partner's copy of the same row unmatched and the trip showing it twice —
+    // defect packing-list-20260910-1.
+    expect(keptSwim!.id).toBe(swim.id);
     // A plain (un-edited) generated beach item IS dropped when beach is off.
     expect(byName(after, 'Beach towel')).toBeUndefined();
   });

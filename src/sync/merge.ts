@@ -24,9 +24,13 @@
  * DUPLICATE NAMES COLLAPSE DETERMINISTICALLY. Two devices adding "Charger"
  * while apart mint two different ids. Because packing legitimately allows the
  * same name in two categories (a "Charger" in Electronics and one in Bags), the
- * collapse identity is name AND category. Only LIVE, user-typed (custom) items
- * collapse: generated items already share a deterministic `gen-<rule>` id
- * across devices, so they merge cleanly by id and are left alone.
+ * collapse identity is name AND category. SEED ROWS TAKE PART TOO. They carry a
+ * deterministic `gen-<rule>` id and so normally merge by id, but "normally" was
+ * doing a lot of work: a build shipped before 2026-09-10 re-keyed an edited seed
+ * row into the custom id space on the next trip edit, so trips out there already
+ * hold one logical row as a `gen-` record on one phone and a `c-` record on
+ * another, and nothing but this collapse can put them back together
+ * (defect packing-list-20260910-1).
  */
 
 import {
@@ -104,10 +108,30 @@ function itemKey(it: TripItem): string {
   return normalizeItemName(it.name) + '|' + it.category;
 }
 
-/** A generated item shares a deterministic id across devices, so it never
- *  duplicates — only custom (user-typed) items can collide. */
+/** Every named row takes part in the duplicate collapse — seed rows included.
+ *  A seed row's `gen-<rule>` id normally keeps it out of trouble, but it is not
+ *  a guarantee (see the header note on re-keyed rows), and one thing listed
+ *  twice is a defect whichever id space the two copies came from. */
 function isCollapsible(it: TripItem): boolean {
-  return it.name !== '' && !it.id.startsWith('gen-');
+  return it.name !== '';
+}
+
+/**
+ * The clock the duplicate-name pack fold ranks copies by.
+ *
+ * A copy with a real pack ACTION ranks by that action. A copy with none ranks by
+ * its birth — but only when a PERSON minted it. A `gen-` row is minted by the
+ * composer (turning a trip type on, changing the duration), so its birth stamp
+ * says nothing about what anyone wants; letting it outrank a sibling copy's real
+ * tap would quietly unpack what someone had ticked off, which is defect
+ * packing-list-20260820-1 arriving through the collapse instead of through the
+ * same-id merge. A typed row's birth IS a person's action ("I need another one,
+ * fresh"), so it keeps its say — see the note at the fold below.
+ */
+function foldClock(it: TripItem): number {
+  const action = packActionClock(it);
+  if (action > 0) return action;
+  return it.id.startsWith('gen-') ? 0 : it.addedAt;
 }
 
 /**
@@ -159,15 +183,14 @@ function collapseDuplicateNames(items: TripItem[]): TripItem[] {
     );
     const keeper = sorted[0];
     // Newest pack action anywhere in the name group binds.
-    // Plain `packedClock` here, NOT comparePackRecency: these are separate rows
-    // a person typed in, so a copy added later with no pack action of its own is
-    // a fresh need and rightly lands unpacked. (comparePackRecency exists for
-    // the same-id case, where a later birth stamp is the composer's, not a
-    // person's — see combineItems.)
+    // `foldClock` here, NOT comparePackRecency: a typed row added later with no
+    // pack action of its own is a fresh need and rightly lands unpacked, so its
+    // birth still counts. What foldClock strips out is a SEED row's birth, which
+    // is the composer's stamp rather than anyone's decision.
     let packSource = keeper;
     for (const it of group) {
       if (it === keeper) continue;
-      const dc = packedClock(it) - packedClock(packSource);
+      const dc = foldClock(it) - foldClock(packSource);
       if (dc > 0 || (dc === 0 && !it.packed)) packSource = it;
     }
     for (const dup of sorted.slice(1)) {
@@ -176,8 +199,15 @@ function collapseDuplicateNames(items: TripItem[]): TripItem[] {
         deletedAt: Math.max(dup.updatedAt, dup.deletedAt ?? 0),
       });
     }
+    // Fold only when the winning copy carries a real pack decision. Without
+    // this, a group of untouched seed copies would still write the loser's
+    // BIRTH stamp into the keeper's `packedUpdatedAt` — minting a pack action
+    // nobody performed, which then out-clocks a real tap on the next merge.
+    const foldsADecision =
+      packActionClock(packSource) > 0 || packSource.packed !== keeper.packed;
     if (
       packSource !== keeper &&
+      foldsADecision &&
       (packSource.packed !== keeper.packed ||
         packSource.packedAt !== keeper.packedAt ||
         packedClock(packSource) !== packedClock(keeper))

@@ -35,6 +35,18 @@
  *       comparison, and the item they had packed came back unpacked on BOTH
  *       devices. Fixed by `comparePackRecency` in `../merge`: a real pack
  *       ACTION always outranks a copy that was only born later.
+ *
+ *   D2  packing-list-20260910-1 — "Shared trip: the same item is listed twice
+ *       after one person edits the trip while the other is packing."
+ *       Both people are looking at a seeded row ("Toothpaste"). One nudges its
+ *       quantity and then changes how long the trip is; recomposing the list
+ *       used to hand that edited row a brand-new id, which only THAT phone
+ *       knows about. The partner meanwhile nudges their own copy — still under
+ *       the original `gen-<rule>` id — so the merge sees two unrelated records
+ *       and keeps both, and every device ends up listing Toothpaste twice.
+ *       Fixed in `../../data/trip` (composeItems keeps the row's id) with a
+ *       healing net in `../merge` (the duplicate-name collapse no longer skips
+ *       seed rows, so trips already split by the old build come back together).
  */
 
 // Hermetic: mock everything the trips + settings stores touch beyond pure JS.
@@ -53,7 +65,7 @@ jest.mock('../../storage/kv', () => ({
 jest.mock('../../qa/qaMode', () => ({ QA_MODE: false }));
 jest.mock('../../qa/fixtures', () => ({ qaTrips: () => [] }));
 
-import type { TripItem } from '../../data/trip';
+import { normalizeItemName, type TripItem } from '../../data/trip';
 import {
   type SimDev,
   type SimWorld,
@@ -62,7 +74,10 @@ import {
   on,
   converge,
   fingerprint,
+  itemKey,
   setPacked,
+  setQuantity,
+  changeDuration,
   toggleType,
   visible,
 } from '../simHarness';
@@ -222,6 +237,152 @@ describe('D1 (packing-list-20260820-1): a pack survives the partner turning the 
 
     expect(rowById(a, secret, target.id)?.packed).toBe(true);
     expect(rowById(b, secret, target.id)?.packed).toBe(true);
+    expect(fingerprint(a, secret)).toBe(fingerprint(b, secret));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D2 — packing-list-20260910-1
+// ---------------------------------------------------------------------------
+
+/** Every name+category listed more than once on this device — what a person
+ *  would read as "why is that in here twice?". */
+function duplicateRows(dev: SimDev, secret: string): string[] {
+  const keys = visible(dev, secret).map(itemKey);
+  return keys.filter((k, i) => keys.indexOf(k) !== i);
+}
+
+function rowsNamed(dev: SimDev, secret: string, name: string): TripItem[] {
+  const want = normalizeItemName(name);
+  return visible(dev, secret).filter((it) => normalizeItemName(it.name) === want);
+}
+
+/** A seed row both devices already hold under the same `gen-<rule>` id. */
+function sharedSeedRow(dev: SimDev, secret: string): TripItem {
+  const row = generatedRows(dev, secret)[0];
+  expect(row).toBeDefined();
+  return row;
+}
+
+describe('D2 (packing-list-20260910-1): editing the trip while the partner is packing does not list an item twice', () => {
+  test('A nudges a seeded row then changes the trip length; B nudges their copy → ONE row everywhere', () => {
+    const { world, a, b, secret } = household();
+    const seed = sharedSeedRow(a, secret);
+    // Both devices really are holding the same record right now.
+    expect(rowById(b, secret, seed.id)).toBeDefined();
+
+    // Apart. A makes the row theirs (a quantity nudge) and then edits the trip,
+    // which recomposes the list. This is the moment the old build re-keyed it.
+    world.now += 60 * 60_000;
+    setQuantity(a, secret, seed.id, 3);
+    world.now += 10 * 60_000;
+    changeDuration(a, secret, 8);
+
+    // Still apart, LATER: B nudges their copy of the SAME row, which on B is
+    // still alive under the original id — so B's edit out-clocks whatever A's
+    // recompose did to it.
+    world.now += 30 * 60_000;
+    setQuantity(b, secret, seed.id, 2);
+
+    // Back in range.
+    world.now += 60_000;
+    converge([a, b], secret);
+
+    // The reported symptom, on both devices at once.
+    expect(duplicateRows(a, secret)).toEqual([]);
+    expect(duplicateRows(b, secret)).toEqual([]);
+    expect(rowsNamed(a, secret, seed.name)).toHaveLength(1);
+    expect(rowsNamed(b, secret, seed.name)).toHaveLength(1);
+    // …and the two devices genuinely agree on everything they show.
+    expect(fingerprint(a, secret)).toBe(fingerprint(b, secret));
+  });
+
+  test('a trip edit keeps an edited seed row under the id the partner still holds', () => {
+    const { world, a, b, secret } = household();
+    const seed = sharedSeedRow(a, secret);
+
+    world.now += 60 * 60_000;
+    setQuantity(a, secret, seed.id, 3);
+    world.now += 10 * 60_000;
+    changeDuration(a, secret, 9);
+
+    // The mechanism, pinned directly: recomposing makes the row the user's
+    // (source 'custom') without moving it to an id nobody else knows.
+    const after = rowById(a, secret, seed.id);
+    expect(after).toBeDefined();
+    expect(after!.source).toBe('custom');
+    expect(rowsNamed(a, secret, seed.name)).toHaveLength(1);
+    expect(rowById(b, secret, seed.id)).toBeDefined(); // still the shared identity
+  });
+
+  test('trips already split by the old build heal on the next sync', () => {
+    // The forward fix cannot reach data that is ALREADY two records on two
+    // phones, so the merge has to put them back together. Replays exactly that
+    // state: A holds the re-keyed custom copy (id from the old `makeId('c')`
+    // path) plus the tombstone it left, B still holds the `gen-` original.
+    const { world, a, b, secret } = household();
+    const seed = sharedSeedRow(a, secret);
+
+    world.now += 60 * 60_000;
+    on(a, () =>
+      a.store.getState().updateTrip(a.store.getState().trips[0].id, (t) => ({
+        ...t,
+        items: t.items.map((it) =>
+          it.id === seed.id
+            ? { ...it, id: 'c-legacy-rekey', source: 'custom' as const, quantity: 3 }
+            : it
+        ),
+      }))
+    );
+    expect(rowById(a, secret, 'c-legacy-rekey')).toBeDefined();
+    expect(rowById(a, secret, seed.id)).toBeUndefined(); // tombstoned by the diff
+
+    // B, apart, edits its copy of the original later — so the tombstone loses
+    // and both records arrive live at the merge.
+    world.now += 30 * 60_000;
+    setQuantity(b, secret, seed.id, 2);
+
+    world.now += 60_000;
+    converge([a, b], secret);
+
+    expect(duplicateRows(a, secret)).toEqual([]);
+    expect(duplicateRows(b, secret)).toEqual([]);
+    expect(rowsNamed(a, secret, seed.name)).toHaveLength(1);
+    expect(fingerprint(a, secret)).toBe(fingerprint(b, secret));
+  });
+
+  test('the collapse never unpacks something a person ticked off', () => {
+    // The healing net's own hazard: a seed row's BIRTH stamp must not outrank a
+    // real tap on the copy it is collapsing against (defect
+    // packing-list-20260820-1 arriving through the collapse).
+    const { world, a, b, secret } = household();
+    const seed = sharedSeedRow(a, secret);
+
+    world.now += 60 * 60_000;
+    setPacked(a, secret, seed.id, true);
+    world.now += 5 * 60_000;
+    on(a, () =>
+      a.store.getState().updateTrip(a.store.getState().trips[0].id, (t) => ({
+        ...t,
+        items: t.items.map((it) =>
+          it.id === seed.id
+            ? { ...it, id: 'c-legacy-rekey', source: 'custom' as const }
+            : it
+        ),
+      }))
+    );
+
+    // B, holding the untouched original, makes a later CONTENT edit to it. That
+    // makes B's copy the freshest record in the group — but it carries no pack
+    // decision of its own, so A's tap has to survive the collapse.
+    world.now += 60 * 60_000;
+    setQuantity(b, secret, seed.id, 4);
+    world.now += 60_000;
+    converge([a, b], secret);
+
+    const survivor = rowsNamed(a, secret, seed.name);
+    expect(survivor).toHaveLength(1);
+    expect(survivor[0].packed).toBe(true);
     expect(fingerprint(a, secret)).toBe(fingerprint(b, secret));
   });
 });

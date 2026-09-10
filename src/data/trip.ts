@@ -1,9 +1,9 @@
 /**
  * Trip data model + composition engine for packing-list.
  *
- * UI-agnostic. Mostly pure — composeItems() mints a fresh id (via makeId)
- * when it reclassifies an edited seed item to custom, so it is not strictly
- * deterministic on that path. Everything else is pure. Spec source:
+ * UI-agnostic and pure — every id it emits is derived from the rule it came
+ * from, never minted, so two devices composing the same trip produce the same
+ * row identities. Spec source:
  * `Packing List - Josh Approved — Build Spec` § Data model + § Composition rules.
  *
  * Composition rules (from the spec, restated):
@@ -24,7 +24,6 @@ import {
   Music, Car, Tent, Globe, Dumbbell, Sparkles, Baby,
   type LucideIcon,
 } from 'lucide-react-native';
-import { makeId } from '../lib/id';
 import { now as clockNow } from '../sync/clock';
 
 // ============================================================================
@@ -783,8 +782,15 @@ export function computeQuantity(
  * - Generated items from selected types overlay onto existing ones (preserving
  *   id / packed / assignee).
  * - userModified items are kept and reclassified to source='custom'
- *   (their userModified flag resets afterwards). If their id was still in the
- *   `gen-` space it's reissued so a regenerated rule can't collide React keys.
+ *   (their userModified flag resets afterwards). THEY KEEP THEIR ID, including
+ *   a `gen-<rule>` one. A row id is the identity the cross-device merge matches
+ *   on, so re-keying a row here — which only one device does, at the moment it
+ *   recomposes — splits one shared row into two records: the peer that is still
+ *   holding the `gen-` copy and editing it keeps that copy alive, and the trip
+ *   ends up showing the same thing twice (defect packing-list-20260910-1). The
+ *   originating rule can't collide with the kept row either way, because the
+ *   row claims its origin below (`claimedOrigins`) and the rule then declines
+ *   to regenerate.
  * - A kept edited/custom item "claims" its origin rule (via originName, or
  *   recovered from a legacy `gen-<rule>` id). The originating rule then does
  *   NOT regenerate a fresh duplicate — e.g. renaming "Local currency" to
@@ -862,9 +868,9 @@ export function composeItems(
         (item.id.startsWith('gen-') ? item.id.slice(4) : undefined);
       result.push({
         ...item,
-        // Once a user edits a seed item it's truly theirs — divorce it from
-        // the gen- id space so a regenerated rule can never collide keys.
-        id: item.id.startsWith('gen-') ? makeId('c') : item.id,
+        // The id is deliberately untouched — see the header note. Editing a
+        // seed row makes it the user's, but it is still the SAME row every
+        // paired device is holding, and only this device knows it recomposed.
         source: 'custom',
         userModified: false,
         fromTypeIds: undefined,
