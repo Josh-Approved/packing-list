@@ -665,6 +665,37 @@ describe('the diagnostic log a bug report carries', () => {
     expect(warned).toContain(`ch=${CH_TAG}`);
   });
 
+  test("a send no relay accepted is recorded, without the relay's free-text reason", () => {
+    useTripsStore.setState({ trips: [sharedTrip([item('socks')])], hydrated: true });
+    startSyncEngine();
+
+    // Every recipient rejected the publish (NIP-20 OK-false): the socket is up
+    // but our change never left the device — "I packed it and the other phone
+    // never saw it", which left no trace in the report at all.
+    created[0].onPublishResult!(false, 'rate-limited: slow down, npub…');
+
+    const warned = logLine('sync: publish was not delivered');
+    expect(warned).toBeDefined();
+    expect(warned).toContain('WARN');
+    expect(warned).toContain(`ch=${CH_TAG}`);
+    expect(warned).toContain('delivered=false');
+
+    // The reason is free text from a third-party relay — the one field in this
+    // log we would not control. It never lands here.
+    expect(serializeCurrent()).not.toContain('rate-limited');
+    expect(serializeCurrent()).not.toContain('slow down');
+    expect(serializeCurrent()).not.toContain(SECRET);
+  });
+
+  test('a delivered send is not warned about — only the failures leave a breadcrumb', () => {
+    useTripsStore.setState({ trips: [sharedTrip([item('socks')])], hydrated: true });
+    startSyncEngine();
+
+    created[0].onPublishResult!(true, '');
+
+    expect(logLine('sync: publish was not delivered')).toBeUndefined();
+  });
+
   test('a peer copy is recorded with how much of the trip arrived', () => {
     useTripsStore.setState({ trips: [sharedTrip([item('socks')])], hydrated: true });
     startSyncEngine();
