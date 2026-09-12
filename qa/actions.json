@@ -2,7 +2,7 @@
   "$comment": "Action-coverage registry (Uplevel-3 T3). Every user-facing action mapped to its proof: tier2-assert (a qa/journey.json waypoint) | rntl (a component test) | unit (a trust-core test) | none (a gap to backfill). Maintained by scripts/qa/action-coverage.mjs — it appends new-in-code actions + flags stale ones, never rewrites a proof by hand.",
   "actions": [
     {
-      "id": "components/AboutRow#pressable-56",
+      "id": "components/AboutRow#pressable-onpress",
       "label": "Pressable (dynamic label)",
       "where": "src/components/AboutRow.tsx:56",
       "proof": {
@@ -11,7 +11,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/Chip#pressable-35",
+      "id": "components/Chip#pressable-handlepress",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Chip.tsx:35",
       "proof": {
@@ -29,7 +29,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/Credits#pressable-66",
+      "id": "components/Credits#pressable-linking.openurl",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Credits.tsx:66",
       "proof": {
@@ -38,8 +38,8 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/FundingFooter#about.support",
-      "label": "about.support",
+      "id": "components/FundingFooter#about.supportshort",
+      "label": "about.supportShort",
       "where": "src/components/FundingFooter.tsx:80",
       "proof": {
         "kind": "none"
@@ -49,14 +49,14 @@
     {
       "id": "components/FundingFooter#about.feedback",
       "label": "about.feedback",
-      "where": "src/components/FundingFooter.tsx:92",
+      "where": "src/components/FundingFooter.tsx:100",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/GenderPrompt#pressable-61",
+      "id": "components/GenderPrompt#pressable-dismiss",
       "label": "Pressable (dynamic label)",
       "where": "src/components/GenderPrompt.tsx:61",
       "proof": {
@@ -65,7 +65,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/GenderPrompt#pressable-67",
+      "id": "components/GenderPrompt#pressable-e.stoppropagation",
       "label": "Pressable (dynamic label)",
       "where": "src/components/GenderPrompt.tsx:67",
       "proof": {
@@ -74,7 +74,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/GenderPrompt#pressable-76",
+      "id": "components/GenderPrompt#pressable-setgender",
       "label": "Pressable (dynamic label)",
       "where": "src/components/GenderPrompt.tsx:76",
       "proof": {
@@ -83,7 +83,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/GenderPrompt#pressable-87",
+      "id": "components/GenderPrompt#pressable-dismiss-2",
       "label": "Pressable (dynamic label)",
       "where": "src/components/GenderPrompt.tsx:87",
       "proof": {
@@ -92,7 +92,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/LanguageSetting#pressable-95",
+      "id": "components/LanguageSetting#pressable-setopen",
       "label": "Pressable (dynamic label)",
       "where": "src/components/LanguageSetting.tsx:95",
       "proof": {
@@ -110,7 +110,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/LanguageSetting#pressable-114",
+      "id": "components/LanguageSetting#pressable-languagesetting-1",
       "label": "Pressable (dynamic label)",
       "where": "src/components/LanguageSetting.tsx:114",
       "proof": {
@@ -128,7 +128,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/LanguageSetting#pressable-135",
+      "id": "components/LanguageSetting#pressable-choose",
       "label": "Pressable (dynamic label)",
       "where": "src/components/LanguageSetting.tsx:135",
       "proof": {
@@ -137,18 +137,18 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/MoreFromJA#pressable-58",
+      "id": "components/MoreFromJA#pressable-linking.openurl",
       "label": "Pressable (dynamic label)",
-      "where": "src/components/MoreFromJA.tsx:58",
+      "where": "src/components/MoreFromJA.tsx:61",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/Pill#pressable-44",
+      "id": "components/Pill#pressable-pill-1",
       "label": "Pressable (dynamic label)",
-      "where": "src/components/Pill.tsx:44",
+      "where": "src/components/Pill.tsx:57",
       "proof": {
         "kind": "none"
       },
@@ -161,12 +161,13 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress"
+      "note": "Pressable · onPress",
+      "stale": true
     },
     {
       "id": "components/ReviewModal#common.notnow",
       "label": "common.notNow",
-      "where": "src/components/ReviewModal.tsx:145",
+      "where": "src/components/ReviewModal.tsx:162",
       "proof": {
         "kind": "none"
       },
@@ -182,8 +183,8 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/SettingsAbout#about.learnmorea11y",
-      "label": "about.learnMoreA11y",
+      "id": "components/SettingsAbout#about.learnmore",
+      "label": "about.learnMore",
       "where": "src/components/SettingsAbout.tsx:69",
       "proof": {
         "kind": "none"
@@ -191,7 +192,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/Stepper#pressable-89",
+      "id": "components/Stepper#pressable-handleminus",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Stepper.tsx:89",
       "proof": {
@@ -218,8 +219,8 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/TipJarSheet#tip.tiera11y",
-      "label": "tip.tierA11y",
+      "id": "components/TipJarSheet#pressable-ontip",
+      "label": "Pressable (dynamic label)",
       "where": "src/components/TipJarSheet.tsx:166",
       "proof": {
         "kind": "none"
@@ -229,7 +230,7 @@
     {
       "id": "components/TipJarSheet#common.maybelater",
       "label": "common.maybeLater",
-      "where": "src/components/TipJarSheet.tsx:194",
+      "where": "src/components/TipJarSheet.tsx:198",
       "proof": {
         "kind": "none"
       },
@@ -238,16 +239,16 @@
     {
       "id": "screens/SettingsScreen#common.back",
       "label": "common.back",
-      "where": "src/screens/SettingsScreen.tsx:156",
+      "where": "src/screens/SettingsScreen.tsx:165",
       "proof": {
         "kind": "none"
       },
       "note": "Pressable · onPress"
     },
     {
-      "id": "screens/SettingsScreen#pressable-180",
+      "id": "screens/SettingsScreen#pressable-handlesetgender",
       "label": "Pressable (dynamic label)",
-      "where": "src/screens/SettingsScreen.tsx:180",
+      "where": "src/screens/SettingsScreen.tsx:189",
       "proof": {
         "kind": "none"
       },
@@ -260,7 +261,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress"
+      "note": "Pressable · onPress",
+      "stale": true
     },
     {
       "id": "screens/TripsHomeScreen#alert-alert-action",
@@ -281,7 +283,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/Dialogs#pressable-116",
+      "id": "components/Dialogs#pressable-e.stoppropagation",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Dialogs.tsx:116",
       "proof": {
@@ -290,7 +292,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/Dialogs#pressable-123",
+      "id": "components/Dialogs#pressable-choose",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Dialogs.tsx:123",
       "proof": {
@@ -317,7 +319,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/Dialogs#pressable-218",
+      "id": "components/Dialogs#pressable-e.stoppropagation-2",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Dialogs.tsx:218",
       "proof": {
@@ -326,7 +328,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/Dialogs#textinput-223",
+      "id": "components/Dialogs#textinput-submit",
       "label": "TextInput (dynamic label)",
       "where": "src/components/Dialogs.tsx:223",
       "proof": {
@@ -344,7 +346,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/Dialogs#pressable-246",
+      "id": "components/Dialogs#pressable-submit",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Dialogs.tsx:246",
       "proof": {
@@ -362,7 +364,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/Dialogs#pressable-317",
+      "id": "components/Dialogs#pressable-e.stoppropagation-3",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Dialogs.tsx:317",
       "proof": {
@@ -380,7 +382,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "components/Dialogs#pressable-331",
+      "id": "components/Dialogs#pressable-confirm",
       "label": "Pressable (dynamic label)",
       "where": "src/components/Dialogs.tsx:331",
       "proof": {
@@ -391,7 +393,7 @@
     {
       "id": "screens/ShareScreen#common.close",
       "label": "common.close",
-      "where": "src/screens/ShareScreen.tsx:84",
+      "where": "src/screens/ShareScreen.tsx:97",
       "proof": {
         "kind": "none"
       },
@@ -400,7 +402,7 @@
     {
       "id": "screens/ShareScreen#share.sendlink",
       "label": "share.sendLink",
-      "where": "src/screens/ShareScreen.tsx:117",
+      "where": "src/screens/ShareScreen.tsx:130",
       "proof": {
         "kind": "none"
       },
@@ -413,10 +415,11 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress"
+      "note": "Pressable · onPress",
+      "stale": true
     },
     {
-      "id": "screens/TripInfoScreen#pressable-193",
+      "id": "screens/TripInfoScreen#pressable-handleback",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/TripInfoScreen.tsx:193",
       "proof": {
@@ -431,7 +434,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripInfoScreen#pressable-264",
@@ -440,7 +444,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripInfoScreen#pressable-325",
@@ -449,7 +454,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripInfoScreen#pressable-353",
@@ -458,7 +464,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/tripDetail/AddItemBar#pressable-158",
@@ -467,12 +474,13 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
-      "id": "screens/tripDetail/AddItemBar#textinput-167",
+      "id": "screens/tripDetail/AddItemBar#textinput-handleadditem",
       "label": "TextInput (dynamic label)",
-      "where": "src/screens/tripDetail/AddItemBar.tsx:167",
+      "where": "src/screens/tripDetail/AddItemBar.tsx:113",
       "proof": {
         "kind": "none"
       },
@@ -485,10 +493,11 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
-      "id": "screens/tripDetail/DoneFab#pressable-39",
+      "id": "screens/tripDetail/DoneFab#pressable-onpress",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/tripDetail/DoneFab.tsx:39",
       "proof": {
@@ -497,7 +506,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/tripDetail/ItemRow#pressable-84",
+      "id": "screens/tripDetail/ItemRow#pressable-drag",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/tripDetail/ItemRow.tsx:84",
       "proof": {
@@ -512,12 +521,13 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
-      "id": "screens/tripDetail/ItemRow#textinput-111",
+      "id": "screens/tripDetail/ItemRow#textinput-onfinishedit",
       "label": "TextInput (dynamic label)",
-      "where": "src/screens/tripDetail/ItemRow.tsx:111",
+      "where": "src/screens/tripDetail/ItemRow.tsx:112",
       "proof": {
         "kind": "none"
       },
@@ -530,10 +540,11 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
-      "id": "screens/tripDetail/UndoBar#pressable-26",
+      "id": "screens/tripDetail/UndoBar#pressable-onundo",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/tripDetail/UndoBar.tsx:26",
       "proof": {
@@ -542,7 +553,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/tripsHome/TripCard#pressable-37",
+      "id": "screens/tripsHome/TripCard#pressable-onpress",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/tripsHome/TripCard.tsx:37",
       "proof": {
@@ -551,8 +562,8 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "components/SyncStatusBar#detail.sync.a11y",
-      "label": "detail.sync.a11y",
+      "id": "components/SyncStatusBar#pressable-onpress",
+      "label": "Pressable (dynamic label)",
       "where": "src/components/SyncStatusBar.tsx:61",
       "proof": {
         "kind": "none"
@@ -560,7 +571,7 @@
       "note": "Pressable · onPress"
     },
     {
-      "id": "screens/TripDetailScreen#pressable-127",
+      "id": "screens/TripDetailScreen#pressable-handleback",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/TripDetailScreen.tsx:127",
       "proof": {
@@ -575,7 +586,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-197",
@@ -584,7 +596,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-223",
@@ -593,7 +606,8 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
       "id": "screens/TripDetailScreen#pressable-262",
@@ -602,10 +616,11 @@
       "proof": {
         "kind": "none"
       },
-      "note": "Pressable · onPress · dynamic/child-text label"
+      "note": "Pressable · onPress · dynamic/child-text label",
+      "stale": true
     },
     {
-      "id": "screens/TripsHomeScreen#pressable-131",
+      "id": "screens/TripsHomeScreen#pressable-handleopensettings",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/TripsHomeScreen.tsx:131",
       "proof": {
@@ -614,7 +629,7 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripsHomeScreen#pressable-146",
+      "id": "screens/TripsHomeScreen#pressable-handlenewtrip",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/TripsHomeScreen.tsx:146",
       "proof": {
@@ -623,9 +638,153 @@
       "note": "Pressable · onPress · dynamic/child-text label"
     },
     {
-      "id": "screens/TripsHomeScreen#pressable-193",
+      "id": "screens/TripsHomeScreen#pressable-handlenewtrip-2",
       "label": "Pressable (dynamic label)",
       "where": "src/screens/TripsHomeScreen.tsx:193",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "components/LaunchNoticeModal#common.gotit",
+      "label": "common.gotIt",
+      "where": "src/components/LaunchNoticeModal.tsx:90",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "components/ReviewModal#about.review",
+      "label": "about.review",
+      "where": "src/components/ReviewModal.tsx:150",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/SettingsScreen#about.learnmore",
+      "label": "about.learnMore",
+      "where": "src/screens/SettingsScreen.tsx:252",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/ShareScreen#share.scaninstead",
+      "label": "share.scanInstead",
+      "where": "src/screens/ShareScreen.tsx:139",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-handleback-2",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:194",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-navigation.navigate",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:203",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-handleopentripinfo",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:229",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripDetailScreen#pressable-handleaddpacker",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripDetailScreen.tsx:268",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-handleback-2",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:214",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-handletogglelaundry",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:270",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-handlepickthoroughness",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:331",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/TripInfoScreen#pressable-handlesubmit",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/TripInfoScreen.tsx:359",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/tripDetail/AddItemBar#pressable-handlecategorypick",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/tripDetail/AddItemBar.tsx:103",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/tripDetail/AddItemBar#pressable-handleadditem",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/tripDetail/AddItemBar.tsx:125",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/tripDetail/ItemRow#pressable-onpackedtoggle",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/tripDetail/ItemRow.tsx:95",
+      "proof": {
+        "kind": "none"
+      },
+      "note": "Pressable · onPress · dynamic/child-text label"
+    },
+    {
+      "id": "screens/tripDetail/ItemRow#pressable-onstartedit",
+      "label": "Pressable (dynamic label)",
+      "where": "src/screens/tripDetail/ItemRow.tsx:131",
       "proof": {
         "kind": "none"
       },
