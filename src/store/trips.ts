@@ -18,7 +18,9 @@
  *   - a packed-only flip stamps the item's OWN clock (packedUpdatedAt/packedAt),
  *     never `updatedAt`, so a concurrent content edit on another device can't
  *     revert it;
- *   - a content edit stamps `updatedAt`;
+ *   - a content edit stamps `updatedAt` — and so does a row being marked
+ *     `userModified` for the first time, because that flag is a person's
+ *     decision and has to reach the other phone;
  *   - an item the caller spliced out is NOT dropped — it becomes a tombstone,
  *     so the delete survives a cross-device merge;
  *   - a rename bumps the name's own clock (`nameUpdatedAt`).
@@ -125,10 +127,11 @@ function migrateLoadedTrip(t: Trip): Trip {
 
 /** Has a content field (anything except `packed`, which rides its own clock)
  *  changed between the old and new copy of an item? Provenance fields
- *  (fromTypeIds/originName/userModified) are deliberately excluded so a
- *  recompose that only re-tags provenance doesn't spuriously out-clock a
- *  peer's real edit. A revive (deletedAt cleared) counts as a content change so
- *  it wins the merge. */
+ *  (fromTypeIds/originName) are deliberately excluded so a recompose that only
+ *  re-tags provenance doesn't spuriously out-clock a peer's real edit. A revive
+ *  (deletedAt cleared) counts as a content change so it wins the merge.
+ *  `userModified` is handled separately by `userIntentGained` — it is only half
+ *  provenance. */
 function itemContentChanged(a: TripItem, b: TripItem): boolean {
   return (
     a.name !== b.name ||
@@ -138,6 +141,32 @@ function itemContentChanged(a: TripItem, b: TripItem): boolean {
     a.source !== b.source ||
     (a.deletedAt ?? 0) !== (b.deletedAt ?? 0)
   );
+}
+
+/**
+ * Did this write just mark the row as one a PERSON has decided about?
+ *
+ * `userModified` is asymmetric, and filing it under provenance cost us a real
+ * sync hole. It is raised ONLY by a user gesture (rename, quantity, assignee,
+ * category, add-bar bump) and lowered ONLY by the composer reclassifying an
+ * edited row as custom — and it is load-bearing, since it is the flag that stops
+ * the composer overwriting or dropping a row.
+ *
+ * So false→true is a person's decision and MUST advance the merge clock. When it
+ * didn't, a gesture whose other fields landed on the values already there
+ * (re-confirming a rename, stepping a quantity back) wrote the flag to this
+ * phone's disk and nowhere else: the row kept its old stamp, a partner's earlier
+ * delete still out-clocked it, and the item vanished on both phones
+ * (`qa/regressions/trip-sync-seed-161340779.json`).
+ *
+ * true→false stays clock-free — THAT one really is provenance, and bumping on it
+ * would let a recompose out-clock a peer's real edit, the defect
+ * `itemContentChanged`'s exclusions exist to prevent. Same doctrine as
+ * `merge.ts`'s `foldClock`: a person's action counts, the composer's stamp does
+ * not. Pinned by `../sync/__tests__/userIntentClock.test.ts`.
+ */
+function userIntentGained(prev: TripItem, next: TripItem): boolean {
+  return !prev.userModified && !!next.userModified;
 }
 
 /**
@@ -163,7 +192,9 @@ function stampTripUpdate(old: Trip, base: Trip): Trip {
       continue;
     }
     let next = it;
-    if (itemContentChanged(prev, it)) next = { ...next, updatedAt: at };
+    if (itemContentChanged(prev, it) || userIntentGained(prev, it)) {
+      next = { ...next, updatedAt: at };
+    }
     if (!!it.packed !== !!prev.packed) {
       next = { ...next, packedUpdatedAt: at, packedAt: it.packed ? at : undefined };
     }
