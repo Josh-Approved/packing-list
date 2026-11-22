@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { LogBox, Linking, AppState } from 'react-native';
+import { LogBox, AppState } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { createNavigationContainerRef } from '@react-navigation/native';
 
@@ -41,7 +41,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import ShareScreen from './src/screens/ShareScreen';
 import Credits from './src/components/Credits';
 import { startSyncEngine, stopSyncEngine, flushSyncEngine } from './src/sync';
-import { parseShareLink } from './src/sync/share';
+import { useShareLinkIntake } from './src/sync/shareIntake';
 import { APP_STORE_ID, ANDROID_PACKAGE } from './src/lib/links';
 import { QA_MODE } from './src/qa/qaMode';
 
@@ -112,31 +112,23 @@ export default function App() {
     return () => sub.remove();
   }, [hydrated]);
 
-  // Pairing via a tapped share link: join the shared trip, open it.
-  useEffect(() => {
-    const handle = (url: string | null) => {
-      const secret = url ? parseShareLink(url) : null;
-      if (!secret) return;
-      const id = useTripsStore.getState().joinShared(secret);
-      const go = () => {
-        if (navigationRef.isReady()) {
-          navigationRef.navigate('TripDetail', { tripId: id });
-          return true;
-        }
-        return false;
-      };
-      if (!go()) setTimeout(go, 500);
-    };
-    Linking.getInitialURL()
-      .then(handle)
-      .catch(() => {});
-    const sub = Linking.addEventListener('url', (e) => handle(e.url));
-    return () => sub.remove();
-  }, []);
-
   // Content is ready once fonts AND disk-loaded data are in (no FOUT, no flash
   // of "no trips yet" on a populated database).
   const ready = fontsLoaded && hydrated && settingsHydrated;
+
+  // Pairing via a tapped / scanned share link: join the shared trip, open it.
+  // The intake holds a link that launched the app until the stores have read
+  // the disk; joining earlier lost the trip on a cold start (the same bug a
+  // Grocery List customer reported 2026-10-24).
+  useShareLinkIntake({
+    ready,
+    join: (secret) => useTripsStore.getState().joinShared(secret),
+    open: (tripId) => {
+      if (!navigationRef.isReady()) return false;
+      navigationRef.navigate('TripDetail', { tripId });
+      return true;
+    },
+  });
 
   return (
     <AppShell ready={ready} navigationRef={navigationRef} review={REVIEW}>
