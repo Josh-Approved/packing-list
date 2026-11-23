@@ -85,6 +85,15 @@
       "timeout": 10000
     },
     {
+      "wait": 1500
+    },
+    {
+      "screenshot": "share"
+    },
+    {
+      "wait": 2000
+    },
+    {
       "assert": "@share-send"
     },
     {

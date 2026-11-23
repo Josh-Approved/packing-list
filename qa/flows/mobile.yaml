@@ -71,6 +71,11 @@ appId: com.joshapproved.packinglist
 - extendedWaitUntil:
     visible: { text: "Anyone with this can see and edit.*" }
     timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 1500
+- takeScreenshot: qa/captures/${STORE}/share
+- waitForAnimationToEnd:
+    timeout: 2000
 - assertVisible: { text: "Send link" }
 - assertVisible: { text: "Scan a code instead" }
 - tapOn:
