@@ -1,24 +1,118 @@
 {
   "style": "signature",
   "motif": "dots",
+  "_note": "Slot spine v2 (canon 2026-10-17, rolled out here 2026-11-22): 1 hero in light mode (the trip's own list, not the trips home), 2-3 the top ASO features (the list that builds itself from trip types; sharing a trip), 4 the Josh Approved card, then saved trips (the packer row is visible in the hero; a magnified layout:detail crop of it rendered broken on 2026-11-22, see ticket screenshot-detail-layout-broken), an accessibility showcase (large text: capture.mjs --font-scale 1.3 --cell store-<store>-large-text) and the dark-mode shot last (--appearance dark --cell store-<store>-dark). Captions are benefits, not labels, 8 words max. Android tablet (7\"/10\") screenshots intentionally omitted: the app is portrait-locked, so Play shows the phone set to tablet users (cleared from the live listing 2026-06-30).",
   "stores": {
     "ios": [
-      { "id": "core",          "source": "ios/list.png",    "caption": "A packing list. Builds itself from your trip." },
-      { "id": "josh-approved", "kind": "card" },
-      { "id": "types",         "source": "ios/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
-      { "id": "packers",       "source": "ios/packers.png", "caption": "Split the list across everyone packing." }
+      {
+        "id": "core",
+        "source": "ios/packers.png",
+        "caption": "A packing list. Builds itself from your trip."
+      },
+      {
+        "id": "types",
+        "source": "ios/types.png",
+        "caption": "Choose trip types. Quantities adjust to match."
+      },
+      {
+        "id": "share",
+        "source": "ios/share.png",
+        "caption": "Share a trip. Pack together from two phones."
+      },
+      {
+        "id": "josh-approved",
+        "kind": "card"
+      },
+      {
+        "id": "trips",
+        "source": "ios/list.png",
+        "caption": "Save a trip. Reuse it next time."
+      },
+      {
+        "id": "large-text",
+        "source": "matrix/store-ios-large-text/packers.png",
+        "caption": "Readable at any text size."
+      },
+      {
+        "id": "dark",
+        "source": "matrix/store-ios-dark/types.png",
+        "theme": "dark",
+        "caption": "Easy on the eyes after dark."
+      }
     ],
     "android": [
-      { "id": "core",          "source": "android/list.png",    "caption": "A packing list. Builds itself from your trip." },
-      { "id": "josh-approved", "kind": "card" },
-      { "id": "types",         "source": "android/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
-      { "id": "packers",       "source": "android/packers.png", "caption": "Split the list across everyone packing." }
+      {
+        "id": "core",
+        "source": "android/packers.png",
+        "caption": "A packing list. Builds itself from your trip."
+      },
+      {
+        "id": "types",
+        "source": "android/types.png",
+        "caption": "Choose trip types. Quantities adjust to match."
+      },
+      {
+        "id": "share",
+        "source": "android/share.png",
+        "caption": "Share a trip. Pack together from two phones."
+      },
+      {
+        "id": "josh-approved",
+        "kind": "card"
+      },
+      {
+        "id": "trips",
+        "source": "android/list.png",
+        "caption": "Save a trip. Reuse it next time."
+      },
+      {
+        "id": "large-text",
+        "source": "matrix/store-android-large-text/packers.png",
+        "caption": "Readable at any text size."
+      },
+      {
+        "id": "dark",
+        "source": "matrix/store-android-dark/types.png",
+        "theme": "dark",
+        "caption": "Easy on the eyes after dark."
+      }
     ],
     "ipad": [
-      { "id": "core",          "source": "ipad/list.png",    "caption": "A packing list. Builds itself from your trip." },
-      { "id": "josh-approved", "kind": "card" },
-      { "id": "types",         "source": "ipad/types.png",   "caption": "Choose trip types. Quantities adjust to match." },
-      { "id": "packers",       "source": "ipad/packers.png", "caption": "Split the list across everyone packing." }
+      {
+        "id": "core",
+        "source": "ipad/packers.png",
+        "caption": "A packing list. Builds itself from your trip."
+      },
+      {
+        "id": "types",
+        "source": "ipad/types.png",
+        "caption": "Choose trip types. Quantities adjust to match."
+      },
+      {
+        "id": "share",
+        "source": "ipad/share.png",
+        "caption": "Share a trip. Pack together from two phones."
+      },
+      {
+        "id": "josh-approved",
+        "kind": "card"
+      },
+      {
+        "id": "trips",
+        "source": "ipad/list.png",
+        "caption": "Save a trip. Reuse it next time."
+      },
+      {
+        "id": "large-text",
+        "source": "matrix/store-ipad-large-text/packers.png",
+        "caption": "Readable at any text size."
+      },
+      {
+        "id": "dark",
+        "source": "matrix/store-ipad-dark/types.png",
+        "theme": "dark",
+        "caption": "Easy on the eyes after dark."
+      }
     ]
   }
 }
