@@ -1,7 +1,7 @@
 {
   "style": "signature",
   "motif": "dots",
-  "_note": "Slot spine v2 (canon 2026-10-17, rolled out here 2026-11-22): 1 hero in light mode (the trip's own list, not the trips home), 2-3 the top ASO features (the list that builds itself from trip types; sharing a trip), 4 the Josh Approved card, then saved trips (the packer row is visible in the hero; a magnified layout:detail crop of it rendered broken on 2026-11-22, see ticket screenshot-detail-layout-broken), an accessibility showcase (large text: capture.mjs --font-scale 1.3 --cell store-<store>-large-text) and the dark-mode shot last (--appearance dark --cell store-<store>-dark). Captions are benefits, not labels, 8 words max. Android tablet (7\"/10\") screenshots intentionally omitted: the app is portrait-locked, so Play shows the phone set to tablet users (cleared from the live listing 2026-06-30).",
+  "_note": "Slot spine v2 (canon 2026-10-17, rolled out here 2026-11-22): 1 hero in light mode (the trip's own list, not the trips home), 2-3 the top ASO features (the list that builds itself from trip types; sharing a trip), 4 the Josh Approved card, then saved trips (the packer row is visible in the hero; a magnified layout:detail crop of it rendered broken on 2026-11-22, see ticket screenshot-detail-layout-broken), an accessibility showcase (large text: capture.mjs --font-scale 1.3 --cell store-<store>-large-text) and the dark-mode shot last (--appearance dark --cell store-<store>-dark). Captions are benefits, not labels, 8 words max. Android tablet (7\"/10\") screenshots intentionally omitted: the app is portrait-locked, so Play shows the phone set to tablet users (cleared from the live listing 2026-06-30). Android uses the trip-types screen for large text and the share screen for dark: at large text the Android trip list breaks item names mid-word (defect logged 2026-11-22), and the store set must not advertise that.",
   "stores": {
     "ios": [
       {
@@ -67,12 +67,12 @@
       },
       {
         "id": "large-text",
-        "source": "matrix/store-android-large-text/packers.png",
+        "source": "matrix/store-android-large-text/types.png",
         "caption": "Readable at any text size."
       },
       {
         "id": "dark",
-        "source": "matrix/store-android-dark/types.png",
+        "source": "matrix/store-android-dark/share.png",
         "theme": "dark",
         "caption": "Easy on the eyes after dark."
       }
